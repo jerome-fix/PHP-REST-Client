@@ -85,7 +85,9 @@ abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelIn
 
     protected function configureResponse() {
         parent::configureResponse();
-        $this->Response->getBody();
+        if ($this->Response->getStatus() == '200'){
+            $this->data->update($this->Response->getBody());
+        }
     }
 
     /**

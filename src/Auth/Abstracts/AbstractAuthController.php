@@ -133,7 +133,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
             $Data = new EndpointData();
         }
         $Data->update($this->credentials);
-        $response = $this->AuthEndpoint->setData($Data)->execute()->getRequest()->getResponse();
+        $response = $this->AuthEndpoint->setData($Data)->execute()->getResponse();
         if ($response->getStatus() == '200'){
             $this->setToken($response->getBody(true));
             return true;
@@ -146,7 +146,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
      */
     public function logout(){
         $this->configure($this->LogoutEndpoint);
-        $response = $this->LogoutEndpoint->execute()->getRequest()->getResponse();
+        $response = $this->LogoutEndpoint->execute()->getResponse();
         if ($response->getStatus() == '200'){
             $this->clearToken();
             return true;

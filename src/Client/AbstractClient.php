@@ -1,12 +1,9 @@
 <?php
-/**
- * ©[2016] SugarCRM Inc.  Licensed by SugarCRM under the Apache 2.0 license.
- */
 
 namespace MRussell\REST\Client;
 
 use MRussell\REST\Auth\AuthControllerInterface;
-use MRussell\REST\Endpoint\ControllerInterface;
+use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Endpoint\Provider\EndpointProviderInterface;
 use MRussell\REST\Exception\Client\EndpointProviderMissing;
 use MRussell\REST\Exception\Endpoint\EndpointException;
@@ -45,12 +42,12 @@ abstract class AbstractClient implements ClientInterface
     protected $version = NULL;
 
     /**
-     * @var ControllerInterface
+     * @var EndpointInterface
      */
     protected $currentEndPoint;
 
     /**
-     * @var ControllerInterface
+     * @var EndpointInterface
      */
     protected $lastEndPoint;
 
@@ -179,7 +176,7 @@ abstract class AbstractClient implements ClientInterface
             $this->setCurrentEndpoint($this->EndpointProvider->getEndpoint($name,$this->version))
                 ->current()
                     ->setBaseUrl($this->apiURL)
-                    ->setProperties($arguments);
+                    ->setOptions($arguments);
             return $this->currentEndPoint;
         }else{
             throw new EndpointProviderMissing();
@@ -189,7 +186,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @inheritdoc
      */
-    protected function setCurrentEndpoint(ControllerInterface $Endpoint)
+    protected function setCurrentEndpoint(EndpointInterface $Endpoint)
     {
         if (isset($this->currentEndPoint)){
             unset($this->lastEndPoint);

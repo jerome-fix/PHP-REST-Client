@@ -48,10 +48,5 @@ interface ModelInterface {
      */
     public function delete();
 
-    /**
-     * Get the Model Object
-     * @return mixed
-     */
-    public function getModel();
 
 }

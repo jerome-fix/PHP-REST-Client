@@ -1,6 +1,6 @@
 [![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%205.3-8892BF.svg)](https://php.net/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Total Downloads](https://poser.pugx.org/sugarcrm/rest-php-client/downloads)](https://packagist.org/packages/michaelj2324/php-rest-client)
+[![Total Downloads](https://poser.pugx.org/michaelj2324/php-rest-client/downloads)](https://packagist.org/packages/michaelj2324/php-rest-client)
 
 #PHP REST Client#
 

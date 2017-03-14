@@ -1,23 +1,16 @@
 <?php
-/**
- * ©[2016] SugarCRM Inc.  Licensed by SugarCRM under the Apache 2.0 license.
- */
 
 namespace MRussell\REST\Client;
 
 use MRussell\REST\Auth\AuthControllerInterface;
-use MRussell\REST\Endpoint\ControllerInterface;
+use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Endpoint\Provider\EndpointProviderInterface;
-use MRussell\REST\Exception\Authentication\AuthenticationException;
-use MRussell\REST\Response\Provider\ResponseProviderInterface;
-use MRussell\REST\Response\ResponseControllerInterface;
-use MRussell\REST\Storage\StorageControllerInterface;
 
 interface ClientInterface
 {
 
     /**
-     *
+     * Set the Auth Controller that handles Auth for the API
      * @param AuthControllerInterface $Auth
      * @return $this
      */
@@ -30,7 +23,7 @@ interface ClientInterface
     public function getAuth();
 
     /**
-     *
+     * Set the Endpoint Provider that is to be used by the REST Client
      * @param EndpointProviderInterface $EndpointProvider
      * @return $this
      */
@@ -69,18 +62,20 @@ interface ClientInterface
     public function setVersion($version);
 
     /**
-     *
+     * Set the Client API Version that is to be used
      * @return string $version
      */
     public function getVersion();
 
     /**
-     * @return ControllerInterface
+     * Get the Endpoint currently being used
+     * @return EndpointInterface
      */
     public function current();
 
     /**
-     * @return ControllerInterface
+     * Get the last Endpoint Used
+     * @return EndpointInterface
      */
     public function last();
 

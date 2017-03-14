@@ -1,0 +1,5 @@
+*.iml
+.idea/
+vendor/
+coverage/
+composer.lock

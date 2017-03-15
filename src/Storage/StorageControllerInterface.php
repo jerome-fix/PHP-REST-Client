@@ -13,7 +13,7 @@ interface StorageControllerInterface {
     /**
      * @param $key
      * @param $value
-     * @return mixed
+     * @return self|FALSE
      */
     public function set($key,$value);
 

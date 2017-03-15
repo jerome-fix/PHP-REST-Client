@@ -6,9 +6,6 @@ use MRussell\REST\Auth\AuthControllerInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Endpoint\Provider\EndpointProviderInterface;
 use MRussell\REST\Exception\Client\EndpointProviderMissing;
-use MRussell\REST\Exception\Endpoint\EndpointException;
-use MRussell\REST\Response\Provider\ResponseProviderInterface;
-use MRussell\REST\Storage\StorageControllerInterface;
 
 /**
  * A Generic Abstract Client
@@ -176,7 +173,8 @@ abstract class AbstractClient implements ClientInterface
             $this->setCurrentEndpoint($this->EndpointProvider->getEndpoint($name,$this->version))
                 ->current()
                     ->setBaseUrl($this->apiURL)
-                    ->setOptions($arguments);
+                    ->setOptions($arguments)
+                    ->setAuth($this->Auth);
             return $this->currentEndPoint;
         }else{
             throw new EndpointProviderMissing();
@@ -184,7 +182,9 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
-     * @inheritdoc
+     * Rotates current Endpoint to Last Endpoint, and sets Current Endpoint with passed in Endpoint
+     * @param EndpointInterface $Endpoint
+     * @return self
      */
     protected function setCurrentEndpoint(EndpointInterface $Endpoint)
     {

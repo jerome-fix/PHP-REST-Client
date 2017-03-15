@@ -8,35 +8,19 @@ use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Exception\Endpoint\RegistrationException;
 use MRussell\REST\Exception\Endpoint\UnknownEndpoint;
 
-abstract class AbstractEndpointProvider implements EndpointProviderInterface {
+abstract class AbstractEndpointProvider implements EndpointProviderInterface
+{
 
     /**
-     * @var AuthControllerInterface
+     * List of default endpoints to load
+     * @var array
      */
-    protected $Auth;
+    protected static $_DEFAULT_ENDPOINTS = array();
 
     /**
      * @var array
      */
     protected $registry;
-
-    /**
-     *
-     * @inheritdoc
-     */
-    public function setAuth(AuthControllerInterface $Auth)
-    {
-        $this->Auth = $Auth;
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getAuth()
-    {
-        return $this->Auth;
-    }
 
     /**
      * @inheritdoc
@@ -82,17 +66,10 @@ abstract class AbstractEndpointProvider implements EndpointProviderInterface {
      */
     protected function buildEndpoint($name,$version = NULL){
         $endPointArray = $this->registry[$name];
-        $Endpoint = new $endPointArray['class']();
-        if ($Endpoint->authRequired()){
-            $this->Auth->configure($Endpoint);
-        }
+        $Class = $endPointArray['class'];
+        $properties = $endPointArray['properties'];
+        $Endpoint = new $Class();
+        $Endpoint->setProperties($properties);
         return $Endpoint;
-    }
-
-    /**
-     * @param $name
-     */
-    protected function authRequired($name){
-
     }
 }

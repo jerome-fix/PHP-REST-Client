@@ -23,19 +23,6 @@ interface EndpointProviderInterface {
      */
     public function registerEndpoint($name,$className,array $properties = array());
 
-
-    /**
-     * Set the Auth controller used to add Authentication to Endpoint objects
-     * @param AuthControllerInterface $Auth
-     * @return $this
-     */
-    public function setAuth(AuthControllerInterface $Auth);
-
-    /**
-     * @return mixed
-     */
-    public function getAuth();
-
     /**
      * Check if Endpoint is registered
      * @param $name

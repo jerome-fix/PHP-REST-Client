@@ -3,7 +3,8 @@
 namespace MRussell\REST\Endpoint\Interfaces;
 
 
-interface ModelInterface {
+interface ModelInterface extends EndpointInterface
+{
 
     /**
      * Get or Set the Model ID Key used by the Model

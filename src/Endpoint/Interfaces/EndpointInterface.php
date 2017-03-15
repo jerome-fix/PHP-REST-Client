@@ -4,6 +4,7 @@ namespace MRussell\REST\Endpoint\Interfaces;
 
 use MRussell\Http\Request\RequestInterface;
 use MRussell\Http\Response\ResponseInterface;
+use MRussell\REST\Auth\AuthControllerInterface;
 use MRussell\REST\Endpoint\Data\DataInterface;
 
 interface EndpointInterface
@@ -24,7 +25,7 @@ interface EndpointInterface
     /**
      * Set the Properties that define the API Endpoint
      * @param array $properties
-     * @return $this
+     * @return self
      */
     public function setProperties(array $properties);
 
@@ -32,7 +33,7 @@ interface EndpointInterface
      * Set the Properties that define the API Endpoint
      * @param string $name
      * @param mixed $value
-     * @return $this
+     * @return self
      */
     public function setProperty($name,$value);
 
@@ -45,14 +46,20 @@ interface EndpointInterface
     /**
      * Sets the data on the Endpoint Object, that will be passed to Request Object
      * @param DataInterface $data
-     * @return $this
+     * @return self
      */
     public function setData(DataInterface $data);
 
     /**
+     * Get the data being used by the Endpoint
+     * @return DataInterface
+     */
+    public function getData();
+
+    /**
      * Set the Base URL that the Endpoint uses in regards to it's pre-configured Endpoint URL
      * @param $url
-     * @return $this
+     * @return self
      */
     public function setBaseUrl($url);
 
@@ -71,28 +78,22 @@ interface EndpointInterface
     /**
      * Set the Request Object used by the Endpoint
      * @param RequestInterface $Request
-     * @return $this
+     * @return self
      */
     public function setRequest(RequestInterface $Request);
 
     /**
      * Set the Response Object used by the Endpoint
      * @param ResponseInterface $Response
-     * @return $this
+     * @return self
      */
     public function setResponse(ResponseInterface $Response);
 
     /**
      * Execute the Endpoint Object using the desired action
-     * @return $this
+     * @return self
      */
     public function execute();
-
-    /**
-     * Get the data URL being used by the Endpoint
-     * @return string
-     */
-    public function getData();
 
     /**
      * Get the Request Object being used by the Endpoint
@@ -105,5 +106,23 @@ interface EndpointInterface
      * @return ResponseInterface
      */
     public function getResponse();
+
+    /**
+     * Check if authentication is required for use of the Endpoint
+     * @return bool
+     */
+    public function authRequired();
+
+    /**
+     * Set the Auth controller used to add Authentication to Endpoint objects
+     * @param AuthControllerInterface $Auth
+     * @return $this
+     */
+    public function setAuth(AuthControllerInterface $Auth);
+
+    /**
+     * @return mixed
+     */
+    public function getAuth();
 
 }

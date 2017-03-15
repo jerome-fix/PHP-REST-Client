@@ -12,7 +12,7 @@ interface ClientInterface
     /**
      * Set the Auth Controller that handles Auth for the API
      * @param AuthControllerInterface $Auth
-     * @return $this
+     * @return self
      */
     public function setAuth(AuthControllerInterface $Auth);
 
@@ -25,7 +25,7 @@ interface ClientInterface
     /**
      * Set the Endpoint Provider that is to be used by the REST Client
      * @param EndpointProviderInterface $EndpointProvider
-     * @return $this
+     * @return self
      */
     public function setEndpointProvider(EndpointProviderInterface $EndpointProvider);
 
@@ -38,7 +38,7 @@ interface ClientInterface
     /**
      * Set the server on the Client, and configure the API Url if necessary
      * @param $server
-     * @return $this
+     * @return self
      */
     public function setServer($server);
 
@@ -57,7 +57,7 @@ interface ClientInterface
     /**
      * Set the API Version to use
      * @param $version
-     * @return $this
+     * @return self
      */
     public function setVersion($version);
 

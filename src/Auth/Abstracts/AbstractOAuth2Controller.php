@@ -2,12 +2,23 @@
 
 namespace MRussell\REST\Auth;
 
+use MRussell\Http\Request\RequestInterface;
+use MRussell\REST\Endpoint\Data\EndpointData;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Exception\Authentication\InvalidToken;
 use MRussell\REST\Exception\Authentication\NotAuthenticated;
 
 abstract class AbstractOAuth2Controller extends AbstractAuthController
 {
+    const ACTION_OAUTH_REFRESH = 'refresh';
+
+    const OAUTH_RESOURCE_OWNER_GRANT = 'password';
+
+    const OAUTH_CLIENT_CREDENTIALS_GRANT = 'client_credentials';
+
+    const OAUTH_AUTHORIZATION_CODE_GRANT = 'authorization_code';
+
+    const OAUTH_REFRESH_GRANT = 'refresh_token';
 
     /**
      * @var string
@@ -17,27 +28,30 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
     /**
      * @var string
      */
-    protected static $_REFRESH_ENDPOINT_CLASS = '';
+    protected static $_DEFAULT_GRANT_TYPE = self::OAUTH_CLIENT_CREDENTIALS_GRANT;
 
     /**
-     * @var EndpointInterface
+     * @var string
      */
-    protected $Oauth_RefreshEndpoint;
+    protected static $_TOKEN_VALUE = 'Bearer %s';
 
+    protected $actions = array(
+        self::ACTION_OAUTH_REFRESH
+    );
 
-    public function __construct() {
-        parent::__construct();
-        if (static::$_REFRESH_ENDPOINT_CLASS !== ''){
-            $this->setRefreshEndpoint(new static::$_REFRESH_ENDPOINT_CLASS());
-        }
-    }
+    /**
+     *
+     * @var array
+     */
+    protected $token = array();
 
     /**
      * Set the OAuth Authorization header
      * @param $header
      * @return $this
      */
-    public static function oauthHeader($header = NULL){
+    public static function oauthHeader($header = NULL)
+    {
         if ($header !== NULL){
             static::$_OAUTH_HEADER = $header;
         }
@@ -48,8 +62,9 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
      * @inheritdoc
      * @throws InvalidToken
      */
-    protected function setToken($token) {
-        if (is_object($token) && isset($token->access_token)){
+    protected function setToken(array $token)
+    {
+        if (isset($token['access_token'])){
             $token = $this->configureToken($token);
             parent::setToken($token);
         } else {
@@ -62,9 +77,10 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
      * @param $token
      * @return mixed
      */
-    protected function configureToken($token){
-        if (isset($token->expires_in)){
-            $token->expiration = time() + ($token->expires_in - 30);
+    protected function configureToken($token)
+    {
+        if (isset($token['expires_in'])){
+            $token['expiration'] = time() + ($token['expires_in'] - 30);
         }
         return $token;
     }
@@ -73,24 +89,14 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
      * @inheritdoc
      * @throws NotAuthenticated
      */
-    public function configure(EndpointInterface $Endpoint) {
+    public function configure(RequestInterface $Request)
+    {
         if ($this->isAuthenticated()) {
-            $Endpoint->getRequest()->addHeader(static::$_OAUTH_HEADER, "Bearer ".$this->token->access_token);
+            $Request->addHeader(static::$_OAUTH_HEADER, sprintf(static::$_TOKEN_VALUE,$this->token['access_token']));
             return $this;
         } else {
             throw new NotAuthenticated();
         }
-    }
-
-    /**
-     * Set the Refresh Endpoint
-     * @param EndpointInterface $Endpoint
-     * @return $this
-     */
-    public function setRefreshEndpoint(EndpointInterface $Endpoint)
-    {
-        $this->Oauth_RefreshEndpoint = $Endpoint;
-        return $this;
     }
 
     /**
@@ -101,11 +107,13 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
      */
     public function refresh()
     {
-        $this->configure($this->Oauth_RefreshEndpoint);
-        $response = $this->Oauth_RefreshEndpoint->execute()->getRequest()->getResponse();
-        if ($response->getStatus() == '200'){
-            $this->setToken($response->getBody(true));
-            return true;
+        if (isset($this->token['refresh_token'])){
+            $Endpoint = $this->configureData(self::ACTION_OAUTH_REFRESH);
+            $response = $Endpoint->execute()->getResponse();
+            if ($response->getStatus() == '200'){
+                $this->clearToken();
+                return true;
+            }
         }
         return false;
     }
@@ -114,9 +122,10 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
      * Checks for Access Token property in token, and checks if Token is expired
      * @inheritdoc
      */
-    public function isAuthenticated() {
+    public function isAuthenticated()
+    {
         if (parent::isAuthenticated()){
-            if (isset($this->token->access_token)){
+            if (isset($this->token['access_token'])){
                 $expired = $this->isTokenExpired();
                 //We err on the side of valid vs invalid, as the API will invalidate if we are wrong, which isn't harmful
                 if ($expired === FALSE || $expired === -1){
@@ -133,8 +142,8 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
      * @return bool|int
      */
     protected function isTokenExpired(){
-        if (isset($this->token->expiration)){
-            if (time() > $this->token->expiration){
+        if (isset($this->token['expiration'])){
+            if (time() > $this->token['expiration']){
                 return true;
             }else{
                 return false;
@@ -143,5 +152,30 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
         return -1;
     }
 
+    protected function configureData($action) {
+        if ($action == self::ACTION_OAUTH_REFRESH){
+            $Endpoint = $this->getActionEndpoint($action);
+            return $this->configureRefreshData($Endpoint);
+        }
+        return parent::configureData($action);
+    }
+
+    /**
+     * @param EndpointInterface $Endpoint
+     * @return EndpointInterface
+     */
+    protected function configureRefreshData(EndpointInterface $Endpoint){
+        $Data = $Endpoint->getData();
+        if (!is_object($Data)){
+            $Data = new EndpointData();
+        } else {
+            $Data->clear();
+        }
+        $Data['client_id'] = $this->credentials['client_id'];
+        $Data['client_secret'] = $this->credentials['client_secret'];
+        $Data['grant_type'] = self::OAUTH_REFRESH_GRANT;
+        $Data['refresh_token'] = $this->token['refresh_token'];
+        return $Endpoint->setData($Data);
+    }
 
 }

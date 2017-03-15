@@ -3,6 +3,7 @@
 namespace MRussell\REST\Endpoint\Abstracts;
 
 use MRussell\Http\Request\Curl;
+use MRussell\REST\Auth\AuthControllerInterface;
 use MRussell\REST\Endpoint\Data\DataInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Exception\Endpoint\InvalidRequestException;
@@ -77,6 +78,11 @@ abstract class AbstractEndpoint implements EndpointInterface
      * @var ResponseInterface
      */
     protected $Response;
+
+    /**
+     * @var AuthControllerInterface
+     */
+    protected $Auth;
 
     public function __construct(array $options = array(),array $properties = array()) {
         $this->setProperties(static::$_DEFAULT_PROPERTIES);
@@ -260,6 +266,11 @@ abstract class AbstractEndpoint implements EndpointInterface
         }
         $data = $this->configureData($this->data);
         $this->Request->setBody($data);
+        if ($this->authRequired()){
+            if (isset($this->Auth)){
+                $this->Auth->configure($this->Request);
+            }
+        }
     }
 
     /**
@@ -355,5 +366,24 @@ abstract class AbstractEndpoint implements EndpointInterface
             $variables = $match[0];
         }
         return $variables;
+    }
+
+
+    /**
+     *
+     * @inheritdoc
+     */
+    public function setAuth(AuthControllerInterface $Auth)
+    {
+        $this->Auth = $Auth;
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getAuth()
+    {
+        return $this->Auth;
     }
 }

@@ -3,11 +3,12 @@
 namespace MRussell\REST\Endpoint\Interfaces;
 
 
-interface CollectionInterface {
+interface CollectionInterface extends EndpointInterface
+{
 
     /**
      * Retrieve the Endpoint Collection
-     * @return mixed
+     * @return self
      */
     public function fetch();
 
@@ -20,14 +21,14 @@ interface CollectionInterface {
     /**
      * Set the Model Endpoint
      * @param mixed $model
-     * @return mixed
+     * @return self
      */
     public function setModelEndpoint($model);
 
     /**
      * Get a Model Endpoint based on Id
      * @param $id
-     * @return mixed
+     * @return ModelInterface
      */
     public function get($id);
 }

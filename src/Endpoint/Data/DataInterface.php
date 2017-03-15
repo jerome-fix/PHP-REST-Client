@@ -3,11 +3,11 @@
 namespace MRussell\REST\Endpoint\Data;
 
 
-interface DataInterface
+interface DataInterface extends \ArrayAccess
 {
     /**
      * @param array $properties
-     * @return $this
+     * @return self
      */
     public function setProperties(array $properties);
 
@@ -22,26 +22,27 @@ interface DataInterface
     public function asArray();
 
     /**
-     * @return $this
+     * @return self
      */
     public function reset();
 
     /**
-     * @return $this
+     * 
+     * @return self
      */
     public function clear();
 
     /**
      * Set the Data array with passed in array
      * @param array $data
-     * @return $this
+     * @return self
      */
     public function set(array $data);
 
     /**
      * Update and append to Data array
      * @param array $data
-     * @return $this
+     * @return self
      */
     public function update(array $data);
 

@@ -2,10 +2,9 @@
 
 namespace MRussell\REST\Endpoint\Data;
 
-
 use MRussell\REST\Exception\Endpoint\RequiredDataException;
 
-abstract class AbstractEndpointData implements DataInterface, \ArrayAccess
+abstract class AbstractEndpointData implements DataInterface
 {
     protected static $_DEFAULT_PROPERTIES = array(
         'required' => array(),

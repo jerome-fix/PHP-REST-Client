@@ -51,13 +51,15 @@ abstract class AbstractCollectionEndpoint extends AbstractEndpoint implements Co
     protected function configureCollection(){
         if ($this->Response->getStatus() == '200'){
             $responseBody = $this->Response->getBody();
-            if (isset($this->_Model)){
-                $modelIdKey = $this->_Model->modelIdKey();
-                foreach($responseBody as $key => $model){
-                    $this->collection[$model[$modelIdKey]] = $model;
+            if (is_array($responseBody)){
+                if (isset($this->_Model)){
+                    $modelIdKey = $this->_Model->modelIdKey();
+                    foreach($responseBody as $key => $model){
+                        $this->collection[$model[$modelIdKey]] = $model;
+                    }
+                } else {
+                    $this->collection = $responseBody;
                 }
-            } else {
-                $this->collection = $responseBody;
             }
         }
     }

@@ -13,11 +13,42 @@ abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelIn
 {
     const MODEL_ID_VAR = 'id';
 
+    const MODEL_ACTION_CREATE = 'create';
+
+    const MODEL_ACTION_READ = 'read';
+
+    const MODEL_ACTION_UPDATE = 'update';
+
+    const MODEL_ACTION_DELETE = 'delete';
+
     /**
      * The ID Field used by the Model
      * @var string
      */
     protected static $_MODEL_ID_KEY = 'id';
+
+    /**
+     * List of actions
+     * @var array
+     */
+    protected static $_DEFAULT_ACTIONS = array(
+        'create' => Curl::HTTP_POST,
+        'read' => Curl::HTTP_GET,
+        'update' => Curl::HTTP_PUT,
+        'delete' => Curl::HTTP_DELETE
+    );
+
+    /**
+     * List of available actions and their associated Request Method
+     * @var array
+     */
+    protected $actions = array();
+
+    /**
+     * Current action being executed
+     * @var string
+     */
+    protected $action = 'read';
 
     /**
      * @param null $id
@@ -28,6 +59,20 @@ abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelIn
             static::$_MODEL_ID_KEY = $id;
         }
         return static::$_MODEL_ID_KEY;
+    }
+
+    public function __construct(array $options, array $properties) {
+        parent::__construct($options, $properties);
+        foreach(static::$_DEFAULT_ACTIONS as $action => $method){
+            $this->actions[$action] = $method;
+        }
+    }
+
+    public function __call($name, $arguments) {
+        if (array_key_exists($name,$this->actions)){
+            $this->action = $name;
+            return $this->execute();
+        }
     }
 
     /**
@@ -57,7 +102,7 @@ abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelIn
             }
             $this->data[$idKey] = $id;
         }
-        $this->setProperty('httpMethod',Curl::HTTP_GET);
+        $this->action = self::MODEL_ACTION_READ;
         $this->execute();
     }
 
@@ -68,9 +113,9 @@ abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelIn
      */
     public function save() {
         if (isset($this->data[static::modelIdKey()])){
-            $this->setProperty('httpMethod',Curl::HTTP_PUT);
+            $this->action = self::MODEL_ACTION_UPDATE;
         } else {
-            $this->setProperty('httpMethod',Curl::HTTP_POST);
+            $this->action = self::MODEL_ACTION_CREATE;
         }
         return $this->execute();
     }
@@ -79,10 +124,32 @@ abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelIn
      * @inheritdoc
      */
     public function delete(){
-        $this->setProperty('httpMethod',Curl::HTTP_DELETE);
+        $this->action = self::MODEL_ACTION_DELETE;
         $this->execute();
     }
 
+    /**
+     * Configures Action before configuring Request
+     * @inheritdoc
+     */
+    protected function configureRequest() {
+        $this->configureAction($this->action);
+        parent::configureRequest();
+    }
+
+    /**
+     * Update any properties or data based on the current action
+     * @param $action
+     */
+    protected function configureAction($action){
+        if (isset($this->actions[$action])){
+            $this->setProperty('httpMethod',$this->actions[$action]);
+        }
+    }
+
+    /**
+     *
+     */
     protected function configureResponse() {
         parent::configureResponse();
         if ($this->Response->getStatus() == '200'){

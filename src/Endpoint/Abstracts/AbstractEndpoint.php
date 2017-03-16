@@ -368,6 +368,14 @@ abstract class AbstractEndpoint implements EndpointInterface
         return $variables;
     }
 
+    public function authRequired() {
+        $required = FALSE;
+        if (isset($this->properties['auth'])){
+            $required = $this->properties['auth'];
+        }
+        return $required;
+    }
+
 
     /**
      *

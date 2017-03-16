@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "php-rest-client",
-  "version": "0.5",
+  "version": "0.7",
   "description": "An object oriented framework for interacting with REST APIs",
   "directories": {
     "test": "tests"

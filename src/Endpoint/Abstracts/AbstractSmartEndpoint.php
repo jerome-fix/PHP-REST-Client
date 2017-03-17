@@ -65,7 +65,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint
      * @inheritdoc
      */
     public function setData($data) {
-        if ($data instanceof EndpointData){
+        if ($data instanceof AbstractEndpointData){
             $this->data = $data;
         } else if (is_array($data) && is_object($this->data)){
             $this->data->reset();

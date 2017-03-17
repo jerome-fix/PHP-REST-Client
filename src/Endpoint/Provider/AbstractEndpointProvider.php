@@ -38,7 +38,7 @@ abstract class AbstractEndpointProvider implements EndpointProviderInterface
     public function registerEndpoint($name, $className, array $properties = array())
     {
         $implements = class_implements($className);
-        if (is_array($implements) && in_array('MRussell\REST\Endpoint\EndpointInterface', $implements)) {
+        if (is_array($implements) && isset($implements['MRussell\\REST\\Endpoint\\Interfaces\\EndpointInterface'])) {
             $this->registry[$name] = array(
                 'class' => $className,
                 'properties' => $properties

@@ -32,9 +32,9 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint
 
     public function __construct(array $options = array(), array $properties = array()) {
         parent::__construct($options, $properties);
-        if (static::$_DATA_CLASS !== '' || !empty(static::$_DATA_CLASS)){
+        if (static::$_DATA_CLASS !== '' && !empty(static::$_DATA_CLASS)){
             $implements = class_implements(static::$_DATA_CLASS);
-            if (in_array("MRussell\\REST\\Endpoint\\Data\\DataInterface",$implements)){
+            if (is_array($implements) && isset($implements["MRussell\\REST\\Endpoint\\Data\\DataInterface"])){
                 $data = new static::$_DATA_CLASS();
                 $this->setData($data);
             }
@@ -46,7 +46,9 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint
      */
     public function setProperties(array $properties) {
         parent::setProperties($properties);
-        $this->configureDataProperties();
+        if (isset($this->data)){
+            $this->configureDataProperties();
+        }
         return $this;
     }
 
@@ -55,7 +57,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint
      */
     public function setProperty($name, $value) {
         parent::setProperty($name, $value);
-        if ($name == 'data'){
+        if ($name == 'data' && isset($this->data)){
             $this->configureDataProperties();
         }
         return $this;

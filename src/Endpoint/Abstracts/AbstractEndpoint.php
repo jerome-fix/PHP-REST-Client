@@ -98,7 +98,8 @@ abstract class AbstractEndpoint implements EndpointInterface
      */
     public function setOptions(array $options)
     {
-        return $this->options = $options;
+        $this->options = $options;
+        return $this;
     }
 
     /**

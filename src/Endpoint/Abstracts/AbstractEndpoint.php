@@ -337,8 +337,9 @@ abstract class AbstractEndpoint implements EndpointInterface
                         $optional = TRUE;
                         $replace = '';
                     }
-                    if (isset($options[str_replace(array('$',':'),'',$urlPart)])){
-                        $replace = $options[$urlPart];
+                    $opt = str_replace(array(static::$_URL_VAR_CHARACTER,':'),'',$urlPart);
+                    if (isset($options[$opt])){
+                        $replace = $options[$opt];
                     }
                     if (isset($options[$optionNum]) && ($replace == '' || $replace == NULL)){
                         $replace = $options[$optionNum];
@@ -352,6 +353,7 @@ abstract class AbstractEndpoint implements EndpointInterface
                 }
             }
             $url = implode("/",$urlArr);
+            rtrim($url,"/");
         }
 
         return $url;

@@ -2,7 +2,7 @@
 
 namespace MRussell\REST\Auth\Abstracts;
 
-use MRussell\REST\Endpoint\Data\DataInterface;
+use MRussell\REST\Auth\AuthControllerInterface;
 use MRussell\REST\Endpoint\Data\EndpointData;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Storage\StorageControllerInterface;

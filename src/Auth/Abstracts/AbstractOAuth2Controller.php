@@ -1,6 +1,6 @@
 <?php
 
-namespace MRussell\REST\Auth;
+namespace MRussell\REST\Auth\Abstracts;
 
 use MRussell\Http\Request\RequestInterface;
 use MRussell\REST\Endpoint\Data\EndpointData;

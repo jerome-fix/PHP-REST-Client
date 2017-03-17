@@ -3,11 +3,9 @@
 namespace MRussell\REST\Endpoint\Abstracts;
 
 use MRussell\Http\Request\Curl;
-use MRussell\Http\Request\RequestInterface;
 use MRussell\Http\Response\ResponseInterface;
 use MRussell\REST\Endpoint\Data\AbstractEndpointData;
 use MRussell\REST\Endpoint\Data\DataInterface;
-use MRussell\REST\Endpoint\Data\EndpointData;
 use MRussell\REST\Endpoint\Interfaces\ModelInterface;
 use MRussell\REST\Exception\Endpoint\Exception;
 
@@ -85,7 +83,8 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
     public function __call($name, $arguments) {
         if (array_key_exists($name,$this->actions)){
             $this->action = $name;
-            return $this->execute($arguments);
+            $this->configureAction($this->action,$arguments);
+            return $this->execute();
         }
     }
 
@@ -200,6 +199,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
             }
         }
         $this->action = self::MODEL_ACTION_RETRIEVE;
+        $this->configureAction($this->action);
         $this->execute();
     }
 
@@ -213,6 +213,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
         } else {
             $this->action = self::MODEL_ACTION_CREATE;
         }
+        $this->configureAction($this->action);
         return $this->execute();
     }
 
@@ -221,24 +222,18 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      */
     public function delete(){
         $this->action = self::MODEL_ACTION_DELETE;
+        $this->configureAction($this->action);
         $this->execute();
     }
 
     //Endpoint Overrides
     /**
-     * Configures Action before configuring Request
-     * @inheritdoc
-     */
-    protected function configureRequest(RequestInterface $Request) {
-        $this->configureAction($this->action);
-        parent::configureRequest($Request);
-    }
-
-    /**
      * Update any properties or data based on the current action
+     * - Called before Execute on dynamic
      * @param $action
+     * @param array $arguments
      */
-    protected function configureAction($action){
+    protected function configureAction($action,array $arguments = array()){
         if (isset($this->actions[$action])){
             $this->setProperty('httpMethod',$this->actions[$action]);
         }

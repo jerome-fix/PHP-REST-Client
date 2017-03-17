@@ -279,7 +279,9 @@ abstract class AbstractEndpoint implements EndpointInterface
         if ($Request->getStatus() > Curl::STATUS_SENT){
             $Request->reset();
         }
-        $Request->setMethod($this->properties['httpMethod']);
+        if (isset($this->properties['httpMethod'])){
+            $Request->setMethod($this->properties['httpMethod']);
+        }
         $url = $this->configureURL($this->getOptions());
         if ($this->verifyUrl($url)) {
             $url = rtrim($this->getBaseUrl(),"/")."/".$url;

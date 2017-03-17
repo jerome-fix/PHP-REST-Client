@@ -4,6 +4,7 @@ namespace MRussell\REST\Endpoint\Abstracts;
 
 use MRussell\Http\Request\Curl;
 use MRussell\REST\Auth\AuthControllerInterface;
+use MRussell\REST\Endpoint\Data\AbstractEndpointData;
 use MRussell\REST\Endpoint\Data\DataInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Exception\Endpoint\InvalidRequestException;
@@ -23,11 +24,7 @@ abstract class AbstractEndpoint implements EndpointInterface
     protected static $_DEFAULT_PROPERTIES = array(
         'url' => '',
         'httpMethod' => '',
-        'auth' => FALSE,
-        'data' => array(
-            'required' => array(),
-            'defaults' => array()
-        )
+        'auth' => FALSE
     );
 
     /**
@@ -62,8 +59,8 @@ abstract class AbstractEndpoint implements EndpointInterface
 
     /**
      * The data being passed to the API Endpoint.
-     * Defaults to Array, but can be mixed based on how you want to use Endpoint. Defaults only work for Array type
-     * @var DataInterface
+     * Defaults to Array, but can be mixed based on how you want to use Endpoint.
+     * @var mixed
      */
     protected $data;
 
@@ -118,7 +115,6 @@ abstract class AbstractEndpoint implements EndpointInterface
     public function setProperties(array $properties)
     {
         $this->properties = $properties;
-        $this->configureDataProperties();
         return $this;
     }
 
@@ -127,7 +123,6 @@ abstract class AbstractEndpoint implements EndpointInterface
      */
     public function setProperty($name, $value) {
         $this->properties[$name] = $value;
-        $this->configureDataProperties();
         return $this;
     }
 
@@ -172,7 +167,7 @@ abstract class AbstractEndpoint implements EndpointInterface
     /**
      * @inheritdoc
      */
-    public function setData(DataInterface $data)
+    public function setData($data)
     {
         $this->data = $data;
         return $this;
@@ -231,9 +226,10 @@ abstract class AbstractEndpoint implements EndpointInterface
     public function execute()
     {
         if (is_object($this->Request)) {
-            $this->configureRequest();
-            $this->Request->send();
-            $this->configureResponse();
+            $this->configureRequest($this->Request)->send();
+            if (is_object($this->Response)){
+                $this->configureResponse($this->Response);
+            }
         } else {
             throw new InvalidRequestException(get_called_class(), "Request property not configured");
         }
@@ -243,131 +239,6 @@ abstract class AbstractEndpoint implements EndpointInterface
     /**
      * @inheritdoc
      */
-    public function isAuthRequired()
-    {
-        return $this->properties['auth'];
-    }
-
-    /**
-     * Verifies URL and Data are setup, then sets them on the Request Object
-     * @throws InvalidURLException
-     * @throws RequiredDataException
-     */
-    protected function configureRequest()
-    {
-        if ($this->Request->getStatus() > Curl::STATUS_SENT){
-            $this->Request->reset();
-        }
-        $this->Request->setMethod($this->properties['httpMethod']);
-        $url = $this->configureURL($this->getOptions());
-        if ($this->verifyUrl($url)) {
-            $url = rtrim($this->getBaseUrl(),"/")."/".$url;
-            $this->Request->setURL($url);
-        }
-        $data = $this->configureData($this->data);
-        $this->Request->setBody($data);
-        if ($this->authRequired()){
-            if (isset($this->Auth)){
-                $this->Auth->configure($this->Request);
-            }
-        }
-    }
-
-    /**
-     * Configure the Response Object after sending of the Request
-     */
-    protected function configureResponse(){
-        $this->Response->setRequest($this->Request);
-        $this->Response->extract();
-    }
-
-    /**
-     * Configures Data on the Endpoint to be set on the Request.
-     * Used mainly as an override function on implemented Endpoints.
-     * @var mixed $data
-     * @return array $data
-     */
-    protected function configureData(DataInterface $data)
-    {
-        return $data->asArray();
-    }
-
-    protected function configureDataProperties(){
-        if (isset($this->properties['data'])){
-            $this->data->setProperties($this->properties['data']);
-        }
-        return $this;
-    }
-
-    /**
-     * Configures the URL, by updating any variable placeholders in the URL property on the Endpoint
-     * - Replaces $module with $this->Module
-     * - Replaces all other variables starting with $, with options in the order they were given
-     * @param array $options
-     * @return string
-     */
-    protected function configureURL(array $options)
-    {
-        $url = $this->getEndPointUrl();
-        $variables = $this->extractUrlVariables($url);
-        if (!empty($variables)) {
-            foreach($variables as $key => $var){
-                $replace = NULL;
-                if (strpos($var[0],':') !== FALSE){
-                    $replace = '';
-                }
-                if (isset($options[$key])){
-                    $replace = $options[$key];
-                }
-                if ($replace !== NULL){
-                    $url = str_replace($var[0],$replace,$url);
-                }
-            }
-        }
-        return $url;
-    }
-
-    /**
-     * Verify if URL is configured properly
-     * @param string $url
-     * @return bool
-     * @throws InvalidURLException
-     */
-    private function verifyUrl($url)
-    {
-        if (strpos($url, static::$_URL_VAR_CHARACTER) !== false) {
-            throw new InvalidURLException(get_called_class(), "Configured URL is ".$url);
-        }
-        return true;
-    }
-
-
-    /**
-     * Checks if Endpoint URL contains requires Options
-     * @return bool|array
-     */
-    protected function requiresOptions()
-    {
-        $url = $this->getEndPointUrl();
-        $variables = $this->extractUrlVariables($url);
-        return !empty($variables);
-    }
-
-    /**
-     * @param $url
-     * @return array
-     */
-    protected function extractUrlVariables($url){
-        $matches = array();
-        $pattern = "/(\\".static::$_URL_VAR_CHARACTER.".*?[^\\/]*)/";
-        preg_match($pattern,$url,$matches);
-        $variables = array();
-        foreach($matches as $match){
-            $variables = $match[0];
-        }
-        return $variables;
-    }
-
     public function authRequired() {
         $required = FALSE;
         if (isset($this->properties['auth'])){
@@ -394,4 +265,140 @@ abstract class AbstractEndpoint implements EndpointInterface
     {
         return $this->Auth;
     }
+
+    /**
+     * Verifies URL and Data are setup, then sets them on the Request Object
+     * @param RequestInterface $Request
+     * @return RequestInterface
+     * @throws InvalidURLException
+     * @throws RequiredDataException
+     */
+    protected function configureRequest(RequestInterface $Request)
+    {
+        if ($Request->getStatus() > Curl::STATUS_SENT){
+            $Request->reset();
+        }
+        $Request->setMethod($this->properties['httpMethod']);
+        $url = $this->configureURL($this->getOptions());
+        if ($this->verifyUrl($url)) {
+            $url = rtrim($this->getBaseUrl(),"/")."/".$url;
+            $Request->setURL($url);
+        }
+        $data = $this->configureData($this->data);
+        $Request->setBody($data);
+        if ($this->authRequired()){
+            if (isset($this->Auth)){
+                $this->Auth->configure($Request);
+            }
+        }
+        return $Request;
+    }
+
+    /**
+     * Configure the Response Object after sending of the Request
+     * @param ResponseInterface $Response
+     * @return ResponseInterface
+     */
+    protected function configureResponse(ResponseInterface $Response){
+        $Response->setRequest($this->Request);
+        $Response->extract();
+        return $Response;
+    }
+
+    /**
+     * Configures Data on the Endpoint to be set on the Request.
+     * @var mixed $data
+     * @return array $data
+     */
+    protected function configureData($data)
+    {
+        return $data;
+    }
+
+    /**
+     * Configures the URL, by updating any variable placeholders in the URL property on the Endpoint
+     * - Replaces $module with $this->Module
+     * - Replaces all other variables starting with $, with options in the order they were given
+     * @param array $options
+     * @return string
+     */
+    protected function configureURL(array $options)
+    {
+        $url = $this->getEndPointUrl();
+        if ($this->requiresOptions()) {
+            $urlArr = explode("/",$url);
+            $optional = FALSE;
+            $optionNum = 0;
+            foreach($urlArr as $key => $urlPart){
+                $replace = NULL;
+                if (strpos($urlPart,static::$_URL_VAR_CHARACTER) !== FALSE){
+                    if (strpos($urlPart,':') !== FALSE){
+                        $optional = TRUE;
+                        $replace = '';
+                    }
+                    if (isset($options[str_replace(array('$',':'),'',$urlPart)])){
+                        $replace = $options[$urlPart];
+                    }
+                    if (isset($options[$optionNum]) && ($replace == '' || $replace == NULL)){
+                        $replace = $options[$optionNum];
+                        $optionNum = $key+1;
+                    }
+                    if ($optional && $replace == ''){
+                        $urlArr = array_slice($urlArr,0,$key);
+                        break;
+                    }
+                    $urlArr[$key] = $replace;
+                }
+            }
+            $url = implode("/",$urlArr);
+        }
+
+        return $url;
+    }
+
+    /**
+     * Verify if URL is configured properly
+     * @param string $url
+     * @return bool
+     * @throws InvalidURLException
+     */
+    private function verifyUrl($url)
+    {
+        if (strpos($url, static::$_URL_VAR_CHARACTER) !== false) {
+            throw new InvalidURLException(get_called_class(), "Configured URL is ".$url);
+        }
+        return true;
+    }
+
+
+    /**
+     * Checks if Endpoint URL requires Options
+     * @return bool|array
+     */
+    protected function requiresOptions()
+    {
+        $url = $this->getEndPointUrl();
+        $variables = $this->extractUrlVariables($url);
+        return !empty($variables);
+    }
+
+    /**
+     * Helper method for extracting variables via Regex from a passed in URL
+     * @param $url
+     * @return array
+     */
+    protected function extractUrlVariables($url){
+        $matches = array();
+        $pattern = "/(\\".static::$_URL_VAR_CHARACTER.".*?[^\\/]*)/";
+        preg_match($pattern,$url,$matches);
+        if (!empty($matches)){
+            $variables = array();
+            foreach($matches as $match){
+                $variables = $match[0];
+            }
+            return $variables;
+        }
+        return FALSE;
+    }
+
 }

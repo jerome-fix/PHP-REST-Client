@@ -5,6 +5,7 @@ namespace MRussell\REST\Endpoint\Interfaces;
 use MRussell\Http\Request\RequestInterface;
 use MRussell\Http\Response\ResponseInterface;
 use MRussell\REST\Auth\AuthControllerInterface;
+use MRussell\REST\Endpoint\Data\AbstractEndpointData;
 use MRussell\REST\Endpoint\Data\DataInterface;
 
 interface EndpointInterface
@@ -45,14 +46,14 @@ interface EndpointInterface
 
     /**
      * Sets the data on the Endpoint Object, that will be passed to Request Object
-     * @param DataInterface $data
+     * @param mixed $data
      * @return self
      */
-    public function setData(DataInterface $data);
+    public function setData($data);
 
     /**
      * Get the data being used by the Endpoint
-     * @return DataInterface
+     * @return AbstractEndpointData
      */
     public function getData();
 

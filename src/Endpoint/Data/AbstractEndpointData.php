@@ -26,7 +26,7 @@ abstract class AbstractEndpointData implements DataInterface
     //Overloads
     public function __construct(array $data = array(),array $properties = array()) {
         $this->reset();
-        $this->set($data);
+        $this->data = $data;
         foreach($properties as $key => $value){
             $this->properties[$key] = $value;
         }
@@ -67,6 +67,7 @@ abstract class AbstractEndpointData implements DataInterface
         unset($this->data[$key]);
     }
 
+    //Array Access
     /**
      * Assigns a value to the specified offset
      * @param string $offset - The offset to assign the value to
@@ -112,6 +113,7 @@ abstract class AbstractEndpointData implements DataInterface
         return $this->offsetExists($offset) ? $this->data[$offset] : null;
     }
 
+    //Data Interface
     /**
      * Return the entire Data array
      * @param bool $verify - Whether or not to verify if Required Data is filled in
@@ -163,7 +165,17 @@ abstract class AbstractEndpointData implements DataInterface
     }
 
     /**
-     *
+     * @inheritdoc
+     */
+    public function update(array $data){
+        foreach($data as $key => $value){
+            $this->data[$key] = $value;
+        }
+        return $this;
+    }
+
+    /**
+     * Configures Data with defaults based on properties array
      * @return $this
      */
     protected function configureDefaultData(){
@@ -199,24 +211,6 @@ abstract class AbstractEndpointData implements DataInterface
             throw new RequiredDataException(get_called_class());
         }
         return $error;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function set(array $data) {
-        $this->data = $data;
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function update(array $data){
-        foreach($data as $key => $value){
-            $this->data[$key] = $value;
-        }
-        return $this;
     }
 
 }

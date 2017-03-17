@@ -13,12 +13,6 @@ interface CollectionInterface extends EndpointInterface
     public function fetch();
 
     /**
-     * Get the current collection
-     * @return mixed
-     */
-    public function getCollection();
-
-    /**
      * Set the Model Endpoint
      * @param mixed $model
      * @return self

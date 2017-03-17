@@ -3,19 +3,25 @@
 namespace MRussell\REST\Endpoint\Abstracts;
 
 use MRussell\Http\Request\Curl;
+use MRussell\Http\Request\RequestInterface;
+use MRussell\Http\Response\ResponseInterface;
+use MRussell\REST\Endpoint\Data\AbstractEndpointData;
+use MRussell\REST\Endpoint\Data\DataInterface;
+use MRussell\REST\Endpoint\Data\EndpointData;
 use MRussell\REST\Endpoint\Interfaces\ModelInterface;
+use MRussell\REST\Exception\Endpoint\Exception;
 
 /**
  * Class AbstractModelEndpoint
  * @package MRussell\REST\Endpoint\Abstracts
  */
-abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelInterface
+abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements ModelInterface, DataInterface
 {
     const MODEL_ID_VAR = 'id';
 
     const MODEL_ACTION_CREATE = 'create';
 
-    const MODEL_ACTION_READ = 'read';
+    const MODEL_ACTION_RETRIEVE = 'retrieve';
 
     const MODEL_ACTION_UPDATE = 'update';
 
@@ -33,10 +39,16 @@ abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelIn
      */
     protected static $_DEFAULT_ACTIONS = array(
         'create' => Curl::HTTP_POST,
-        'read' => Curl::HTTP_GET,
+        'retrieve' => Curl::HTTP_GET,
         'update' => Curl::HTTP_PUT,
         'delete' => Curl::HTTP_DELETE
     );
+
+    /**
+     * The Model
+     * @var array
+     */
+    protected $model = array();
 
     /**
      * List of available actions and their associated Request Method
@@ -48,8 +60,9 @@ abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelIn
      * Current action being executed
      * @var string
      */
-    protected $action = 'read';
+    protected $action = 'retrieve';
 
+    //Static
     /**
      * @param null $id
      * @return string
@@ -61,6 +74,7 @@ abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelIn
         return static::$_MODEL_ID_KEY;
     }
 
+    //Overloads
     public function __construct(array $options, array $properties) {
         parent::__construct($options, $properties);
         foreach(static::$_DEFAULT_ACTIONS as $action => $method){
@@ -71,22 +85,101 @@ abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelIn
     public function __call($name, $arguments) {
         if (array_key_exists($name,$this->actions)){
             $this->action = $name;
-            return $this->execute();
+            return $this->execute($arguments);
         }
+    }
+
+    //Data Interface
+    /**
+     * Assigns a value to the specified offset
+     * @param string $offset - The offset to assign the value to
+     * @param mixed $value - The value to set
+     * @abstracting ArrayAccess
+     */
+    public function offsetSet($offset,$value) {
+        if (is_null($offset)) {
+            $this->data[] = $value;
+        } else {
+            $this->data[$offset] = $value;
+        }
+    }
+
+    /**
+     * Whether or not an offset exists
+     * @param string $offset - An offset to check for
+     * @return boolean
+     * @abstracting ArrayAccess
+     */
+    public function offsetExists($offset) {
+        return isset($this->data[$offset]);
+    }
+
+    /**
+     * Unsets an offset
+     * @param string $offset - The offset to unset
+     * @abstracting ArrayAccess
+     */
+    public function offsetUnset($offset) {
+        if ($this->offsetExists($offset)) {
+            unset($this->data[$offset]);
+        }
+    }
+
+    /**
+     * Returns the value at specified offset
+     * @param string $offset - The offset to retrieve
+     * @return mixed
+     * @abstracting ArrayAccess
+     */
+    public function offsetGet($offset) {
+        return $this->offsetExists($offset) ? $this->data[$offset] : null;
     }
 
     /**
      * @inheritdoc
      */
+    public function asArray(){
+        return $this->model;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function reset(){
+        return $this->clear();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function clear(){
+        $this->model = array();
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function update(array $model){
+        foreach($model as $key => $value){
+            $this->model[$key] = $value;
+        }
+        return $this;
+    }
+
+    //Model Interface
+    /**
+     * @inheritdoc
+     */
     public function get($key) {
-        return $this->data[$key];
+        return $this->model[$key];
     }
 
     /**
      * @inheritdoc
      */
     public function set($key, $value) {
-        $this->data[$key] = $value;
+        $this->model[$key] = $value;
         return $this;
     }
 
@@ -95,17 +188,20 @@ abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelIn
      * @throws \MRussell\REST\Exception\Endpoint\InvalidRequestException
      */
     public function retrieve($id = NULL) {
+        $idKey = static::modelIdKey();
         if ($id !== NULL){
-            $idKey = static::modelIdKey();
-            if (isset($this->data[$idKey])){
-                $this->data->clear();
+            if (isset($this->model[$idKey])){
+                $this->reset();
+                $this->set($idKey,$id);
             }
-            $this->data[$idKey] = $id;
+        } else {
+            if (!isset($this->model[$idKey])){
+                throw new Exception("Cannot retrieve Model without an ID");
+            }
         }
-        $this->action = self::MODEL_ACTION_READ;
+        $this->action = self::MODEL_ACTION_RETRIEVE;
         $this->execute();
     }
-
 
     /**
      * @inheritdoc
@@ -128,13 +224,14 @@ abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelIn
         $this->execute();
     }
 
+    //Endpoint Overrides
     /**
      * Configures Action before configuring Request
      * @inheritdoc
      */
-    protected function configureRequest() {
+    protected function configureRequest(RequestInterface $Request) {
         $this->configureAction($this->action);
-        parent::configureRequest();
+        parent::configureRequest($Request);
     }
 
     /**
@@ -148,12 +245,46 @@ abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelIn
     }
 
     /**
-     *
+     * @param AbstractEndpointData $data
+     * @inheritdoc
      */
-    protected function configureResponse() {
-        parent::configureResponse();
-        if ($this->Response->getStatus() == '200'){
-            $this->data->update($this->Response->getBody());
+    protected function configureData(AbstractEndpointData $data) {
+        $requestData = $data->asArray(TRUE);
+        switch ($this->action){
+            case self::MODEL_ACTION_CREATE:
+            case self::MODEL_ACTION_UPDATE:
+                $requestData = array_replace($requestData,$this->asArray());
+                break;
+        }
+        return $requestData;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function configureResponse(ResponseInterface $Response) {
+        $Response = parent::configureResponse($Response);
+        if ($Response->getStatus() == '200'){
+            $this->updateModel();
+        }
+        return $Response;
+    }
+
+    /**
+     * Called after Execute if a Request Object exists, and Request returned 200 response
+     */
+    protected function updateModel(){
+        $body = $this->Response->getBody();
+        switch ($this->action){
+            case self::MODEL_ACTION_CREATE:
+            case self::MODEL_ACTION_UPDATE:
+            case self::MODEL_ACTION_RETRIEVE:
+                if (is_array($body)){
+                    $this->update($body);
+                }
+                break;
+            case self::MODEL_ACTION_DELETE:
+                $this->clear();
         }
     }
 
@@ -163,22 +294,13 @@ abstract class AbstractModelEndpoint extends AbstractEndpoint implements ModelIn
      */
     protected function configureURL(array $options)
     {
-        $url = parent::configureURL($options);
-        $variables = $this->extractUrlVariables($url);
-        if (!empty($variables)){
-            $modelIdKey = static::modelIdKey();
-            foreach($variables as $key => $var){
-                if (strpos($var,self::MODEL_ID_VAR) !== FALSE){
-                    $search = static::$_URL_VAR_CHARACTER.self::MODEL_ID_VAR;
-                    $replace = '';
-                    if (isset($this->data[$modelIdKey])){
-                        $replace = $this->data[$modelIdKey];
-                    }
-                    $url = str_replace($search,$replace,$url);
-                }
-            }
+        $id = '';
+        $modelIdKey = static::modelIdKey();
+        if (isset($this->model[$modelIdKey])){
+            $id = $this->model[$modelIdKey];
         }
-        return $url;
+        $options[self::MODEL_ID_VAR] = $id;
+        return parent::configureURL($options);
     }
 
 }

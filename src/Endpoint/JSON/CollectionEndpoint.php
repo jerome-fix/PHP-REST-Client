@@ -8,6 +8,8 @@ use MRussell\REST\Endpoint\Abstracts\AbstractCollectionEndpoint;
 
 class CollectionEndpoint extends AbstractCollectionEndpoint
 {
+    protected static $_DATA_CLASS = 'MRussell\\REST\\Endpoint\\Data\\EndpointData';
+
     public function __construct(array $options = array(), array $properties = array()) {
         parent::__construct($options, $properties);
         $Request = new JSONRequest();

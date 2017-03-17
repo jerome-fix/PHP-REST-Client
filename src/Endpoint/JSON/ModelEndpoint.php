@@ -8,7 +8,7 @@ use MRussell\REST\Endpoint\Abstracts\AbstractModelEndpoint;
 
 class ModelEndpoint extends AbstractModelEndpoint
 {
-    public function __construct(array $options, array $properties) {
+    public function __construct(array $options = array(), array $properties = array()) {
         parent::__construct($options, $properties);
         $Request = new JSONRequest();
         $this->setRequest($Request);

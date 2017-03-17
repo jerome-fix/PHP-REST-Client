@@ -30,7 +30,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint
      */
     protected $data;
 
-    public function __construct(array $options, array $properties) {
+    public function __construct(array $options = array(), array $properties = array()) {
         parent::__construct($options, $properties);
         if (static::$_DATA_CLASS !== '' || !empty(static::$_DATA_CLASS)){
             $implements = class_implements(static::$_DATA_CLASS);

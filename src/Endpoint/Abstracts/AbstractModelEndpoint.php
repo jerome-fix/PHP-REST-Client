@@ -73,7 +73,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
     }
 
     //Overloads
-    public function __construct(array $options, array $properties) {
+    public function __construct(array $options = array(), array $properties = array()) {
         parent::__construct($options, $properties);
         foreach(static::$_DEFAULT_ACTIONS as $action => $method){
             $this->actions[$action] = $method;

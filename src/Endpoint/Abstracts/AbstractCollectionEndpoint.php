@@ -30,7 +30,7 @@ abstract class AbstractCollectionEndpoint extends AbstractEndpoint implements Co
      */
     protected $model;
 
-    public function __construct(array $options, array $properties) {
+    public function __construct(array $options = array(), array $properties = array()) {
         parent::__construct($options, $properties);
         if (static::$_MODEL_CLASS !== ''){
             $this->setModelEndpoint(static::$_MODEL_CLASS);

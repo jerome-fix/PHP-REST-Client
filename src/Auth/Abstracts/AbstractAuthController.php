@@ -216,14 +216,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
      * @return EndpointInterface
      */
     protected function configureAuthenticationData(EndpointInterface $Endpoint){
-        $Data = $Endpoint->getData();
-        if (empty($Data)||!is_object($Data)){
-            $Data = new EndpointData();
-        }
-        foreach($this->credentials as $key => $value){
-            $Data[$key] = $value;
-        }
-        return $Endpoint->setData($Data);
+        return $Endpoint->setData($this->credentials);
     }
 
     /**
@@ -232,11 +225,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
      * @return EndpointInterface
      */
     protected function configureLogoutData(EndpointInterface $Endpoint){
-        $Data = $Endpoint->getData();
-        if (is_object($Data)){
-            $Data->clear();
-        }
-        return $Endpoint->setData($Data);
+        return $Endpoint->setData(array());
     }
 
 }

@@ -165,17 +165,18 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
      * @return EndpointInterface
      */
     protected function configureRefreshData(EndpointInterface $Endpoint){
-        $Data = $Endpoint->getData();
-        if (!is_object($Data)){
-            $Data = new EndpointData();
-        } else {
-            $Data->clear();
-        }
-        $Data['client_id'] = $this->credentials['client_id'];
-        $Data['client_secret'] = $this->credentials['client_secret'];
-        $Data['grant_type'] = self::OAUTH_REFRESH_GRANT;
-        $Data['refresh_token'] = $this->token['refresh_token'];
-        return $Endpoint->setData($Data);
+        $data = array();
+        $data['client_id'] = $this->credentials['client_id'];
+        $data['client_secret'] = $this->credentials['client_secret'];
+        $data['grant_type'] = self::OAUTH_REFRESH_GRANT;
+        $data['refresh_token'] = $this->token['refresh_token'];
+        return $Endpoint->setData($data);
     }
 
+    protected function configureAuthenticationData(EndpointInterface $Endpoint) {
+        $data = $this->credentials;
+        $data['grant_type'] = static::$_DEFAULT_GRANT_TYPE;
+        return $Endpoint->setData($data);
+    }
+    
 }

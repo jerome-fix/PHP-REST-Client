@@ -187,7 +187,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @throws \MRussell\REST\Exception\Endpoint\InvalidRequestException
      */
     public function retrieve($id = NULL) {
-        $idKey = static::modelIdKey();
+        $idKey = $this->modelIdKey();
         if ($id !== NULL){
             if (isset($this->model[$idKey])){
                 $this->reset();
@@ -208,7 +208,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @throws \MRussell\REST\Exception\Endpoint\InvalidRequestException
      */
     public function save() {
-        if (isset($this->data[static::modelIdKey()])){
+        if (isset($this->model[$this->modelIdKey()])){
             $this->action = self::MODEL_ACTION_UPDATE;
         } else {
             $this->action = self::MODEL_ACTION_CREATE;

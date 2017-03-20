@@ -97,9 +97,9 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      */
     public function offsetSet($offset,$value) {
         if (is_null($offset)) {
-            $this->data[] = $value;
+            $this->model[] = $value;
         } else {
-            $this->data[$offset] = $value;
+            $this->model[$offset] = $value;
         }
     }
 
@@ -110,7 +110,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @abstracting ArrayAccess
      */
     public function offsetExists($offset) {
-        return isset($this->data[$offset]);
+        return isset($this->model[$offset]);
     }
 
     /**
@@ -120,7 +120,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      */
     public function offsetUnset($offset) {
         if ($this->offsetExists($offset)) {
-            unset($this->data[$offset]);
+            unset($this->model[$offset]);
         }
     }
 
@@ -131,7 +131,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @abstracting ArrayAccess
      */
     public function offsetGet($offset) {
-        return $this->offsetExists($offset) ? $this->data[$offset] : null;
+        return $this->offsetExists($offset) ? $this->model[$offset] : null;
     }
 
     /**

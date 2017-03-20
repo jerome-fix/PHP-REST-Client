@@ -40,7 +40,7 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
     );
 
     /**
-     *
+     * The OAuth2 Full token
      * @var array
      */
     protected $token = array();
@@ -178,5 +178,5 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
         $data['grant_type'] = static::$_DEFAULT_GRANT_TYPE;
         return $Endpoint->setData($data);
     }
-    
+
 }

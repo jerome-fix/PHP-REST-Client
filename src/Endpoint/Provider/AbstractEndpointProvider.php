@@ -78,7 +78,11 @@ abstract class AbstractEndpointProvider implements EndpointProviderInterface
         $Class = $endPointArray['class'];
         $properties = $endPointArray['properties'];
         $Endpoint = new $Class();
-        $Endpoint->setProperties($properties);
+        if (!empty($properties)){
+            foreach($properties as $prop => $value){
+                $Endpoint->setProperty($prop,$value);
+            }
+        }
         return $Endpoint;
     }
 }

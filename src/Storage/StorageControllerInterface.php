@@ -5,16 +5,25 @@ namespace MRussell\REST\Storage;
 interface StorageControllerInterface {
 
     /**
+     * Get a Key from the storage interface
      * @param $key
      * @return mixed
      */
     public function get($key);
 
     /**
+     * Set a Key from the storage interface
      * @param $key
      * @param $value
-     * @return self|FALSE
+     * @return boolean
      */
-    public function set($key,$value);
+    public function store($key,$value);
+
+    /**
+     * Remove a Key from the storage interface
+     * @param $key
+     * @return boolean
+     */
+    public function remove($key);
 
 }

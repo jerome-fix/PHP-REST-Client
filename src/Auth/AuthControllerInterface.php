@@ -72,23 +72,26 @@ interface AuthControllerInterface
     public function isAuthenticated();
 
     /**
+     * Set the storage Controller
      * @param StorageControllerInterface $Storage
      * @return self
      */
     public function setStorageController(StorageControllerInterface $Storage);
 
     /**
-     *
+     * Get the Storage Controller used by the Auth Controller
      * @return StorageControllerInterface
      */
     public function getStorageController();
 
     /**
+     * Get the current token on the Auth Controller
      * @return mixed
      */
     public function getToken();
 
     /**
+     * Store a token so it can be used in other PHP threads
      * @param $key
      * @param $token
      * @return boolean
@@ -96,8 +99,16 @@ interface AuthControllerInterface
     public function storeToken($key,$token);
 
     /**
+     * Retrieve a Token from local storage
      * @param $key
      * @return mixed
      */
     public function getStoredToken($key);
+
+    /**
+     * Remove a token from storage
+     * @param $key
+     * @return bool
+     */
+    public function removeStoredToken($key);
 }

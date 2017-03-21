@@ -3,7 +3,6 @@
 namespace MRussell\REST\Auth\Abstracts;
 
 use MRussell\REST\Auth\AuthControllerInterface;
-use MRussell\REST\Endpoint\Data\EndpointData;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Storage\StorageControllerInterface;
 
@@ -44,15 +43,16 @@ abstract class AbstractAuthController implements AuthControllerInterface
      * The authentication token
      * @var mixed
      */
-    protected $token = NULL;
+    protected $token = null;
 
     /**
      * @var StorageControllerInterface
      */
     protected $Storage;
 
-    public function __construct() {
-        foreach(self::$_DEFAULT_AUTH_ACTIONS as $action){
+    public function __construct()
+    {
+        foreach (self::$_DEFAULT_AUTH_ACTIONS as $action) {
             $this->actions[] = $action;
         }
     }
@@ -60,14 +60,17 @@ abstract class AbstractAuthController implements AuthControllerInterface
     /**
      * @inheritdoc
      */
-    public function setCredentials(array $credentials) {
+    public function setCredentials(array $credentials)
+    {
         $this->credentials = $credentials;
+        return $this;
     }
 
     /**
      * @inheritdoc
      */
-    public function getCredentials() {
+    public function getCredentials()
+    {
         return $this->credentials;
     }
 
@@ -76,7 +79,8 @@ abstract class AbstractAuthController implements AuthControllerInterface
      * @param $token
      * @return $this
      */
-    protected function setToken($token){
+    protected function setToken($token)
+    {
         $this->token = $token;
         return $this;
     }
@@ -84,18 +88,25 @@ abstract class AbstractAuthController implements AuthControllerInterface
     /**
      * @inheritdoc
      */
-    public function getToken() {
+    public function getToken()
+    {
         return $this->token;
     }
 
     /**
      * Clear the token property to NULL
      */
-    protected function clearToken(){
-        $this->token = NULL;
+    protected function clearToken()
+    {
+        $this->token = null;
+        return $this;
     }
 
-    public function setActions(array $actions) {
+    /**
+     * @inheritdoc
+     */
+    public function setActions(array $actions)
+    {
         $this->actions = $actions;
         return $this;
     }
@@ -103,32 +114,39 @@ abstract class AbstractAuthController implements AuthControllerInterface
     /**
      * @inheritdoc
      */
-    public function getActions() {
+    public function getActions()
+    {
         return $this->actions;
     }
 
     /**
      * @inheritdoc
      */
-    public function setActionEndpoint($action, EndpointInterface $Endpoint) {
-        if (in_array($action,$this->actions)){
+    public function setActionEndpoint($action, EndpointInterface $Endpoint)
+    {
+        if (in_array($action, $this->actions)) {
             $this->endpoints[$action] = $Endpoint;
         }
         return $this;
     }
 
-    public function getActionEndpoint($action) {
-        if (isset($this->endpoints[$action])){
+    /**
+     * @inheritdoc
+     */
+    public function getActionEndpoint($action)
+    {
+        if (isset($this->endpoints[$action])) {
             return $this->endpoints[$action];
         }
-        return NULL;
+        return null;
     }
 
     /**
      * @inheritdoc
      */
-    public function isAuthenticated() {
-        if (isset($this->token)){
+    public function isAuthenticated()
+    {
+        if (!empty($this->token)) {
             return true;
         }
         return false;
@@ -137,33 +155,36 @@ abstract class AbstractAuthController implements AuthControllerInterface
     /**
      * @inheritdoc
      */
-    public function authenticate() {
-        $Endpoint = $this->configureData(self::ACTION_AUTH);
+    public function authenticate()
+    {
+        $Endpoint = $this->configureEndpoint(self::ACTION_AUTH);
         $response = $Endpoint->execute()->getResponse();
-        if ($response->getStatus() == '200'){
-            $this->setToken($response->getBody(true));
-            return true;
+        if ($response->getStatus() == '200') {
+            $this->setToken($response->getBody());
+            return TRUE;
         }
-        return false;
+        return FALSE;
     }
 
     /**
      * @inheritdoc
      */
-    public function logout(){
-        $Endpoint = $this->configureData(self::ACTION_LOGOUT);
+    public function logout()
+    {
+        $Endpoint = $this->configureEndpoint(self::ACTION_LOGOUT);
         $response = $Endpoint->execute()->getResponse();
-        if ($response->getStatus() == '200'){
+        if ($response->getStatus() == '200') {
             $this->clearToken();
-            return true;
+            return TRUE;
         }
-        return false;
+        return FALSE;
     }
 
     /**
      * @inheritdoc
      */
-    public function setStorageController(StorageControllerInterface $Storage) {
+    public function setStorageController(StorageControllerInterface $Storage)
+    {
         $this->Storage = $Storage;
         return $this;
     }
@@ -171,25 +192,42 @@ abstract class AbstractAuthController implements AuthControllerInterface
     /**
      * @inheritdoc
      */
-    public function getStorageController() {
+    public function getStorageController()
+    {
         return $this->Storage;
     }
 
     /**
      * @inheritdoc
      */
-    public function storeToken($key, $token) {
-        if ($this->getStorageController()->set($key,$token)){
-            return true;
+    public function storeToken($key, $token)
+    {
+        if (isset($this->Storage)) {
+            return $this->Storage->store($key, $token);
         }
-        return false;
+        return FALSE;
     }
 
     /**
      * @inheritdoc
      */
-    public function getStoredToken($key) {
-        return $this->getStorageController()->get($key);
+    public function getStoredToken($key)
+    {
+        if (isset($this->Storage)) {
+            return $this->Storage->get($key);
+        }
+        return NULL;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function removeStoredToken($key)
+    {
+        if (isset($this->Storage)){
+            return $this->Storage->remove($key);
+        }
+        return FALSE;
     }
 
     /**
@@ -197,14 +235,15 @@ abstract class AbstractAuthController implements AuthControllerInterface
      * @param $action
      * @return bool|EndpointInterface
      */
-    protected function configureData($action){
+    protected function configureEndpoint($action)
+    {
         $EP = $this->getActionEndpoint($action);
-        if ($EP !== NULL){
-            switch($action){
+        if ($EP !== NULL) {
+            switch ($action) {
                 case self::ACTION_AUTH:
-                    return $this->configureAuthenticationData($EP);
+                    return $this->configureAuthenticationEndpoint($EP);
                 case self::ACTION_LOGOUT:
-                    return $this->configureLogoutData($EP);
+                    return $this->configureLogoutEndpoint($EP);
             }
         }
         return FALSE;
@@ -215,7 +254,8 @@ abstract class AbstractAuthController implements AuthControllerInterface
      * @param EndpointInterface $Endpoint
      * @return EndpointInterface
      */
-    protected function configureAuthenticationData(EndpointInterface $Endpoint){
+    protected function configureAuthenticationEndpoint(EndpointInterface $Endpoint)
+    {
         return $Endpoint->setData($this->credentials);
     }
 
@@ -224,7 +264,8 @@ abstract class AbstractAuthController implements AuthControllerInterface
      * @param EndpointInterface $Endpoint
      * @return EndpointInterface
      */
-    protected function configureLogoutData(EndpointInterface $Endpoint){
+    protected function configureLogoutEndpoint(EndpointInterface $Endpoint)
+    {
         return $Endpoint->setData(array());
     }
 

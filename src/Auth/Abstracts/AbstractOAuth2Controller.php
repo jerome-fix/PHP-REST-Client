@@ -3,7 +3,6 @@
 namespace MRussell\REST\Auth\Abstracts;
 
 use MRussell\Http\Request\RequestInterface;
-use MRussell\REST\Endpoint\Data\EndpointData;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Exception\Authentication\InvalidToken;
 use MRussell\REST\Exception\Authentication\NotAuthenticated;
@@ -62,14 +61,13 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
      * @inheritdoc
      * @throws InvalidToken
      */
-    protected function setToken(array $token)
+    protected function setToken($token)
     {
-        if (isset($token['access_token'])){
+        if (is_array($token) && isset($token['access_token'])){
             $token = $this->configureToken($token);
-            parent::setToken($token);
-        } else {
-            throw new InvalidToken();
+            return parent::setToken($token);
         }
+        throw new InvalidToken();
     }
 
     /**
@@ -108,7 +106,7 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
     public function refresh()
     {
         if (isset($this->token['refresh_token'])){
-            $Endpoint = $this->configureData(self::ACTION_OAUTH_REFRESH);
+            $Endpoint = $this->configureEndpoint(self::ACTION_OAUTH_REFRESH);
             $response = $Endpoint->execute()->getResponse();
             if ($response->getStatus() == '200'){
                 $this->clearToken();
@@ -152,19 +150,23 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
         return -1;
     }
 
-    protected function configureData($action) {
+    /**
+     * @inheritdoc
+     */
+    protected function configureEndpoint($action) {
         if ($action == self::ACTION_OAUTH_REFRESH){
             $Endpoint = $this->getActionEndpoint($action);
-            return $this->configureRefreshData($Endpoint);
+            return $this->configureRefreshEndpoint($Endpoint);
         }
-        return parent::configureData($action);
+        return parent::configureEndpoint($action);
     }
 
     /**
+     * Configure the Refresh Data based on Creds, Token, and Refresh Grant Type
      * @param EndpointInterface $Endpoint
      * @return EndpointInterface
      */
-    protected function configureRefreshData(EndpointInterface $Endpoint){
+    protected function configureRefreshEndpoint(EndpointInterface $Endpoint){
         $data = array();
         $data['client_id'] = $this->credentials['client_id'];
         $data['client_secret'] = $this->credentials['client_secret'];
@@ -173,7 +175,11 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
         return $Endpoint->setData($data);
     }
 
-    protected function configureAuthenticationData(EndpointInterface $Endpoint) {
+    /**
+     * Add OAuth Grant Type for Auth
+     * @inheritdoc
+     */
+    protected function configureAuthenticationEndpoint(EndpointInterface $Endpoint) {
         $data = $this->credentials;
         $data['grant_type'] = static::$_DEFAULT_GRANT_TYPE;
         return $Endpoint->setData($data);

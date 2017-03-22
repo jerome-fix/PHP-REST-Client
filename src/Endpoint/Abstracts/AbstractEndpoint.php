@@ -9,6 +9,7 @@ use MRussell\REST\Exception\Endpoint\InvalidRequest;
 use MRussell\REST\Exception\Endpoint\InvalidData;
 use MRussell\Http\Response\ResponseInterface;
 use MRussell\Http\Request\RequestInterface;
+use MRussell\REST\Exception\Endpoint\InvalidUrl;
 
 /**
  * Class AbstractEndpoint
@@ -16,6 +17,11 @@ use MRussell\Http\Request\RequestInterface;
  */
 abstract class AbstractEndpoint implements EndpointInterface
 {
+    const PROPERTY_URL = 'url';
+
+    const PROPERTY_HTTP_METHOD = 'httpMethod';
+
+    const PROPERTY_AUTH = 'auth';
 
     protected static $_DEFAULT_PROPERTIES = array(
         'url' => '',
@@ -111,6 +117,15 @@ abstract class AbstractEndpoint implements EndpointInterface
      */
     public function setProperties(array $properties)
     {
+        if (!isset($properties[self::PROPERTY_HTTP_METHOD])){
+            $properties[self::PROPERTY_HTTP_METHOD] = '';
+        }
+        if (!isset($properties[self::PROPERTY_URL])){
+            $properties[self::PROPERTY_URL] = '';
+        }
+        if (!isset($properties[self::PROPERTY_AUTH])){
+            $properties[self::PROPERTY_AUTH] = FALSE;
+        }
         $this->properties = $properties;
         return $this;
     }
@@ -156,7 +171,7 @@ abstract class AbstractEndpoint implements EndpointInterface
             $url = $this->properties['url'];
         }
         if ($full){
-            $url = $this->getBaseUrl().$url;
+            $url = rtrim($this->getBaseUrl(),'/')."/$url";
         }
         return $url;
     }
@@ -218,7 +233,6 @@ abstract class AbstractEndpoint implements EndpointInterface
      * @param null $data - short form data for Endpoint, which is configure by configureData method
      * @return $this
      * @throws InvalidRequest
-     * @throws InvalidURLEndpointException
      */
     public function execute()
     {
@@ -228,7 +242,7 @@ abstract class AbstractEndpoint implements EndpointInterface
                 $this->configureResponse($this->Response);
             }
         } else {
-            throw new InvalidRequest(get_called_class(), "Request property not configured");
+            throw new InvalidRequest(get_class($this));
         }
         return $this;
     }
@@ -267,15 +281,14 @@ abstract class AbstractEndpoint implements EndpointInterface
      * Verifies URL and Data are setup, then sets them on the Request Object
      * @param RequestInterface $Request
      * @return RequestInterface
-     * @throws InvalidURLEndpointException
-     * @throws InvalidData
      */
     protected function configureRequest(RequestInterface $Request)
     {
-        if ($Request->getStatus() > Curl::STATUS_SENT){
+        if ($Request->getStatus() >= Curl::STATUS_SENT){
             $Request->reset();
         }
-        if (isset($this->properties['httpMethod'])){
+        if (isset($this->properties['httpMethod']) &&
+            $this->properties['httpMethod'] !== ''){
             $Request->setMethod($this->properties['httpMethod']);
         }
         $url = $this->configureURL($this->getOptions());
@@ -283,7 +296,8 @@ abstract class AbstractEndpoint implements EndpointInterface
             $url = rtrim($this->getBaseUrl(),"/")."/".$url;
             $Request->setURL($url);
         }
-        $data = $this->configureData($this->data);
+        $data = ($this->getData()?$this->getData():NULL);
+        $data = $this->configureData($data);
         $Request->setBody($data);
         if ($this->authRequired()){
             if (isset($this->Auth)){
@@ -307,7 +321,7 @@ abstract class AbstractEndpoint implements EndpointInterface
     /**
      * Configures Data on the Endpoint to be set on the Request.
      * @var mixed $data
-     * @return array $data
+     * @return mixed $data
      */
     protected function configureData($data)
     {
@@ -316,8 +330,8 @@ abstract class AbstractEndpoint implements EndpointInterface
 
     /**
      * Configures the URL, by updating any variable placeholders in the URL property on the Endpoint
-     * - Replaces $module with $this->Module
-     * - Replaces all other variables starting with $, with options in the order they were given
+     * - Replaces $var $options['var']
+     * - If $options['var'] doesn't exist, replaces with next numeric option in array
      * @param array $options
      * @return string
      */
@@ -341,19 +355,20 @@ abstract class AbstractEndpoint implements EndpointInterface
                     }
                     if (isset($options[$optionNum]) && ($replace == '' || $replace == NULL)){
                         $replace = $options[$optionNum];
-                        $optionNum = $key+1;
+                        $optionNum = $optionNum+1;
                     }
                     if ($optional && $replace == ''){
                         $urlArr = array_slice($urlArr,0,$key);
                         break;
                     }
-                    $urlArr[$key] = $replace;
+                    if ($replace !== NULL){
+                        $urlArr[$key] = $replace;
+                    }
                 }
             }
             $url = implode("/",$urlArr);
-            rtrim($url,"/");
+            $url = rtrim($url,"/");
         }
-
         return $url;
     }
 
@@ -361,12 +376,12 @@ abstract class AbstractEndpoint implements EndpointInterface
      * Verify if URL is configured properly
      * @param string $url
      * @return bool
-     * @throws InvalidURLEndpointException
+     * @throws InvalidUrl
      */
     private function verifyUrl($url)
     {
         if (strpos($url, static::$_URL_VAR_CHARACTER) !== false) {
-            throw new InvalidURLEndpointException(get_called_class(), "Configured URL is ".$url);
+            throw new InvalidUrl(array(get_class($this), $url));
         }
         return true;
     }
@@ -389,17 +404,15 @@ abstract class AbstractEndpoint implements EndpointInterface
      * @return array
      */
     protected function extractUrlVariables($url){
-        $matches = array();
+        $variables = array();
         $pattern = "/(\\".static::$_URL_VAR_CHARACTER.".*?[^\\/]*)/";
-        preg_match($pattern,$url,$matches);
-        if (!empty($matches)){
-            $variables = array();
+        if (preg_match($pattern,$url,$matches)){
+            array_shift($matches);
             foreach($matches as $match){
-                $variables = $match[0];
+                $variables[] = $match[0];
             }
-            return $variables;
         }
-        return FALSE;
+        return $variables;
     }
 
 }

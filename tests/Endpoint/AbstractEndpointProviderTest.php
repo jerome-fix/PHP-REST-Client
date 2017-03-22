@@ -49,6 +49,9 @@ class AbstractEndpointProviderTest extends \PHPUnit_Framework_TestCase
         $property->setAccessible(TRUE);
         $this->assertEquals(array(),$property->getValue($Provider));
 
+        $Class = new \ReflectionClass('MRussell\REST\Tests\Stubs\Endpoint\EndpointProviderWithDefaults');
+        $property = $Class->getProperty('registry');
+        $property->setAccessible(TRUE);
         $Provider = new EndpointProviderWithDefaults();
         $this->assertNotEmpty($property->getValue($Provider));
     }

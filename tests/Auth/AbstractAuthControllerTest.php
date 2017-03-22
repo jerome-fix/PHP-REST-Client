@@ -196,17 +196,14 @@ class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
         $Auth->setCredentials($this->credentials);
         $AuthEndpoint = new AuthEndpoint();
         $AuthEndpoint->setBaseUrl('localhost');
-        $this->assertEquals($Auth,$Auth->setActionEndpoint(AuthController::ACTION_AUTH,$AuthEndpoint));
         $LogoutEndpoint = new LogoutEndpoint();
         $LogoutEndpoint->setBaseUrl('localhost');
-        $this->assertEquals($Auth,$Auth->setActionEndpoint(AuthController::ACTION_LOGOUT,$LogoutEndpoint));
         $Class = new \ReflectionClass('MRussell\REST\Tests\Stubs\Auth\AuthController');
         $method = $Class->getMethod('configureEndpoint');
         $method->setAccessible(TRUE);
-        $this->assertEquals(FALSE,$method->invoke($Auth,'foo'));
-        $this->assertEquals($AuthEndpoint,$method->invoke($Auth,AuthController::ACTION_AUTH));
+        $this->assertEquals($AuthEndpoint,$method->invoke($Auth,$AuthEndpoint,AuthController::ACTION_AUTH));
         $this->assertEquals($this->credentials,$AuthEndpoint->getData());
-        $this->assertEquals($LogoutEndpoint,$method->invoke($Auth,AuthController::ACTION_LOGOUT));
+        $this->assertEquals($LogoutEndpoint,$method->invoke($Auth,$LogoutEndpoint,AuthController::ACTION_LOGOUT));
         $this->assertEquals(array(),$LogoutEndpoint->getData());
 
         return $Auth;

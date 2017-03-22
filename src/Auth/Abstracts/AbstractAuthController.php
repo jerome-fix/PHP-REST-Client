@@ -157,11 +157,14 @@ abstract class AbstractAuthController implements AuthControllerInterface
      */
     public function authenticate()
     {
-        $Endpoint = $this->configureEndpoint(self::ACTION_AUTH);
-        $response = $Endpoint->execute()->getResponse();
-        if ($response->getStatus() == '200') {
-            $this->setToken($response->getBody());
-            return TRUE;
+        $Endpoint = $this->getActionEndpoint(self::ACTION_AUTH);
+        if ($Endpoint !== NULL) {
+            $Endpoint = $this->configureEndpoint($Endpoint,self::ACTION_AUTH);
+            $response = $Endpoint->execute()->getResponse();
+            if ($response->getStatus() == '200') {
+                $this->setToken($response->getBody());
+                return true;
+            }
         }
         return FALSE;
     }
@@ -171,11 +174,14 @@ abstract class AbstractAuthController implements AuthControllerInterface
      */
     public function logout()
     {
-        $Endpoint = $this->configureEndpoint(self::ACTION_LOGOUT);
-        $response = $Endpoint->execute()->getResponse();
-        if ($response->getStatus() == '200') {
-            $this->clearToken();
-            return TRUE;
+        $Endpoint = $this->getActionEndpoint(self::ACTION_LOGOUT);
+        if ($Endpoint !== NULL){
+            $Endpoint = $this->configureEndpoint($Endpoint,self::ACTION_LOGOUT);
+            $response = $Endpoint->execute()->getResponse();
+            if ($response->getStatus() == '200') {
+                $this->clearToken();
+                return TRUE;
+            }
         }
         return FALSE;
     }
@@ -231,22 +237,22 @@ abstract class AbstractAuthController implements AuthControllerInterface
     }
 
     /**
-     *
-     * @param $action
-     * @return bool|EndpointInterface
+     * Configure an actions Endpoint Object
+     * @param EndpointInterface $Endpoint
+     * @param string $action
+     * @return EndpointInterface
      */
-    protected function configureEndpoint($action)
+    protected function configureEndpoint(EndpointInterface $Endpoint, $action)
     {
-        $EP = $this->getActionEndpoint($action);
-        if ($EP !== NULL) {
-            switch ($action) {
-                case self::ACTION_AUTH:
-                    return $this->configureAuthenticationEndpoint($EP);
-                case self::ACTION_LOGOUT:
-                    return $this->configureLogoutEndpoint($EP);
-            }
+        switch ($action) {
+            case self::ACTION_AUTH:
+                $Endpoint = $this->configureAuthenticationEndpoint($Endpoint);
+                break;
+            case self::ACTION_LOGOUT:
+                $Endpoint = $this->configureLogoutEndpoint($Endpoint);
+                break;
         }
-        return FALSE;
+        return $Endpoint;
     }
 
     /**

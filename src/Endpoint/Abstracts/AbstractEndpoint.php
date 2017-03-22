@@ -291,7 +291,7 @@ abstract class AbstractEndpoint implements EndpointInterface
         $Request->setBody($data);
         if ($this->authRequired()){
             if (isset($this->Auth)){
-                $this->Auth->configure($Request);
+                $this->Auth->configureRequest($Request);
             }
         }
         return $Request;

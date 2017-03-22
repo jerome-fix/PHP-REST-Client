@@ -51,7 +51,7 @@ interface AuthControllerInterface
      * @param RequestInterface $Request
      * @return self
      */
-    public function configure(RequestInterface $Request);
+    public function configureRequest(RequestInterface $Request);
 
     /**
      * Execute the authentication scheme

@@ -1,6 +1,6 @@
 <?php
 
-namespace MRussell\REST\Exception\Authentication;
+namespace MRussell\REST\Exception\Auth;
 
 
 class InvalidToken extends AuthException {

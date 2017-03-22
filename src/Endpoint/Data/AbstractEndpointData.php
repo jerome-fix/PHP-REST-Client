@@ -6,9 +6,13 @@ use MRussell\REST\Exception\Endpoint\InvalidData;
 
 abstract class AbstractEndpointData implements DataInterface
 {
+    const DATA_PROPERTY_REQUIRED = 'required';
+
+    const DATA_PROPERTY_DEFAULTS = 'defaults';
+
     protected static $_DEFAULT_PROPERTIES = array(
-        'required' => array(),
-        'defaults' => array(),
+        self::DATA_PROPERTY_REQUIRED => array(),
+        self::DATA_PROPERTY_DEFAULTS => array(),
     );
 
     /**
@@ -24,12 +28,13 @@ abstract class AbstractEndpointData implements DataInterface
     protected $properties;
 
     //Overloads
-    public function __construct(array $data = array(),array $properties = array()) {
-        $this->reset();
-        $this->data = $data;
+    public function __construct(array $properties = array(),array $data = array()) {
+        $this->setProperties(static::$_DEFAULT_PROPERTIES);
         foreach($properties as $key => $value){
             $this->properties[$key] = $value;
         }
+        $this->configureDefaultData();
+        $this->update($data);
     }
 
     /**
@@ -141,6 +146,12 @@ abstract class AbstractEndpointData implements DataInterface
      * @return $this
      */
     public function setProperties(array $properties) {
+        if (!isset($properties[self::DATA_PROPERTY_REQUIRED])){
+            $properties[self::DATA_PROPERTY_REQUIRED] = array();
+        }
+        if (!isset($properties[self::DATA_PROPERTY_DEFAULTS])){
+            $properties[self::DATA_PROPERTY_DEFAULTS] = array();
+        }
         $this->properties = $properties;
         return $this;
     }
@@ -151,8 +162,8 @@ abstract class AbstractEndpointData implements DataInterface
      */
     public function reset(){
         $this->setProperties(static::$_DEFAULT_PROPERTIES);
-        $this->configureDefaultData();
-        return $this->clear();
+        $this->clear();
+        return $this->configureDefaultData();
     }
 
     /**
@@ -196,19 +207,33 @@ abstract class AbstractEndpointData implements DataInterface
      */
     protected function verifyRequiredData()
     {
+        $errors = array(
+            'missing' => array(),
+            'invalid' => array()
+        );
         $error = FALSE;
         if (!empty($this->properties['required'])) {
             foreach ($this->properties['required'] as $property => $type) {
-                if (!isset($data[$property])) {
+                if (!isset($this->data[$property])) {
+                    $errors['missing'][] = $property;
                     $error = TRUE;
+                    continue;
                 }
-                if ($type !== NULL && gettype($data[$property]) !== $type) {
+                if ($type !== NULL && gettype($this->data[$property]) !== $type) {
+                    $errors['invalid'][] = $property;
                     $error = TRUE;
                 }
             }
         }
         if ($error){
-            throw new InvalidData(get_called_class());
+            $errorMsg = '';
+            if (!empty($errors['missing'])){
+                $errorMsg .= "Missing [".implode(",",$errors['missing']). "] ";
+            }
+            if (!empty($errors['invalid'])){
+                $errorMsg .= "Invalid [".implode(",",$errors['invalid'])."]";
+            }
+            throw new InvalidData($errorMsg);
         }
         return $error;
     }

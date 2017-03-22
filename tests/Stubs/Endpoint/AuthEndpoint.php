@@ -3,9 +3,9 @@
 namespace MRussell\REST\Tests\Stubs\Endpoint;
 
 use MRussell\Http\Request\JSON;
-use MRussell\REST\Endpoint\JSON\Endpoint;
+use MRussell\REST\Endpoint\JSON\SmartEndpoint;
 
-class AuthEndpoint extends Endpoint
+class AuthEndpoint extends SmartEndpoint
 {
     protected static $_ENDPOINT_URL = 'authenticate';
 

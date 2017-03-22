@@ -202,7 +202,7 @@ class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
         $method = $Class->getMethod('configureEndpoint');
         $method->setAccessible(TRUE);
         $this->assertEquals($AuthEndpoint,$method->invoke($Auth,$AuthEndpoint,AuthController::ACTION_AUTH));
-        $this->assertEquals($this->credentials,$AuthEndpoint->getData());
+        $this->assertEquals($this->credentials,$AuthEndpoint->getData()->asArray());
         $this->assertEquals($LogoutEndpoint,$method->invoke($Auth,$LogoutEndpoint,AuthController::ACTION_LOGOUT));
         $this->assertEquals(array(),$LogoutEndpoint->getData());
 

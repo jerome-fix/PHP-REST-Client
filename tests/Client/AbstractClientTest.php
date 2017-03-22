@@ -5,6 +5,7 @@ namespace MRussell\REST\Tests\Client;
 use MRussell\REST\Tests\Stubs\Auth\AuthController;
 use MRussell\REST\Tests\Stubs\Client\Client;
 use MRussell\REST\Tests\Stubs\Endpoint\EndpointProvider;
+use MRussell\REST\Tests\Stubs\Endpoint\EndpointProviderWithDefaults;
 
 
 /**
@@ -67,7 +68,7 @@ class AbstractClientTest extends \PHPUnit_Framework_TestCase
      */
     public function testSetEndpointProvider(Client $Client){
         $this->Client = $Client;
-        $EndpointProvider = new EndpointProvider();
+        $EndpointProvider = new EndpointProviderWithDefaults();
         $this->assertEquals($this->Client,$this->Client->setEndpointProvider($EndpointProvider));
         $this->assertEquals($EndpointProvider,$this->Client->getEndpointProvider());
         return $this->Client;

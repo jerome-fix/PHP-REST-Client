@@ -4,13 +4,9 @@ namespace MRussell\REST\Endpoint\Abstracts;
 
 use MRussell\Http\Request\Curl;
 use MRussell\REST\Auth\AuthControllerInterface;
-use MRussell\REST\Endpoint\Data\AbstractEndpointData;
-use MRussell\REST\Endpoint\Data\DataInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Exception\Endpoint\InvalidRequest;
-use MRussell\REST\Exception\Endpoint\InvalidURLEndpointException;
 use MRussell\REST\Exception\Endpoint\InvalidData;
-use MRussell\REST\Exception\Endpoint\InvalidOptions;
 use MRussell\Http\Response\ResponseInterface;
 use MRussell\Http\Request\RequestInterface;
 

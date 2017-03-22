@@ -1,6 +1,6 @@
 <?php
 
-namespace MRussell\REST\Tests\Endpoint\Data;
+namespace MRussell\REST\Tests\Endpoint;
 
 use MRussell\REST\Endpoint\Data\EndpointData as StockData;
 use MRussell\REST\Tests\Stubs\Endpoint\EndpointData as StubData;
@@ -208,6 +208,19 @@ class AbstractEndpointDataTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidData(){
         $Data = new StubData();
+        $Data['foo'] = 1234;
+        $Data->asArray(TRUE);
+    }
+
+    /**
+     * @expectedException MRussell\REST\Exception\Endpoint\InvalidData
+     * @expectedExceptionMessageRegExp /Missing or Invalid data on Endpoint Data\. Errors: (Missing \[[A-z0-9,].*\]|Invalid \[[A-z0-9,].*\])/
+     */
+    public function testInvalidAndMissingData(){
+        $Data = new StubData();
+        $properties = $Data->getProperties();
+        $properties['required']['bar'] = NULL;
+        $Data->setProperties($properties);
         $Data['foo'] = 1234;
         $Data->asArray(TRUE);
     }

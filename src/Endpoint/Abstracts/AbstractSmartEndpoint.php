@@ -3,7 +3,6 @@
 namespace MRussell\REST\Endpoint\Abstracts;
 
 use MRussell\REST\Endpoint\Data\AbstractEndpointData;
-use MRussell\REST\Endpoint\Data\EndpointData;
 use MRussell\REST\Exception\Endpoint\EndpointException;
 
 abstract class AbstractSmartEndpoint extends AbstractEndpoint

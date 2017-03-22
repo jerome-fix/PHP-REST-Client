@@ -7,7 +7,7 @@ use MRussell\Http\Response\ResponseInterface;
 use MRussell\REST\Endpoint\Data\AbstractEndpointData;
 use MRussell\REST\Endpoint\Data\DataInterface;
 use MRussell\REST\Endpoint\Interfaces\ModelInterface;
-use MRussell\REST\Exception\Endpoint\Exception;
+use MRussell\REST\Exception\Endpoint\EndpointException;
 
 /**
  * Class AbstractModelEndpoint
@@ -184,7 +184,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
 
     /**
      * @inheritdoc
-     * @throws \MRussell\REST\Exception\Endpoint\InvalidRequestException
+     * @throws \MRussell\REST\Exception\Endpoint\InvalidRequest
      */
     public function retrieve($id = NULL) {
         $idKey = $this->modelIdKey();
@@ -195,7 +195,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
             }
         } else {
             if (!isset($this->model[$idKey])){
-                throw new Exception("Cannot retrieve Model without an ID");
+                throw new EndpointException("Cannot retrieve Model without an ID");
             }
         }
         $this->action = self::MODEL_ACTION_RETRIEVE;
@@ -205,7 +205,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
 
     /**
      * @inheritdoc
-     * @throws \MRussell\REST\Exception\Endpoint\InvalidRequestException
+     * @throws \MRussell\REST\Exception\Endpoint\InvalidRequest
      */
     public function save() {
         if (isset($this->model[$this->modelIdKey()])){

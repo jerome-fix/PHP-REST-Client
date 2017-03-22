@@ -2,7 +2,7 @@
 
 namespace MRussell\REST\Endpoint\Data;
 
-use MRussell\REST\Exception\Endpoint\RequiredDataException;
+use MRussell\REST\Exception\Endpoint\InvalidData;
 
 abstract class AbstractEndpointData implements DataInterface
 {
@@ -118,7 +118,7 @@ abstract class AbstractEndpointData implements DataInterface
      * Return the entire Data array
      * @param bool $verify - Whether or not to verify if Required Data is filled in
      * @return array
-     * @throws RequiredDataException
+     * @throws InvalidData
      */
     public function asArray($verify = FALSE){
         if ($verify){
@@ -192,7 +192,7 @@ abstract class AbstractEndpointData implements DataInterface
     /**
      * Validate Required Data for the Endpoint
      * @return bool
-     * @throws RequiredDataException
+     * @throws InvalidData
      */
     protected function verifyRequiredData()
     {
@@ -208,7 +208,7 @@ abstract class AbstractEndpointData implements DataInterface
             }
         }
         if ($error){
-            throw new RequiredDataException(get_called_class());
+            throw new InvalidData(get_called_class());
         }
         return $error;
     }

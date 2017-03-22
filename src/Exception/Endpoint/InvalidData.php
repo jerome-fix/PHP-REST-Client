@@ -2,8 +2,7 @@
 
 namespace MRussell\REST\Exception\Endpoint;
 
-class RequiredDataException extends \Exception
+class InvalidData extends EndpointException
 {
     protected $message = "Missing or Invalid data on Endpoint [%s].";
-
 }

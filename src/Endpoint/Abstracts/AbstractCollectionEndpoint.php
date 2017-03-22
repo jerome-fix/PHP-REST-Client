@@ -121,7 +121,7 @@ abstract class AbstractCollectionEndpoint extends AbstractEndpoint implements Co
     //Collection Interface
     /**
      * @inheritdoc
-     * @throws \MRussell\REST\Exception\Endpoint\InvalidRequestException
+     * @throws \MRussell\REST\Exception\Endpoint\InvalidRequest
      */
     public function fetch() {
         $this->setProperty('httpMethod',Curl::HTTP_GET);

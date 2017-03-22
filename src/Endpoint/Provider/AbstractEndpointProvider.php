@@ -5,7 +5,7 @@ namespace MRussell\REST\Endpoint\Provider;
 use MRussell\REST\Auth\AuthControllerInterface;
 use MRussell\REST\Endpoint\ControllerInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
-use MRussell\REST\Exception\Endpoint\RegistrationException;
+use MRussell\REST\Exception\Endpoint\InvalidEndpointRegistration;
 use MRussell\REST\Exception\Endpoint\UnknownEndpoint;
 
 abstract class AbstractEndpointProvider implements EndpointProviderInterface
@@ -33,7 +33,7 @@ abstract class AbstractEndpointProvider implements EndpointProviderInterface
 
     /**
      * @inheritdoc
-     * @throws RegistrationException
+     * @throws InvalidEndpointRegistration
      */
     public function registerEndpoint($name, $className, array $properties = array())
     {
@@ -44,7 +44,7 @@ abstract class AbstractEndpointProvider implements EndpointProviderInterface
                 'properties' => $properties
             );
         } else {
-            throw new RegistrationException($className);
+            throw new InvalidEndpointRegistration($className);
         }
         return $this;
     }

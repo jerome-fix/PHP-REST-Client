@@ -1,16 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: mrussell
- * Date: 1/20/17
- * Time: 10:51 AM
- */
 
 namespace MRussell\REST\Exception\Client;
 
+use MRussell\REST\Exception\RestClientException;
 
-class ClientException extends \Exception {
+class ClientException extends RestClientException {
 
-    protected $message = 'Unknown REST Client Exception occurred.';
+    protected $message = 'Unknown Exception occurred on REST Client: %s';
 
 }

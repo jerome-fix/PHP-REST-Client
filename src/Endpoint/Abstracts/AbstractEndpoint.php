@@ -7,10 +7,10 @@ use MRussell\REST\Auth\AuthControllerInterface;
 use MRussell\REST\Endpoint\Data\AbstractEndpointData;
 use MRussell\REST\Endpoint\Data\DataInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
-use MRussell\REST\Exception\Endpoint\InvalidRequestException;
-use MRussell\REST\Exception\Endpoint\InvalidURLException;
-use MRussell\REST\Exception\Endpoint\RequiredDataException;
-use MRussell\REST\Exception\Endpoint\RequiredOptionsException;
+use MRussell\REST\Exception\Endpoint\InvalidRequest;
+use MRussell\REST\Exception\Endpoint\InvalidURLEndpointException;
+use MRussell\REST\Exception\Endpoint\InvalidData;
+use MRussell\REST\Exception\Endpoint\InvalidOptions;
 use MRussell\Http\Response\ResponseInterface;
 use MRussell\Http\Request\RequestInterface;
 
@@ -221,8 +221,8 @@ abstract class AbstractEndpoint implements EndpointInterface
      * @inheritdoc
      * @param null $data - short form data for Endpoint, which is configure by configureData method
      * @return $this
-     * @throws InvalidRequestException
-     * @throws InvalidURLException
+     * @throws InvalidRequest
+     * @throws InvalidURLEndpointException
      */
     public function execute()
     {
@@ -232,7 +232,7 @@ abstract class AbstractEndpoint implements EndpointInterface
                 $this->configureResponse($this->Response);
             }
         } else {
-            throw new InvalidRequestException(get_called_class(), "Request property not configured");
+            throw new InvalidRequest(get_called_class(), "Request property not configured");
         }
         return $this;
     }
@@ -271,8 +271,8 @@ abstract class AbstractEndpoint implements EndpointInterface
      * Verifies URL and Data are setup, then sets them on the Request Object
      * @param RequestInterface $Request
      * @return RequestInterface
-     * @throws InvalidURLException
-     * @throws RequiredDataException
+     * @throws InvalidURLEndpointException
+     * @throws InvalidData
      */
     protected function configureRequest(RequestInterface $Request)
     {
@@ -365,12 +365,12 @@ abstract class AbstractEndpoint implements EndpointInterface
      * Verify if URL is configured properly
      * @param string $url
      * @return bool
-     * @throws InvalidURLException
+     * @throws InvalidURLEndpointException
      */
     private function verifyUrl($url)
     {
         if (strpos($url, static::$_URL_VAR_CHARACTER) !== false) {
-            throw new InvalidURLException(get_called_class(), "Configured URL is ".$url);
+            throw new InvalidURLEndpointException(get_called_class(), "Configured URL is ".$url);
         }
         return true;
     }

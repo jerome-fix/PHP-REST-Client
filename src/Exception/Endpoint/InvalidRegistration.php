@@ -2,7 +2,7 @@
 
 namespace MRussell\REST\Exception\Endpoint;
 
-class RegistrationException extends Exception {
+class InvalidRegistration extends EndpointException {
 
     protected $message = 'Endpoint Object [%s] must extend MRussell\REST\Endpoint\EndpointInterface';
 

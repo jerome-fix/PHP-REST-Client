@@ -93,7 +93,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint
      * @param AbstractEndpointData $data
      * @inheritdoc
      */
-    protected function configureData(AbstractEndpointData $data) {
+    protected function configureData($data) {
         return parent::configureData($data->asArray());
     }
 }

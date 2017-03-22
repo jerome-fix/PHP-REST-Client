@@ -79,10 +79,4 @@ interface ClientInterface
      */
     public function last();
 
-    /**
-     * @return mixed
-     */
-    public function error();
-
-
 }

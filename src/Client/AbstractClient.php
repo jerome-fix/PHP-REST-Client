@@ -159,22 +159,16 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @inheritdoc
      */
-    public function error()
-    {
-        return $this->error;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function __call($name, $arguments)
     {
         if (isset($this->EndpointProvider)){
             $this->setCurrentEndpoint($this->EndpointProvider->getEndpoint($name,$this->version))
                 ->current()
                     ->setBaseUrl($this->apiURL)
-                    ->setOptions($arguments)
-                    ->setAuth($this->Auth);
+                    ->setOptions($arguments);
+            if (!empty($this->Auth)){
+                $this->currentEndPoint->setAuth($this->Auth);
+            }
             return $this->currentEndPoint;
         }else{
             throw new EndpointProviderMissing();

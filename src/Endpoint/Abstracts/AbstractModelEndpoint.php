@@ -243,7 +243,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @param AbstractEndpointData $data
      * @inheritdoc
      */
-    protected function configureData(AbstractEndpointData $data) {
+    protected function configureData($data) {
         $requestData = $data->asArray(TRUE);
         switch ($this->action){
             case self::MODEL_ACTION_CREATE:

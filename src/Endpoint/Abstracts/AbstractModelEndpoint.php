@@ -8,6 +8,7 @@ use MRussell\REST\Endpoint\Data\AbstractEndpointData;
 use MRussell\REST\Endpoint\Data\DataInterface;
 use MRussell\REST\Endpoint\Interfaces\ModelInterface;
 use MRussell\REST\Exception\Endpoint\EndpointException;
+use MRussell\REST\Exception\Endpoint\UnknownModelAction;
 
 /**
  * Class AbstractModelEndpoint
@@ -86,6 +87,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
             $this->configureAction($this->action,$arguments);
             return $this->execute();
         }
+        throw new UnknownModelAction(array(get_class($this),$name));
     }
 
     //Data Interface
@@ -243,8 +245,12 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @param AbstractEndpointData $data
      * @inheritdoc
      */
-    protected function configureData($data) {
-        $requestData = $data->asArray(TRUE);
+    protected function configureData($data)
+    {
+        $requestData = parent::configureData($data);
+        if ($requestData == NULL){
+            $requestData = array();
+        }
         switch ($this->action){
             case self::MODEL_ACTION_CREATE:
             case self::MODEL_ACTION_UPDATE:

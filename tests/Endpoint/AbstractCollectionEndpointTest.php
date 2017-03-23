@@ -142,7 +142,7 @@ class AbstractCollectionEndpointTest extends \PHPUnit_Framework_TestCase
     public function testSetModelEndpoint(){
         $Collection = new CollectionEndpointWithModel();
         $Collection->setModelEndpoint(new ModelEndpoint());
-        $Class = new \ReflectionClass(static::$_REFLECTED_CLASS);
+        $Class = new \ReflectionClass(static::$_REFLECTED_CLASS."WithModel");
         $model = $Class->getProperty('model');
         $model->setAccessible(TRUE);
         $this->assertEquals('MRussell\\REST\\Endpoint\\JSON\\ModelEndpoint',$model->getValue($Collection));

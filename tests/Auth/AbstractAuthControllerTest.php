@@ -215,6 +215,8 @@ class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
      * @covers ::authenticate
      */
     public function testAuthenticate(AuthController $Auth){
+        $Endpoint = new AuthEndpoint();
+        $Auth->setActionEndpoint(AuthController::ACTION_AUTH,$Endpoint);
         $this->assertEquals(FALSE,$Auth->authenticate());
     }
 
@@ -224,6 +226,8 @@ class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
      * @covers ::logout
      */
     public function testLogout(AuthController $Auth){
+        $Endpoint = new LogoutEndpoint();
+        $Auth->setActionEndpoint(AuthController::ACTION_LOGOUT,$Endpoint);
         $this->assertEquals(FALSE,$Auth->logout());
     }
 }

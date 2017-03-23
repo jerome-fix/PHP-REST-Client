@@ -101,6 +101,9 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint
      * @inheritdoc
      */
     protected function configureData($data) {
-        return parent::configureData($data->asArray());
+        if ($data !== NULL) {
+            return parent::configureData($data->asArray());
+        }
+        return parent::configureData($data);
     }
 }

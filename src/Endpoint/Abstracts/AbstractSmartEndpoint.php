@@ -3,7 +3,7 @@
 namespace MRussell\REST\Endpoint\Abstracts;
 
 use MRussell\REST\Endpoint\Data\AbstractEndpointData;
-use MRussell\REST\Exception\Endpoint\EndpointException;
+use MRussell\REST\Exception\Endpoint\InvalidDataType;
 
 abstract class AbstractSmartEndpoint extends AbstractEndpoint
 {
@@ -80,7 +80,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint
             $this->data->reset();
             $this->data->update($data);
         } else {
-            throw new EndpointException("Invalid data passed to Endpoint");
+            throw new InvalidDataType(get_class($this));
         }
         return $this;
     }

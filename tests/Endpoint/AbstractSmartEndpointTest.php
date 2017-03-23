@@ -2,6 +2,7 @@
 
 namespace MRussell\REST\Tests\Endpoint;
 
+use MRussell\REST\Endpoint\Data\EndpointData;
 use MRussell\REST\Tests\Stubs\Endpoint\SmartEndpoint;
 
 
@@ -117,11 +118,30 @@ class AbstractSmartEndpointTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers ::setData
+     * @covers ::getData
      * @covers ::configureData
      */
     public function testSetData(){
         $Endpoint = new SmartEndpoint();
+        $Data = new EndpointData();
+        $this->assertEquals($Endpoint,$Endpoint->setData($Data));
+        $this->assertEquals($Data,$Endpoint->getData());
 
+        $this->assertEquals($Endpoint,$Endpoint->setData(array('foo' => 'bar')));
+        $this->assertEquals(array('foo' => 'bar'),$Endpoint->getData()->asArray());
+
+        $Class = new \ReflectionClass('MRussell\REST\Endpoint\Abstracts\AbstractSmartEndpoint');
+        $method = $Class->getMethod('configureData');
+        $method->setAccessible(TRUE);
+        $this->assertEquals(array('foo' => 'bar'),$method->invoke($Endpoint,$Endpoint->getData()));
+    }
+
+    /**
+     * @expectedException MRussell\REST\Exception\Endpoint\InvalidDataType
+     */
+    public function testInvalidDataType(){
+        $Endpoint = new SmartEndpoint();
+        $Endpoint->setData('test');
     }
 
 }

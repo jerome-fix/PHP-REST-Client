@@ -11,6 +11,9 @@ use MRussell\REST\Exception\Endpoint\UnknownEndpoint;
 
 abstract class AbstractCollectionEndpoint extends AbstractEndpoint implements CollectionInterface, DataInterface
 {
+    /**
+     * @inheritdoc
+     */
     protected static $_ENDPOINT_URL = '';
 
     /**
@@ -133,9 +136,10 @@ abstract class AbstractCollectionEndpoint extends AbstractEndpoint implements Co
      */
     public function get($id) {
         $data = NULL;
-        if (isset($this->collection[$id])){
+        if ($this->offsetExists($id)){
             $data = $this->collection[$id];
-            if (isset($this->_Model) && is_array($data)){
+            $Model = $this->buildModel();
+            if ($Model !== NULL && is_array($data)){
                 $Model = $this->buildModel();
                 foreach($data as $key => $value){
                    $Model->set($key,$value);
@@ -151,12 +155,19 @@ abstract class AbstractCollectionEndpoint extends AbstractEndpoint implements Co
      * @throws UnknownEndpoint
      */
     public function setModelEndpoint($model) {
-        $implements = class_implements($model);
-        if (is_array($implements) && in_array('MRussell\REST\Endpoint\Interfaces\ModelInterface',$implements)){
-            $this->model = $model;
-        } else {
-            throw new UnknownEndpoint($model);
+        try{
+            $implements = class_implements($model);
+            if (is_array($implements) && isset($implements['MRussell\REST\Endpoint\Interfaces\ModelInterface'])){
+                if (is_object($model)){
+                    $model = get_class($model);
+                }
+                $this->model = $model;
+                return $this;
+            }
+        } catch (\Exception $ex){
+            //If class_implements cannot load class
         }
+        throw new UnknownEndpoint($model);
     }
 
     /**
@@ -167,6 +178,9 @@ abstract class AbstractCollectionEndpoint extends AbstractEndpoint implements Co
         $epURL = parent::getEndPointUrl();
         if ($epURL == '' && isset($this->model)){
             $epURL = $this->buildModel()->getEndPointUrl();
+        }
+        if ($full){
+            $epURL = rtrim($this->getBaseUrl(),"/")."/$epURL";
         }
         return $epURL;
     }
@@ -179,6 +193,7 @@ abstract class AbstractCollectionEndpoint extends AbstractEndpoint implements Co
         if ($Response->getStatus() == '200'){
             $this->updateCollection();
         }
+        return $Response;
     }
 
     /**

@@ -1,13 +1,15 @@
 [![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%205.3-8892BF.svg)](https://php.net/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Total Downloads](https://poser.pugx.org/michaelj2324/php-rest-client/downloads)](https://packagist.org/packages/michaelj2324/php-rest-client)
+[![Build Status](https://travis-ci.org/MichaelJ2324/PHP-REST-Client.svg?branch=master)](https://travis-ci.org/MichaelJ2324/PHP-REST-Client)
+[![Coverage Status](https://coveralls.io/repos/github/MichaelJ2324/PHP-REST-Client/badge.svg?branch=master)](https://coveralls.io/github/MichaelJ2324/PHP-REST-Client?branch=master)
 
-#PHP REST Client#
+# PHP REST Client
 
-##Overview##
+## Overview
 A robust framework for working with REST APIs in PHP
 
-##Usage
+## Usage
 Install via Composer
 <pre>composer require 'michaelj2324/php-rest-client'</pre>
 

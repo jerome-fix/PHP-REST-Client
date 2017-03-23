@@ -7,6 +7,8 @@ use MRussell\REST\Exception\Endpoint\EndpointException;
 
 abstract class AbstractSmartEndpoint extends AbstractEndpoint
 {
+    const PROPERTY_DATA = 'data';
+
     /**
      * @inheritdoc
      */
@@ -34,7 +36,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint
         if (static::$_DATA_CLASS !== '' && !empty(static::$_DATA_CLASS)){
             $implements = class_implements(static::$_DATA_CLASS);
             if (is_array($implements) && isset($implements["MRussell\\REST\\Endpoint\\Data\\DataInterface"])){
-                $data = new static::$_DATA_CLASS();
+                $data = new static::$_DATA_CLASS($this->properties['data']);
                 $this->setData($data);
             }
         }
@@ -44,6 +46,12 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint
      * @inheritdoc
      */
     public function setProperties(array $properties) {
+        if (!isset($properties[self::PROPERTY_DATA])){
+            $properties[self::PROPERTY_DATA] = array(
+                'required' => array(),
+                'defaults' => array()
+            );
+        }
         parent::setProperties($properties);
         if (isset($this->data)){
             $this->configureDataProperties();
@@ -56,7 +64,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint
      */
     public function setProperty($name, $value) {
         parent::setProperty($name, $value);
-        if ($name == 'data' && isset($this->data)){
+        if ($name == self::PROPERTY_DATA && isset($this->data)){
             $this->configureDataProperties();
         }
         return $this;

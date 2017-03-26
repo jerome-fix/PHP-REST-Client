@@ -9,13 +9,8 @@ use MRussell\REST\Endpoint\Interfaces\CollectionInterface;
 use MRussell\REST\Endpoint\Interfaces\ModelInterface;
 use MRussell\REST\Exception\Endpoint\UnknownEndpoint;
 
-abstract class AbstractCollectionEndpoint extends AbstractEndpoint implements CollectionInterface, DataInterface
+abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implements CollectionInterface, DataInterface
 {
-    /**
-     * @inheritdoc
-     */
-    protected static $_ENDPOINT_URL = '';
-
     /**
      * @var string
      */

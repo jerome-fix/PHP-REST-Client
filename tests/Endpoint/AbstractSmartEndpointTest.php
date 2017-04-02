@@ -134,6 +134,7 @@ class AbstractSmartEndpointTest extends \PHPUnit_Framework_TestCase
         $method = $Class->getMethod('configureData');
         $method->setAccessible(TRUE);
         $this->assertEquals(array('foo' => 'bar'),$method->invoke($Endpoint,$Endpoint->getData()));
+        $this->assertEquals(NULL,$method->invoke($Endpoint,NULL));
     }
 
     /**

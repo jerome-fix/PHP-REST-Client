@@ -7,7 +7,9 @@ use MRussell\Http\Response\ResponseInterface;
 use MRussell\REST\Endpoint\Data\AbstractEndpointData;
 use MRussell\REST\Endpoint\Data\DataInterface;
 use MRussell\REST\Endpoint\Interfaces\ModelInterface;
+use MRussell\REST\Endpoint\JSON\ModelEndpoint;
 use MRussell\REST\Exception\Endpoint\EndpointException;
+use MRussell\REST\Exception\Endpoint\MissingModelId;
 use MRussell\REST\Exception\Endpoint\UnknownModelAction;
 
 /**
@@ -173,14 +175,14 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @inheritdoc
      */
     public function get($key) {
-        return $this->model[$key];
+        return $this->offsetGet($key);
     }
 
     /**
      * @inheritdoc
      */
     public function set($key, $value) {
-        $this->model[$key] = $value;
+        $this->offsetSet($key,$value);
         return $this;
     }
 
@@ -189,20 +191,20 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @throws \MRussell\REST\Exception\Endpoint\InvalidRequest
      */
     public function retrieve($id = NULL) {
+        $this->action = self::MODEL_ACTION_RETRIEVE;
         $idKey = $this->modelIdKey();
         if ($id !== NULL){
             if (isset($this->model[$idKey])){
                 $this->reset();
-                $this->set($idKey,$id);
             }
+            $this->set($idKey,$id);
         } else {
             if (!isset($this->model[$idKey])){
-                throw new EndpointException("Cannot retrieve Model without an ID");
+                throw new MissingModelId(array($this->action,get_class($this)));
             }
         }
-        $this->action = self::MODEL_ACTION_RETRIEVE;
         $this->configureAction($this->action);
-        $this->execute();
+        return $this->execute();
     }
 
     /**
@@ -225,7 +227,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
     public function delete(){
         $this->action = self::MODEL_ACTION_DELETE;
         $this->configureAction($this->action);
-        $this->execute();
+        return $this->execute();
     }
 
     //Endpoint Overrides
@@ -295,12 +297,9 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      */
     protected function configureURL(array $options)
     {
-        $id = '';
-        $modelIdKey = static::modelIdKey();
-        if (isset($this->model[$modelIdKey])){
-            $id = $this->model[$modelIdKey];
-        }
-        $options[self::MODEL_ID_VAR] = $id;
+        $idKey = $this->modelIdKey();
+        $id = $this->get($idKey);
+        $options[self::MODEL_ID_VAR] = (empty($id)?'':$id);
         return parent::configureURL($options);
     }
 

@@ -4,6 +4,7 @@ namespace MRussell\REST\Tests\Endpoint;
 
 use MRussell\Http\Request\Curl;
 use MRussell\Http\Request\JSON;
+use MRussell\REST\Exception\Endpoint\MissingModelId;
 use MRussell\REST\Exception\Endpoint\UnknownModelAction;
 use MRussell\REST\Tests\Stubs\Endpoint\ModelEndpoint;
 use MRussell\REST\Tests\Stubs\Endpoint\ModelEndpointWithActions;
@@ -145,5 +146,169 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
         ),$Model[0]);
         $this->assertEquals($Model,$Model->reset());
         $this->assertEquals(array(),$Model->asArray());
+    }
+
+    /**
+     * @covers ::configureAction
+     * @covers ::retrieve
+     * @covers ::configureURL
+     */
+    public function testRetrieve(){
+        $Model = new ModelEndpoint();
+        $Model->setBaseUrl('localhost/api/v1/');
+        $Model->setProperty('url','model/$id');
+        $Model->setRequest(new JSON());
+        $this->assertEquals($Model,$Model->retrieve('1234'));
+        $this->assertEquals('localhost/api/v1/model/1234',$Model->getRequest()->getURL());
+        $this->assertEquals('1234',$Model['id']);
+
+        $Class = new \ReflectionClass(static::$_REFLECTED_CLASS);
+        $action = $Class->getProperty('action');
+        $action->setAccessible(TRUE);
+        $this->assertEquals('retrieve',$action->getValue($Model));
+
+        $Model['id'] = '5678';
+        $this->assertEquals($Model,$Model->retrieve());
+        $this->assertEquals('localhost/api/v1/model/5678',$Model->getRequest()->getURL());
+        $this->assertEquals(JSON::HTTP_GET,$Model->getRequest()->getMethod());
+        $this->assertEquals('5678',$Model->get('id'));
+
+        $this->assertEquals($Model,$Model->retrieve('0000'));
+        $this->assertEquals('localhost/api/v1/model/0000',$Model->getRequest()->getURL());
+        $this->assertEquals(JSON::HTTP_GET,$Model->getRequest()->getMethod());
+        $this->assertEquals('0000',$Model->get('id'));
+    }
+
+    /**
+     * @covers ::retrieve
+     * @expectedException MRussell\REST\Exception\Endpoint\MissingModelId
+     * @expectedExceptionMessageRegExp /Model ID missing for current action/
+     */
+    public function testMissingModelId(){
+        $Model = new ModelEndpoint();
+        $Model->setBaseUrl('localhost/api/v1/');
+        $Model->setProperty('url','model/$id');
+        $Model->setRequest(new JSON());
+        $Model->retrieve();
+    }
+
+    /**
+     * @covers ::save
+     * @covers ::configureAction
+     * @covers ::configureURL
+     * @covers ::configureData
+     */
+    public function testSave(){
+        $Model = new ModelEndpoint();
+        $Model->setRequest(new JSON());
+        $Model->setBaseUrl('localhost/api/v1/');
+        $Model->setProperty('url','model/$id');
+        $Model->set('foo','bar');
+        $Class = new \ReflectionClass(static::$_REFLECTED_CLASS);
+        $action = $Class->getProperty('action');
+        $action->setAccessible(TRUE);
+
+        $this->assertEquals($Model,$Model->save());
+        $this->assertEquals('create',$action->getValue($Model));
+        $this->assertEquals('localhost/api/v1/model',$Model->getRequest()->getURL());
+        $this->assertEquals(JSON::HTTP_POST,$Model->getRequest()->getMethod());
+        $this->assertEquals(array(
+            'foo' => 'bar'
+        ),$Model->getRequest()->getBody());
+
+        $Model->set('id','1234');
+        $this->assertEquals($Model,$Model->save());
+        $this->assertEquals('update',$action->getValue($Model));
+        $this->assertEquals('localhost/api/v1/model/1234',$Model->getRequest()->getURL());
+        $this->assertEquals(JSON::HTTP_PUT,$Model->getRequest()->getMethod());
+        $this->assertEquals(array(
+            'id' => '1234',
+            'foo' => 'bar'
+        ),$Model->getRequest()->getBody());
+    }
+
+    /**
+     * @covers ::delete
+     * @covers ::configureAction
+     */
+    public function testDelete(){
+        $Model = new ModelEndpoint();
+        $Model->setRequest(new JSON());
+        $Model->setBaseUrl('localhost/api/v1/');
+        $Model->setProperty('url','model/$id');
+        $Model->set('id','1234');
+        $Class = new \ReflectionClass(static::$_REFLECTED_CLASS);
+        $action = $Class->getProperty('action');
+        $action->setAccessible(TRUE);
+
+        $this->assertEquals($Model,$Model->delete());
+        $this->assertEquals('delete',$action->getValue($Model));
+        $this->assertEquals('localhost/api/v1/model/1234',$Model->getRequest()->getURL());
+        $this->assertEquals(JSON::HTTP_DELETE,$Model->getRequest()->getMethod());
+    }
+
+    /**
+     * @covers ::configureResponse
+     * @covers ::updateModel
+     */
+    public function testConfigureResponse(){
+        $Model = new \MRussell\REST\Endpoint\JSON\ModelEndpoint();
+        $Model->setBaseUrl('localhost/api/v1/');
+        $Model->setProperty('url','model/$id');
+        $Response = $Model->getResponse();
+
+        $ReflectedResponse = new \ReflectionClass('MRussell\Http\Response\JSON');
+        $ReflectedModel = new \ReflectionClass('MRussell\REST\Endpoint\JSON\ModelEndpoint');
+        $status = $ReflectedResponse->getProperty('status');
+        $status->setAccessible(TRUE);
+        $status->setValue($Response,'200');
+        $action = $ReflectedModel->getProperty('action');
+        $action->setAccessible(TRUE);
+        $action->setValue($Model,ModelEndpoint::MODEL_ACTION_CREATE);
+        $method = $ReflectedModel->getMethod('configureResponse');
+        $method->setAccessible(TRUE);
+        $Model->setResponse($Response);
+        $this->assertEquals($Response,$method->invoke($Model,$Response));
+        $this->assertNotEmpty($Response->getRequest());
+
+        $status->setValue($Response,'200');
+        $body = $ReflectedResponse->getProperty('body');
+        $body->setAccessible(TRUE);
+        $body->setValue($Response,json_encode(array(
+                'id' => '1234',
+                'name' => 'foo',
+                'foo' => 'bar'
+            )
+        ));
+        $Model->setResponse($Response);
+        $updateModel = $ReflectedModel->getMethod('updateModel');
+        $updateModel->setAccessible(TRUE);
+        $updateModel->invoke($Model);
+        $this->assertEquals(array(
+            'id' => '1234',
+            'name' => 'foo',
+            'foo' => 'bar'
+        ),$Model->asArray());
+        $action->setValue($Model,ModelEndpoint::MODEL_ACTION_DELETE);
+        $updateModel->invoke($Model);
+        $this->assertEquals(array(),$Model->asArray());
+        $this->assertEmpty($Model->get('id'));
+
+        $action->setValue($Model,ModelEndpoint::MODEL_ACTION_UPDATE);
+        $updateModel->invoke($Model);
+        $this->assertEquals(array(
+            'id' => '1234',
+            'name' => 'foo',
+            'foo' => 'bar'
+        ),$Model->asArray());
+
+        $Model->clear();
+        $action->setValue($Model,ModelEndpoint::MODEL_ACTION_RETRIEVE);
+        $updateModel->invoke($Model);
+        $this->assertEquals(array(
+            'id' => '1234',
+            'name' => 'foo',
+            'foo' => 'bar'
+        ),$Model->asArray());
     }
 }

@@ -149,6 +149,22 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers ::setCurrentAction
+     * @covers ::getCurrentAction
+     */
+    public function testCurrentAction(){
+        $Model = new ModelEndpoint();
+        $this->assertEquals($Model,$Model->setCurrentAction(ModelEndpoint::MODEL_ACTION_CREATE));
+        $this->assertEquals(ModelEndpoint::MODEL_ACTION_CREATE,$Model->getCurrentAction());
+        $this->assertEquals($Model,$Model->setCurrentAction(ModelEndpoint::MODEL_ACTION_UPDATE));
+        $this->assertEquals(ModelEndpoint::MODEL_ACTION_UPDATE,$Model->getCurrentAction());
+        $this->assertEquals($Model,$Model->setCurrentAction(ModelEndpoint::MODEL_ACTION_DELETE));
+        $this->assertEquals(ModelEndpoint::MODEL_ACTION_DELETE,$Model->getCurrentAction());
+        $this->assertEquals($Model,$Model->setCurrentAction('foo'));
+        $this->assertEquals(ModelEndpoint::MODEL_ACTION_DELETE,$Model->getCurrentAction());
+    }
+
+    /**
      * @covers ::configureAction
      * @covers ::retrieve
      * @covers ::configureURL
@@ -162,10 +178,7 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('localhost/api/v1/model/1234',$Model->getRequest()->getURL());
         $this->assertEquals('1234',$Model['id']);
 
-        $Class = new \ReflectionClass(static::$_REFLECTED_CLASS);
-        $action = $Class->getProperty('action');
-        $action->setAccessible(TRUE);
-        $this->assertEquals('retrieve',$action->getValue($Model));
+        $this->assertEquals(ModelEndpoint::MODEL_ACTION_RETRIEVE,$Model->getCurrentAction());
 
         $Model['id'] = '5678';
         $this->assertEquals($Model,$Model->retrieve());
@@ -205,11 +218,9 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
         $Model->setProperty('url','model/$id');
         $Model->set('foo','bar');
         $Class = new \ReflectionClass(static::$_REFLECTED_CLASS);
-        $action = $Class->getProperty('action');
-        $action->setAccessible(TRUE);
 
         $this->assertEquals($Model,$Model->save());
-        $this->assertEquals('create',$action->getValue($Model));
+        $this->assertEquals('create',$Model->getCurrentAction());
         $this->assertEquals('localhost/api/v1/model',$Model->getRequest()->getURL());
         $this->assertEquals(JSON::HTTP_POST,$Model->getRequest()->getMethod());
         $this->assertEquals(array(
@@ -218,7 +229,7 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
 
         $Model->set('id','1234');
         $this->assertEquals($Model,$Model->save());
-        $this->assertEquals('update',$action->getValue($Model));
+        $this->assertEquals('update',$Model->getCurrentAction());
         $this->assertEquals('localhost/api/v1/model/1234',$Model->getRequest()->getURL());
         $this->assertEquals(JSON::HTTP_PUT,$Model->getRequest()->getMethod());
         $this->assertEquals(array(
@@ -237,12 +248,9 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
         $Model->setBaseUrl('localhost/api/v1/');
         $Model->setProperty('url','model/$id');
         $Model->set('id','1234');
-        $Class = new \ReflectionClass(static::$_REFLECTED_CLASS);
-        $action = $Class->getProperty('action');
-        $action->setAccessible(TRUE);
 
         $this->assertEquals($Model,$Model->delete());
-        $this->assertEquals('delete',$action->getValue($Model));
+        $this->assertEquals(ModelEndpoint::MODEL_ACTION_DELETE,$Model->getCurrentAction());
         $this->assertEquals('localhost/api/v1/model/1234',$Model->getRequest()->getURL());
         $this->assertEquals(JSON::HTTP_DELETE,$Model->getRequest()->getMethod());
     }
@@ -262,9 +270,8 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
         $status = $ReflectedResponse->getProperty('status');
         $status->setAccessible(TRUE);
         $status->setValue($Response,'200');
-        $action = $ReflectedModel->getProperty('action');
-        $action->setAccessible(TRUE);
-        $action->setValue($Model,ModelEndpoint::MODEL_ACTION_CREATE);
+
+        $Model->setCurrentAction(ModelEndpoint::MODEL_ACTION_CREATE);
         $method = $ReflectedModel->getMethod('configureResponse');
         $method->setAccessible(TRUE);
         $Model->setResponse($Response);
@@ -289,12 +296,12 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
             'name' => 'foo',
             'foo' => 'bar'
         ),$Model->asArray());
-        $action->setValue($Model,ModelEndpoint::MODEL_ACTION_DELETE);
+        $Model->setCurrentAction(ModelEndpoint::MODEL_ACTION_DELETE);
         $updateModel->invoke($Model);
         $this->assertEquals(array(),$Model->asArray());
         $this->assertEmpty($Model->get('id'));
 
-        $action->setValue($Model,ModelEndpoint::MODEL_ACTION_UPDATE);
+        $Model->setCurrentAction(ModelEndpoint::MODEL_ACTION_UPDATE);
         $updateModel->invoke($Model);
         $this->assertEquals(array(
             'id' => '1234',
@@ -303,7 +310,7 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
         ),$Model->asArray());
 
         $Model->clear();
-        $action->setValue($Model,ModelEndpoint::MODEL_ACTION_RETRIEVE);
+        $Model->setCurrentAction(ModelEndpoint::MODEL_ACTION_RETRIEVE);
         $updateModel->invoke($Model);
         $this->assertEquals(array(
             'id' => '1234',

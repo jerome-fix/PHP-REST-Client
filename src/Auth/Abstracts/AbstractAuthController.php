@@ -138,7 +138,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
         if (isset($this->endpoints[$action])) {
             return $this->endpoints[$action];
         }
-        return null;
+        return NULL;
     }
 
     /**
@@ -147,9 +147,9 @@ abstract class AbstractAuthController implements AuthControllerInterface
     public function isAuthenticated()
     {
         if (!empty($this->token)) {
-            return true;
+            return TRUE;
         }
-        return false;
+        return FALSE;
     }
 
     /**
@@ -162,9 +162,11 @@ abstract class AbstractAuthController implements AuthControllerInterface
             $Endpoint = $this->configureEndpoint($Endpoint,self::ACTION_AUTH);
             $response = $Endpoint->execute()->getResponse();
             if ($response->getStatus() == '200') {
+                //@codeCoverageIgnoreStart
                 $this->setToken($response->getBody());
-                return true;
+                return TRUE;
             }
+            //@codeCoverageIgnoreEnd
         }
         return FALSE;
     }
@@ -179,9 +181,11 @@ abstract class AbstractAuthController implements AuthControllerInterface
             $Endpoint = $this->configureEndpoint($Endpoint,self::ACTION_LOGOUT);
             $response = $Endpoint->execute()->getResponse();
             if ($response->getStatus() == '200') {
+                //@codeCoverageIgnoreStart
                 $this->clearToken();
                 return TRUE;
             }
+            //@codeCoverageIgnoreEnd
         }
         return FALSE;
     }

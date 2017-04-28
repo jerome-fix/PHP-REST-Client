@@ -106,12 +106,14 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
                 $Endpoint = $this->configureEndpoint($Endpoint, self::ACTION_OAUTH_REFRESH);
                 $response = $Endpoint->execute()->getResponse();
                 if ($response->getStatus() == '200') {
+                    //@codeCoverageIgnoreStart
                     $this->setToken($response->getBody());
-                    return true;
+                    return TRUE;
                 }
+                //@codeCoverageIgnoreEnd
             }
         }
-        return false;
+        return FALSE;
     }
 
     /**

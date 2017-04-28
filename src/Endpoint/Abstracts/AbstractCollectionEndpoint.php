@@ -186,8 +186,10 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
     protected function configureResponse(ResponseInterface $Response) {
         $Response = parent::configureResponse($Response);
         if ($Response->getStatus() == '200'){
+            //@codeCoverageIgnoreStart
             $this->updateCollection();
         }
+        //@codeCoverageIgnoreEnd
         return $Response;
     }
 

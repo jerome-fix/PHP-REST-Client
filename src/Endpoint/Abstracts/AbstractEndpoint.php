@@ -344,7 +344,7 @@ abstract class AbstractEndpoint implements EndpointInterface
             $optionNum = 0;
             $keys = array_keys($options);
             sort($keys);
-            foreach($options as $key => $value){
+            foreach($keys as $key){
                 if (is_numeric($key)){
                     $optionNum = $key;
                     break;

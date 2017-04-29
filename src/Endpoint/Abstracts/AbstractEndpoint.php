@@ -342,6 +342,14 @@ abstract class AbstractEndpoint implements EndpointInterface
             $urlArr = explode("/",$url);
             $optional = FALSE;
             $optionNum = 0;
+            $keys = array_keys($options);
+            sort($keys);
+            foreach($options as $key => $value){
+                if (is_numeric($key)){
+                    $optionNum = $key;
+                    break;
+                }
+            }
             foreach($urlArr as $key => $urlPart){
                 $replace = NULL;
                 if (strpos($urlPart,static::$_URL_VAR_CHARACTER) !== FALSE){

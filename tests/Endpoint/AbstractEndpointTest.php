@@ -279,7 +279,7 @@ class AbstractEndpointTest extends \PHPUnit_Framework_TestCase
     public function testConfigureUrl(){
         $Endpoint = new BasicEndpoint();
         $Class = new \ReflectionClass('MRussell\REST\Tests\Stubs\Endpoint\BasicEndpoint');
-        $method = $Class->getMethod('configureUrl');
+        $method = $Class->getMethod('configureURL');
         $method->setAccessible(TRUE);
         $this->assertEquals($Endpoint,$Endpoint->setProperty('url','$foo'));
         $this->assertEquals('bar',$method->invoke($Endpoint,array('bar')));
@@ -295,6 +295,12 @@ class AbstractEndpointTest extends \PHPUnit_Framework_TestCase
                 'foo' => 'bar',
                 0 => 'foo',
                 1 => 1234
+            )
+        ));
+        $this->assertEquals('bar/foo/1234',$method->invoke($Endpoint,array(
+                'foo' => 'bar',
+                3 => 'foo',
+                4 => 1234
             )
         ));
 

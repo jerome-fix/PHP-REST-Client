@@ -3,13 +3,10 @@
 namespace MRussell\REST\Endpoint\Abstracts;
 
 use MRussell\Http\Request\Curl;
-use MRussell\Http\Request\RequestInterface;
 use MRussell\Http\Response\ResponseInterface;
 use MRussell\REST\Endpoint\Data\AbstractEndpointData;
 use MRussell\REST\Endpoint\Data\DataInterface;
 use MRussell\REST\Endpoint\Interfaces\ModelInterface;
-use MRussell\REST\Endpoint\JSON\ModelEndpoint;
-use MRussell\REST\Exception\Endpoint\EndpointException;
 use MRussell\REST\Exception\Endpoint\MissingModelId;
 use MRussell\REST\Exception\Endpoint\UnknownModelAction;
 
@@ -86,8 +83,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
 
     public function __call($name, $arguments) {
         if (array_key_exists($name,$this->actions)){
-            $this->action = $name;
-            $this->setCurrentAction($this->action);
+            $this->setCurrentAction($name);
             return $this->execute($arguments);
         }
         throw new UnknownModelAction(array(get_class($this),$name));

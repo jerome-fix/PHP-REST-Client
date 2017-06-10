@@ -23,7 +23,7 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
     protected $collection = array();
 
     /**
-     * The Class Name
+     * The Class Name of the ModelEndpoint
      * @var string
      */
     protected $model;
@@ -133,16 +133,46 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
         $data = NULL;
         if ($this->offsetExists($id)){
             $data = $this->collection[$id];
-            $Model = $this->buildModel();
-            if ($Model !== NULL && is_array($data)){
-                $Model = $this->buildModel();
-                foreach($data as $key => $value){
-                   $Model->set($key,$value);
-                }
+            $Model = $this->buildModel($data);
+            if ($Model !== NULL){
                 $data = $Model;
             }
         }
         return $data;
+    }
+
+    /**
+     * Get a model based on numerical index
+     * @param int $index
+     * @return array|ModelInterface
+     */
+    public function at($index){
+        $return = NULL;
+        $index = intval($index);
+        $data = $this->asArray();
+        reset($data);
+        if ($index < 0){
+            $index += $this->length();
+        }
+        $c = 1;
+        while ($c <= $index){
+            next($data);
+            $c++;
+        }
+        $return = current($data);
+        $Model = $this->buildModel($return);
+        if ($Model !== NULL){
+            $return = $Model;
+        }
+        return $return;
+    }
+
+    /**
+     * Return the current collection count
+     * @return int
+     */
+    public function length(){
+        return count($this->collection);
     }
 
     /**
@@ -215,12 +245,24 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
     }
 
     /**
-     * @return ModelInterface
+     * Build the ModelEndpoint
+     * @param array $data
+     * @return AbstractModelEndpoint
      */
-    protected function buildModel(){
+    protected function buildModel(array $data = array()){
+        $Model = NULL;
         if (isset($this->model)){
-            return new $this->model();
+            $Model = new $this->model();
+            $Model->setBaseUrl($this->getBaseUrl());
+            if ($this->getAuth() !== NULL) {
+                $Model->setAuth($this->getAuth());
+            }
+            if (!empty($data)){
+                foreach($data as $key => $value){
+                    $Model->set($key,$value);
+                }
+            }
         }
-        return NULL;
+        return $Model;
     }
 }

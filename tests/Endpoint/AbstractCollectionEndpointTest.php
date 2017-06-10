@@ -3,6 +3,7 @@
 namespace MRussell\REST\Tests\Endpoint;
 
 use MRussell\REST\Endpoint\JSON\ModelEndpoint;
+use MRussell\REST\Tests\Stubs\Auth\AuthController;
 use MRussell\REST\Tests\Stubs\Endpoint\CollectionEndpointWithModel;
 use MRussell\REST\Tests\Stubs\Endpoint\CollectionEndpoint;
 
@@ -79,6 +80,8 @@ class AbstractCollectionEndpointTest extends \PHPUnit_Framework_TestCase
      * @covers ::buildModel
      * @covers ::clear
      * @covers ::reset
+     * @covers ::at
+     * @covers ::length
      */
     public function testDataAccess(){
         $Collection = new CollectionEndpointWithModel();
@@ -98,6 +101,7 @@ class AbstractCollectionEndpointTest extends \PHPUnit_Framework_TestCase
         unset($Collection[0]);
         $this->assertEquals(FALSE,isset($Collection[0]));
         $this->assertEquals(array(),$Collection->asArray());
+        $this->assertEquals(0,$Collection->length());
         $this->assertEquals($Collection,$Collection->update($this->collection));
         $this->assertEquals($this->collection,$Collection->asArray());
         $this->assertEquals(array(
@@ -118,6 +122,24 @@ class AbstractCollectionEndpointTest extends \PHPUnit_Framework_TestCase
         $Model = $Collection->get('abc123');
         $this->assertEquals(TRUE,is_object($Model));
         $this->assertEquals('bar',$Model->get('foo'));
+        $Auth = new AuthController();
+        $Collection->setAuth($Auth);
+        $Model = $Collection->get('abc123');
+        $this->assertEquals(TRUE,is_object($Model));
+        $this->assertEquals($Auth,$Model->getAuth());
+        $Model = $Collection->at(1);
+        $this->assertEquals(array(
+            'id' => 'efg234',
+            'name' => 'test',
+            'foo' => ''
+        ),$Model->asArray());
+        $Model = $Collection->at(-1);
+        $this->assertEquals(array(
+            'id' => 'k2r2d2',
+            'name' => 'Rogue One',
+            'foo' => 'bar'
+        ),$Model->asArray());
+        $this->assertEquals(3,$Collection->length());
         $this->assertEquals($Collection,$Collection->reset());
         $this->assertEquals(array(),$Collection->asArray());
         $this->assertEquals($Collection,$Collection->update($this->collection));

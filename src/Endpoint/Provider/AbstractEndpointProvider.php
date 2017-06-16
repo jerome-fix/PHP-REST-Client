@@ -8,26 +8,10 @@ use MRussell\REST\Exception\Endpoint\UnknownEndpoint;
 
 abstract class AbstractEndpointProvider implements EndpointProviderInterface
 {
-
-    /**
-     * List of default endpoints to load
-     * @var array
-     */
-    protected static $_DEFAULT_ENDPOINTS = array();
-
     /**
      * @var array
      */
     protected $registry = array();
-
-    public function __construct() {
-        foreach(static::$_DEFAULT_ENDPOINTS as $name => $epData){
-            if (!isset($epData['properties'])){
-                $epData['properties'] = array();
-            }
-            $this->registerEndpoint($name,$epData['class'],$epData['properties']);
-        }
-    }
 
     /**
      * @inheritdoc

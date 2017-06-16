@@ -3,6 +3,7 @@
 namespace MRussell\REST\Tests\Endpoint;
 
 use MRussell\Http\Request\JSON;
+use MRussell\REST\Endpoint\Provider\DefaultEndpointProvider;
 use MRussell\REST\Endpoint\Provider\EndpointProviderInterface;
 use MRussell\REST\Tests\Stubs\Endpoint\AuthEndpoint;
 use MRussell\REST\Tests\Stubs\Endpoint\EndpointProvider;
@@ -39,7 +40,7 @@ class AbstractEndpointProviderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers ::__construct
+     * @covers MRussell\REST\Endpoint\Provider\DefaultEndpointProvider::__construct
      * @covers ::registerEndpoint
      */
     public function testConstructor(){

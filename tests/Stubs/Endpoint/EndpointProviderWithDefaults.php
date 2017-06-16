@@ -4,9 +4,9 @@ namespace MRussell\REST\Tests\Stubs\Endpoint;
 
 
 use MRussell\Http\Request\JSON;
-use MRussell\REST\Endpoint\Provider\AbstractEndpointProvider;
+use MRussell\REST\Endpoint\Provider\DefaultEndpointProvider;
 
-class EndpointProviderWithDefaults extends AbstractEndpointProvider
+class EndpointProviderWithDefaults extends DefaultEndpointProvider
 {
     protected static $_DEFAULT_ENDPOINTS = array(
         'auth' => array(

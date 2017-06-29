@@ -13,10 +13,10 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint
      * @inheritdoc
      */
     protected static $_DEFAULT_PROPERTIES = array(
-        'url' => '',
-        'httpMethod' => '',
-        'auth' => FALSE,
-        'data' => array(
+        self::PROPERTY_URL => '',
+        self::PROPERTY_HTTP_METHOD => '',
+        self::PROPERTY_AUTH => FALSE,
+        self::PROPERTY_DATA => array(
             'required' => array(),
             'defaults' => array()
         )
@@ -36,7 +36,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint
         if (static::$_DATA_CLASS !== '' && !empty(static::$_DATA_CLASS)){
             $implements = class_implements(static::$_DATA_CLASS);
             if (is_array($implements) && isset($implements["MRussell\\REST\\Endpoint\\Data\\DataInterface"])){
-                $data = new static::$_DATA_CLASS($this->properties['data']);
+                $data = new static::$_DATA_CLASS($this->properties[self::PROPERTY_DATA]);
                 $this->setData($data);
             }
         }
@@ -90,7 +90,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint
      * @return $this
      */
     protected function configureDataProperties(){
-        if (isset($this->properties['data'])){
+        if (isset($this->properties[self::PROPERTY_DATA])){
             $this->data->setProperties($this->properties['data']);
         }
         return $this;

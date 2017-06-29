@@ -24,9 +24,9 @@ abstract class AbstractEndpoint implements EndpointInterface
     const PROPERTY_AUTH = 'auth';
 
     protected static $_DEFAULT_PROPERTIES = array(
-        'url' => '',
-        'httpMethod' => '',
-        'auth' => FALSE
+        self::PROPERTY_URL => '',
+        self::PROPERTY_HTTP_METHOD => '',
+        self::PROPERTY_AUTH => FALSE
     );
 
     /**
@@ -167,8 +167,8 @@ abstract class AbstractEndpoint implements EndpointInterface
      */
     public function getEndPointUrl($full = FALSE) {
         $url = static::$_ENDPOINT_URL;
-        if (isset($this->properties['url'])&&$this->properties['url']!==''){
-            $url = $this->properties['url'];
+        if (isset($this->properties[self::PROPERTY_URL])&&$this->properties[self::PROPERTY_URL]!==''){
+            $url = $this->properties[self::PROPERTY_URL];
         }
         if ($full){
             $url = rtrim($this->getBaseUrl(),'/')."/$url";
@@ -252,8 +252,8 @@ abstract class AbstractEndpoint implements EndpointInterface
      */
     public function authRequired() {
         $required = FALSE;
-        if (isset($this->properties['auth'])){
-            $required = $this->properties['auth'];
+        if (isset($this->properties[self::PROPERTY_AUTH])){
+            $required = $this->properties[self::PROPERTY_AUTH];
         }
         return $required;
     }
@@ -287,9 +287,9 @@ abstract class AbstractEndpoint implements EndpointInterface
         if ($Request->getStatus() >= Curl::STATUS_SENT){
             $Request->reset();
         }
-        if (isset($this->properties['httpMethod']) &&
-            $this->properties['httpMethod'] !== ''){
-            $Request->setMethod($this->properties['httpMethod']);
+        if (isset($this->properties[self::PROPERTY_HTTP_METHOD]) &&
+            $this->properties[self::PROPERTY_HTTP_METHOD] !== ''){
+            $Request->setMethod($this->properties[self::PROPERTY_HTTP_METHOD]);
         }
         $url = $this->configureURL($this->getOptions());
         if ($this->verifyUrl($url)) {

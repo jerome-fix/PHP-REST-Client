@@ -122,7 +122,7 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * @throws \MRussell\REST\Exception\Endpoint\InvalidRequest
      */
     public function fetch() {
-        $this->setProperty('httpMethod',Curl::HTTP_GET);
+        $this->setProperty(self::PROPERTY_HTTP_METHOD,Curl::HTTP_GET);
         $this->execute();
     }
 

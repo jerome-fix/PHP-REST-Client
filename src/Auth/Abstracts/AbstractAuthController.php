@@ -13,10 +13,10 @@ abstract class AbstractAuthController implements AuthControllerInterface
     const ACTION_LOGOUT = 'logout';
 
     /**
-     * Auth Controller Actions
+     * Auth Controller Actions, used to associate Endpoints
      * @var array
      */
-    private static $_DEFAULT_AUTH_ACTIONS = array(
+    protected static $_DEFAULT_AUTH_ACTIONS = array(
         self::ACTION_AUTH,
         self::ACTION_LOGOUT,
     );
@@ -52,7 +52,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
 
     public function __construct()
     {
-        foreach (self::$_DEFAULT_AUTH_ACTIONS as $action) {
+        foreach (static::$_DEFAULT_AUTH_ACTIONS as $action) {
             $this->actions[] = $action;
         }
     }

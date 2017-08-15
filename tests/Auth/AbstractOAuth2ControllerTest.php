@@ -115,14 +115,16 @@ class AbstractOAuth2ControllerTest extends \PHPUnit_Framework_TestCase
     /**
      * @depends testSetToken
      * @covers ::configureRequest
+     * @covers ::getAuthHeaderValue
      */
     public function testConfigure(){
         $Auth = new OAuth2Controller();
         $Class = new \ReflectionClass('MRussell\REST\Tests\Stubs\Auth\AuthController');
+        $Request = new JSON();
+        $this->assertEquals($Auth,$Auth->configureRequest($Request));
         $setToken = $Class->getMethod('setToken');
         $setToken->setAccessible(TRUE);
         $this->assertEquals($Auth,$setToken->invoke($Auth, $this->token));
-        $Request = new JSON();
         $Auth->configureRequest($Request);
         $headers = $Request->getHeaders();
         $this->assertNotEmpty($headers['Authorization']);

@@ -6,8 +6,10 @@ use MRussell\Http\Request\RequestInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Exception\Auth\InvalidToken;
 
-abstract class AbstractOAuth2Controller extends AbstractAuthController
+abstract class AbstractOAuth2Controller extends AbstractBasicController
 {
+    const DEFAULT_AUTH_TYPE = 'Bearer';
+
     const ACTION_OAUTH_REFRESH = 'refresh';
 
     const OAUTH_RESOURCE_OWNER_GRANT = 'password';
@@ -21,19 +23,19 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
     /**
      * @var string
      */
-    protected static $_OAUTH_HEADER = 'Authorization';
-
-    /**
-     * @var string
-     */
     protected static $_DEFAULT_GRANT_TYPE = self::OAUTH_CLIENT_CREDENTIALS_GRANT;
 
     /**
-     * @var string
+     * @inheritdoc
      */
-    protected static $_TOKEN_VALUE = 'Bearer %s';
+    protected static $_AUTH_TYPE = self::DEFAULT_AUTH_TYPE;
 
-    protected $actions = array(
+    /**
+     * @inheritdoc
+     */
+    protected static $_DEFAULT_AUTH_ACTIONS = array(
+        self::ACTION_AUTH,
+        self::ACTION_LOGOUT,
         self::ACTION_OAUTH_REFRESH
     );
 
@@ -44,16 +46,16 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
     protected $token = array();
 
     /**
-     * Set the OAuth Authorization header
+     * Get/Set the OAuth Authorization header
      * @param $header
      * @return $this
      */
     public static function oauthHeader($header = null)
     {
         if ($header !== null) {
-            static::$_OAUTH_HEADER = $header;
+            static::$_AUTH_HEADER = $header;
         }
-        return static::$_OAUTH_HEADER;
+        return static::$_AUTH_HEADER;
     }
 
     /**
@@ -88,9 +90,18 @@ abstract class AbstractOAuth2Controller extends AbstractAuthController
     public function configureRequest(RequestInterface $Request)
     {
         if ($this->isAuthenticated()) {
-            $Request->addHeader(static::$_OAUTH_HEADER, sprintf(static::$_TOKEN_VALUE, $this->token['access_token']));
+            return parent::configureRequest($Request);
         }
         return $this;
+    }
+
+    /**
+     * Get the Value to be set on the Auth Header
+     * @return mixed
+     */
+    protected function getAuthHeaderValue()
+    {
+        return static::$_AUTH_TYPE." ".$this->token['access_token'];
     }
 
     /**

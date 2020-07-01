@@ -66,6 +66,12 @@ interface AuthControllerInterface
     public function logout();
 
     /**
+     * Reset the auth controller to default state. Does not call 'logout' but does clear current token/credentials
+     * @return self
+     */
+    public function reset();
+
+    /**
      * Is currently authenticated
      * @return boolean
      */

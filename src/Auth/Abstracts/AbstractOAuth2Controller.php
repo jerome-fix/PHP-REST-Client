@@ -46,6 +46,35 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController
     protected $token = array();
 
     /**
+     * @var
+     */
+    protected $grant_type;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->setGrantType(static::$_DEFAULT_GRANT_TYPE);
+    }
+
+    /**
+     * @param $grant_type
+     * @return $this
+     */
+    public function setGrantType($grant_type)
+    {
+        $this->grant_type = $grant_type;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getGrantType()
+    {
+        return $this->grant_type;
+    }
+
+    /**
      * Get/Set the OAuth Authorization header
      * @param $header
      * @return $this
@@ -197,8 +226,17 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController
     protected function configureAuthenticationEndpoint(EndpointInterface $Endpoint)
     {
         $data = $this->credentials;
-        $data['grant_type'] = static::$_DEFAULT_GRANT_TYPE;
+        $data['grant_type'] = ($this->grant_type?$this->grant_type:static::$_DEFAULT_GRANT_TYPE);
         return $Endpoint->setData($data);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function reset()
+    {
+        $this->setGrantType(static::$_DEFAULT_GRANT_TYPE);
+        return parent::reset();
     }
 
 }

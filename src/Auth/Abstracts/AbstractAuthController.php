@@ -191,6 +191,15 @@ abstract class AbstractAuthController implements AuthControllerInterface
     }
 
     /**
+     * @inheritDoc
+     **/
+    public function reset()
+    {
+        $this->credentials = array();
+        return $this->clearToken();
+    }
+
+    /**
      * @inheritdoc
      */
     public function setStorageController(StorageControllerInterface $Storage)

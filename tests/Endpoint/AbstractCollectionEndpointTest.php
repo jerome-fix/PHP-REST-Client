@@ -14,7 +14,7 @@ use MRussell\REST\Tests\Stubs\Endpoint\CollectionEndpoint;
  * @coversDefaultClass MRussell\REST\Endpoint\Abstracts\AbstractCollectionEndpoint
  * @group AbstractCollectionEndpointTest
  */
-class AbstractCollectionEndpointTest extends \PHPUnit_Framework_TestCase
+class AbstractCollectionEndpointTest extends TestCase
 {
     protected static $_REFLECTED_CLASS = 'MRussell\REST\Tests\Stubs\Endpoint\CollectionEndpoint';
 
@@ -92,7 +92,7 @@ class AbstractCollectionEndpointTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array(array(
                                       'foo' => 'bar',
                                       'abc' => 123
-                                  )),$Collection->asArray());
+                                  )),$Collection->toArray());
         $this->assertEquals(array(
                               'foo' => 'bar',
                               'abc' => 123
@@ -100,10 +100,10 @@ class AbstractCollectionEndpointTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(TRUE,isset($Collection[0]));
         unset($Collection[0]);
         $this->assertEquals(FALSE,isset($Collection[0]));
-        $this->assertEquals(array(),$Collection->asArray());
+        $this->assertEquals(array(),$Collection->toArray());
         $this->assertEquals(0,$Collection->length());
         $this->assertEquals($Collection,$Collection->update($this->collection));
-        $this->assertEquals($this->collection,$Collection->asArray());
+        $this->assertEquals($this->collection,$Collection->toArray());
         $this->assertEquals(array(
             'id' => 'abc123',
             'name' => 'foo',
@@ -132,20 +132,20 @@ class AbstractCollectionEndpointTest extends \PHPUnit_Framework_TestCase
             'id' => 'efg234',
             'name' => 'test',
             'foo' => ''
-        ),$Model->asArray());
+        ),$Model->toArray());
         $Model = $Collection->at(-1);
         $this->assertEquals(array(
             'id' => 'k2r2d2',
             'name' => 'Rogue One',
             'foo' => 'bar'
-        ),$Model->asArray());
+        ),$Model->toArray());
         $this->assertEquals(3,$Collection->length());
         $this->assertEquals($Collection,$Collection->reset());
-        $this->assertEquals(array(),$Collection->asArray());
+        $this->assertEquals(array(),$Collection->toArray());
         $this->assertEquals($Collection,$Collection->update($this->collection));
-        $this->assertEquals($this->collection,$Collection->asArray());
+        $this->assertEquals($this->collection,$Collection->toArray());
         $this->assertEquals($Collection,$Collection->reset());
-        $this->assertEquals(array(),$Collection->asArray());
+        $this->assertEquals(array(),$Collection->toArray());
 
         $Collection = new CollectionEndpoint();
         $this->assertEquals($Collection,$Collection->update($this->collection));
@@ -259,7 +259,7 @@ class AbstractCollectionEndpointTest extends \PHPUnit_Framework_TestCase
                 'name' => 'test',
                 'foo' => ''
             )
-        ),$Collection->asArray());
+        ),$Collection->toArray());
 
         $Collection = new CollectionEndpointWithModel();
         $Collection->setResponse($Response);
@@ -267,7 +267,7 @@ class AbstractCollectionEndpointTest extends \PHPUnit_Framework_TestCase
         $updateCollection = $ReflectedCollection->getMethod('updateCollection');
         $updateCollection->setAccessible(TRUE);
         $updateCollection->invoke($Collection);
-        $this->assertEquals($this->collection,$Collection->asArray());
+        $this->assertEquals($this->collection,$Collection->toArray());
 
         $body->setValue($Response,json_encode(array(
             array(
@@ -302,6 +302,6 @@ class AbstractCollectionEndpointTest extends \PHPUnit_Framework_TestCase
                 'name' => 'no_id',
                 'foo' => ''
             )
-        ),$Collection->asArray());
+        ),$Collection->toArray());
     }
 }

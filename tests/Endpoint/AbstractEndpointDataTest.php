@@ -11,7 +11,7 @@ use MRussell\REST\Tests\Stubs\Endpoint\EndpointData as StubData;
  * @coversDefaultClass MRussell\REST\Endpoint\Data\AbstractEndpointData
  * @group AbstractEndpointDataTest
  */
-class AbstractEndpointDataTest extends \PHPUnit_Framework_TestCase
+class AbstractEndpointDataTest extends TestCase
 {
 
     public static function setUpBeforeClass()
@@ -61,29 +61,29 @@ class AbstractEndpointDataTest extends \PHPUnit_Framework_TestCase
             StockData::DATA_PROPERTY_REQUIRED => array(),
             StockData::DATA_PROPERTY_DEFAULTS => array()
         ), $Data->getProperties());
-        $this->assertEquals(array(),$Data->asArray());
+        $this->assertEquals(array(),$Data->toArray());
         $Data = new StockData($this->properties);
         $this->assertEquals($this->properties, $Data->getProperties());
         $this->assertEquals(array(
             'bar' => 'foo'
-        ),$Data->asArray());
+        ),$Data->toArray());
         $Data = new StockData($this->properties,$this->data);
         $this->assertEquals($this->properties, $Data->getProperties());
         $data = $this->data;
         $data['bar'] = 'foo';
-        $this->assertEquals($data,$Data->asArray());
+        $this->assertEquals($data,$Data->toArray());
         $Data = new StockData(array(),$this->data);
         $this->assertEquals(array(
             StockData::DATA_PROPERTY_REQUIRED => array(),
             StockData::DATA_PROPERTY_DEFAULTS => array()
         ), $Data->getProperties());
-        $this->assertEquals($this->data,$Data->asArray());
+        $this->assertEquals($this->data,$Data->toArray());
 
         $Data = new StubData(array());
         $this->assertEquals($this->properties, $Data->getProperties());
         $this->assertEquals(array(
             'bar' => 'foo'
-        ),$Data->asArray());
+        ),$Data->toArray());
     }
 
     /**
@@ -133,7 +133,7 @@ class AbstractEndpointDataTest extends \PHPUnit_Framework_TestCase
             'test' => 'tester',
             'pew' => 'die',
             'iint' => 1234
-        ),$Data->asArray());
+        ),$Data->toArray());
     }
 
     /**
@@ -169,15 +169,15 @@ class AbstractEndpointDataTest extends \PHPUnit_Framework_TestCase
             StockData::DATA_PROPERTY_REQUIRED => array(),
             StockData::DATA_PROPERTY_DEFAULTS => array()
         ), $Data->getProperties());
-        $this->assertEquals(array(),$Data->asArray());
+        $this->assertEquals(array(),$Data->toArray());
 
         $Data = new StubData(array(),$this->data);
         $Data->setProperties(array());
         $this->assertEquals($Data,$Data->reset());
         $this->assertEquals($this->properties, $Data->getProperties());
-        $this->assertEquals(array('bar' => 'foo'),$Data->asArray());
+        $this->assertEquals(array('bar' => 'foo'),$Data->toArray());
         $this->assertEquals($Data,$Data->clear());
-        $this->assertEquals(array(),$Data->asArray());
+        $this->assertEquals(array(),$Data->toArray());
     }
 
     /**
@@ -190,7 +190,7 @@ class AbstractEndpointDataTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array(
             'foo' => 'bar',
             'bar' => 'foo'
-        ),$Data->asArray(TRUE));
+        ),$Data->toArray(TRUE));
     }
 
     /**
@@ -199,7 +199,7 @@ class AbstractEndpointDataTest extends \PHPUnit_Framework_TestCase
      */
     public function testMissingData(){
         $Data = new StubData();
-        $Data->asArray(TRUE);
+        $Data->toArray(TRUE);
     }
 
     /**
@@ -209,7 +209,7 @@ class AbstractEndpointDataTest extends \PHPUnit_Framework_TestCase
     public function testInvalidData(){
         $Data = new StubData();
         $Data['foo'] = 1234;
-        $Data->asArray(TRUE);
+        $Data->toArray(TRUE);
     }
 
     /**
@@ -222,6 +222,6 @@ class AbstractEndpointDataTest extends \PHPUnit_Framework_TestCase
         $properties['required']['bar'] = NULL;
         $Data->setProperties($properties);
         $Data['foo'] = 1234;
-        $Data->asArray(TRUE);
+        $Data->toArray(TRUE);
     }
 }

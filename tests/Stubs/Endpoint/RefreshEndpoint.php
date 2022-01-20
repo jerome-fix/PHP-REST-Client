@@ -10,6 +10,6 @@ class RefreshEndpoint extends Endpoint
     protected static $_ENDPOINT_URL = 'refresh';
 
     protected static $_DEFAULT_PROPERTIES = array(
-        'httpMethod' => JSON::HTTP_POST
+        'httpMethod' => "POST"
     );
 }

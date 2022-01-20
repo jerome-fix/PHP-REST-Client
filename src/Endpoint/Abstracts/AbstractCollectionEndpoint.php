@@ -3,18 +3,26 @@
 namespace MRussell\REST\Endpoint\Abstracts;
 
 use MRussell\Http\Request\Curl;
-use MRussell\Http\Response\ResponseInterface;
+use GuzzleHttp\Psr7\Response;
 use MRussell\REST\Endpoint\Data\DataInterface;
 use MRussell\REST\Endpoint\Interfaces\CollectionInterface;
+use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Endpoint\Interfaces\ModelInterface;
 use MRussell\REST\Exception\Endpoint\UnknownEndpoint;
 
 abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implements CollectionInterface, DataInterface
 {
+    const EVENT_BEFORE_SYNC = 'before_sync';
+
     /**
      * @var string
      */
     protected static $_MODEL_CLASS = '';
+
+    /**
+     * @var string
+     */
+    protected static $_RESPONSE_PROP = '';
 
     /**
      * The Collection of Models
@@ -42,7 +50,8 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * @param mixed $value - The value to set
      * @abstracting ArrayAccess
      */
-    public function offsetSet($offset,$value) {
+    public function offsetSet($offset,$value)
+    {
         if (is_null($offset)) {
             $this->collection[] = $value;
         } else {
@@ -56,7 +65,8 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * @return boolean
      * @abstracting ArrayAccess
      */
-    public function offsetExists($offset) {
+    public function offsetExists($offset)
+    {
         return isset($this->collection[$offset]);
     }
 
@@ -65,7 +75,8 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * @param string $offset - The offset to unset
      * @abstracting ArrayAccess
      */
-    public function offsetUnset($offset) {
+    public function offsetUnset($offset)
+    {
         if ($this->offsetExists($offset)) {
             unset($this->collection[$offset]);
         }
@@ -84,14 +95,16 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
     /**
      * @return array
      */
-    public function asArray(){
+    public function toArray(): array
+    {
         return $this->collection;
     }
 
     /**
      * @return self
      */
-    public function reset(){
+    public function reset(): DataInterface
+    {
         return $this->clear();
     }
 
@@ -99,7 +112,8 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      *
      * @return self
      */
-    public function clear(){
+    public function clear(): DataInterface
+    {
         $this->collection = array();
         return $this;
     }
@@ -109,7 +123,8 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * @param array $collection
      * @return self
      */
-    public function update(array $collection){
+    public function update(array $collection): DataInterface
+    {
         foreach($collection as $key => $value){
             $this->collection[$key] = $value;
         }
@@ -121,7 +136,8 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * @inheritdoc
      * @throws \MRussell\REST\Exception\Endpoint\InvalidRequest
      */
-    public function fetch() {
+    public function fetch() : CollectionInterface
+    {
         $this->setProperty(self::PROPERTY_HTTP_METHOD,Curl::HTTP_GET);
         $this->execute();
     }
@@ -129,7 +145,8 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
     /**
      * @inheritdoc
      */
-    public function get($id) {
+    public function get($id)
+    {
         $data = NULL;
         if ($this->offsetExists($id)){
             $data = $this->collection[$id];
@@ -146,10 +163,11 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * @param int $index
      * @return array|ModelInterface
      */
-    public function at($index){
+    public function at($index)
+    {
         $return = NULL;
         $index = intval($index);
-        $data = $this->asArray();
+        $data = $this->toArray();
         reset($data);
         if ($index < 0){
             $index += $this->length();
@@ -171,7 +189,8 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * Return the current collection count
      * @return int
      */
-    public function length(){
+    public function length(): int
+    {
         return count($this->collection);
     }
 
@@ -179,7 +198,8 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * @inheritdoc
      * @throws UnknownEndpoint
      */
-    public function setModelEndpoint($model) {
+    public function setModelEndpoint($model) : CollectionInterface
+    {
         try{
             $implements = class_implements($model);
             if (is_array($implements) && isset($implements['MRussell\REST\Endpoint\Interfaces\ModelInterface'])){
@@ -199,7 +219,8 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * @param bool $full
      * @return string
      */
-    public function getEndPointUrl($full = FALSE) {
+    public function getEndPointUrl($full = FALSE) : string
+    {
         $epURL = parent::getEndPointUrl();
         if ($epURL == '' && isset($this->model)){
             $epURL = $this->buildModel()->getEndPointUrl();
@@ -211,36 +232,61 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
     }
 
     /**
+     * @param Response $response
+     * @return EndpointInterface
+     */
+    public function setResponse(Response $response): EndpointInterface
+    {
+        parent::setResponse($response);
+        $this->parseResponse($response);
+        return $this;
+    }
+
+    /**
      * @inheritdoc
      */
-    protected function configureResponse(ResponseInterface $Response) {
-        $Response = parent::configureResponse($Response);
-        if ($Response->getStatus() == '200'){
-            //@codeCoverageIgnoreStart
-            $this->updateCollection();
+    protected function parseResponse(Response $response) : void
+    {
+        if ($response->getStatusCode() == '200'){
+            $body = $this->getResponseBody();
+            $this->syncFromApi($this->parseCollectionFromResponseBody($body));
         }
-        //@codeCoverageIgnoreEnd
-        return $Response;
+    }
+
+    /**
+     * @param object|array $body
+     * @return array
+     */
+    protected function parseCollectionFromResponseBody($body): array
+    {
+        $prop = static::$_RESPONSE_PROP;
+        if (!$prop){
+            return is_array($body)?$body:[];
+        } else {
+            if (is_object($body)){
+                return $body->$prop??[];
+            } else {
+                return $body[$prop]??[];
+            }
+        }
     }
 
     /**
      * Configures the collection based on the Response Body
      */
-    protected function updateCollection(){
-        $responseBody = $this->Response->getBody();
-        if (is_array($responseBody)){
-            if (isset($this->model)){
-                $modelIdKey = $this->buildModel()->modelIdKey();
-                foreach($responseBody as $key => $model){
-                    if (isset($model[$modelIdKey])){
-                        $this->collection[$model[$modelIdKey]] = $model;
-                    } else {
-                        $this->collection[] = $model;
-                    }
+    protected function syncFromApi(array $data){
+        $this->triggerEvent(self::EVENT_BEFORE_SYNC,$data);
+        if (isset($this->model)){
+            $modelIdKey = $this->buildModel()->modelIdKey();
+            foreach($data as $key => $model){
+                if (isset($model[$modelIdKey])){
+                    $this->collection[$model[$modelIdKey]] = $model;
+                } else {
+                    $this->collection[] = $model;
                 }
-            } else {
-                $this->collection = $responseBody;
             }
+        } else {
+            $this->collection = $data;
         }
     }
 
@@ -249,14 +295,13 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * @param array $data
      * @return AbstractModelEndpoint
      */
-    protected function buildModel(array $data = array()){
+    protected function buildModel(array $data = array()): AbstractModelEndpoint
+    {
         $Model = NULL;
         if (isset($this->model)){
             $Model = new $this->model();
             $Model->setBaseUrl($this->getBaseUrl());
-            if ($this->getAuth() !== NULL) {
-                $Model->setAuth($this->getAuth());
-            }
+            $Model->setHttpClient($this->getHttpClient());
             if (!empty($data)){
                 foreach($data as $key => $value){
                     $Model->set($key,$value);

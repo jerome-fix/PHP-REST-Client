@@ -17,7 +17,7 @@ abstract class AbstractEndpointProvider implements EndpointProviderInterface
      * @inheritdoc
      * @throws InvalidRegistration
      */
-    public function registerEndpoint($name, $className, array $properties = array())
+    public function registerEndpoint($name, $className, array $properties = array()): EndpointProviderInterface
     {
         try{
             $implements = class_implements($className);
@@ -37,7 +37,8 @@ abstract class AbstractEndpointProvider implements EndpointProviderInterface
     /**
      * @inheritdoc
      */
-    public function hasEndpoint($name, $version = NULL) {
+    public function hasEndpoint($name, $version = NULL) : bool
+    {
         return array_key_exists($name,$this->registry);
     }
 
@@ -45,7 +46,8 @@ abstract class AbstractEndpointProvider implements EndpointProviderInterface
      * @inheritdoc
      * @throws UnknownEndpoint
      */
-    public function getEndpoint($name, $version = NULL) {
+    public function getEndpoint($name, $version = NULL) : EndpointInterface
+    {
         if ($this->hasEndpoint($name,$version)){
             return $this->buildEndpoint($name,$version);
         }else{
@@ -58,7 +60,8 @@ abstract class AbstractEndpointProvider implements EndpointProviderInterface
      * @param null $version
      * @return EndpointInterface
      */
-    protected function buildEndpoint($name,$version = NULL){
+    protected function buildEndpoint($name,$version = NULL) : EndpointInterface
+    {
         $endPointArray = $this->registry[$name];
         $Class = $endPointArray['class'];
         $properties = $endPointArray['properties'];

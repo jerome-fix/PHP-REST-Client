@@ -8,27 +8,29 @@
 
 namespace MRussell\REST\Tests\Auth;
 
+use MRussell\REST\Auth\Abstracts\AbstractAuthController;
 use MRussell\REST\Storage\StaticStorage;
 use MRussell\REST\Tests\Stubs\Auth\AuthController;
 use MRussell\REST\Tests\Stubs\Endpoint\AuthEndpoint;
 use MRussell\REST\Tests\Stubs\Endpoint\LogoutEndpoint;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class AbstractAuthControllerTest
  * @package MRussell\REST\Tests\Auth\
- * @coversDefaultClass MRussell\REST\Auth\Abstracts\AbstractAuthController
+ * @coversDefaultClass \MRussell\REST\Auth\Abstracts\AbstractAuthController
  * @group AbstractAuthControllerTest
  * @group Auth
  */
-class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
+class AbstractAuthControllerTest extends TestCase
 {
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass(): void
     {
         //Add Tear Down for static properties here
     }
@@ -43,12 +45,12 @@ class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
         'password' => 'bar'
     );
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
     }
@@ -58,7 +60,8 @@ class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
      * @covers ::getActions
      * @return AuthController
      */
-    public function testConstructor(){
+    public function testConstructor(): AuthController
+    {
         $Auth = new AuthController();
         $this->assertEquals($this->authActions,$Auth->getActions());
         $actions = $this->authActions;
@@ -79,7 +82,8 @@ class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
      * @covers ::getCredentials
      * @return AuthController
      */
-    public function testSetCredentials(AuthController $Auth){
+    public function testSetCredentials(AuthController $Auth): AuthController
+    {
         $this->assertEquals($Auth,$Auth->setCredentials($this->credentials));
         $this->assertEquals($this->credentials,$Auth->getCredentials());
         $Auth->setCredentials(array());
@@ -96,7 +100,8 @@ class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
      * @covers ::isAuthenticated
      * @return AuthController
      */
-    public function testGetToken(AuthController $Auth){
+    public function testGetToken(AuthController $Auth): AuthController
+    {
         $this->assertEquals('12345',$Auth->getToken());
         $this->assertEquals(TRUE,$Auth->isAuthenticated());
         $Class = new \ReflectionClass('MRussell\REST\Tests\Stubs\Auth\AuthController');
@@ -127,7 +132,8 @@ class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
      * @covers ::setActionEndpoint
      * @return AuthController
      */
-    public function testSetActions(AuthController $Auth){
+    public function testSetActions(AuthController $Auth): AuthController
+    {
         $this->assertEquals($this->authActions,$Auth->getActions());
         $this->assertEquals($Auth,$Auth->setActions(array()));
         $this->assertEquals(array(),$Auth->getActions());
@@ -135,10 +141,10 @@ class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
         $Auth = new AuthController();
         $this->assertEquals($this->authActions,$Auth->getActions());
         $AuthEndpoint = new AuthEndpoint();
-        $this->assertEquals($Auth,$Auth->setActionEndpoint(AuthController::ACTION_AUTH,$AuthEndpoint));
+        $this->assertEquals($Auth,$Auth->setActionEndpoint(AbstractAuthController::ACTION_AUTH,$AuthEndpoint));
         $this->assertEquals($AuthEndpoint,$Auth->getActionEndpoint('authenticate'));
         $LogoutEndpoint = new LogoutEndpoint();
-        $this->assertEquals($Auth,$Auth->setActionEndpoint(AuthController::ACTION_LOGOUT,$LogoutEndpoint));
+        $this->assertEquals($Auth,$Auth->setActionEndpoint(AbstractAuthController::ACTION_LOGOUT,$LogoutEndpoint));
         $this->assertEquals($LogoutEndpoint,$Auth->getActionEndpoint('logout'));
         $this->assertEquals(NULL,$Auth->getActionEndpoint('test'));
         $this->assertEmpty($Auth->getActionEndpoint('test'));
@@ -191,7 +197,8 @@ class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
      * @covers ::configureLogoutEndpoint
      * @return AuthController
      */
-    public function testConfigureData(){
+    public function testConfigureData(): AuthController
+    {
         $Auth = new AuthController();
         $Auth->setCredentials($this->credentials);
         $AuthEndpoint = new AuthEndpoint();
@@ -201,9 +208,9 @@ class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
         $Class = new \ReflectionClass('MRussell\REST\Tests\Stubs\Auth\AuthController');
         $method = $Class->getMethod('configureEndpoint');
         $method->setAccessible(TRUE);
-        $this->assertEquals($AuthEndpoint,$method->invoke($Auth,$AuthEndpoint,AuthController::ACTION_AUTH));
-        $this->assertEquals($this->credentials,$AuthEndpoint->getData()->asArray());
-        $this->assertEquals($LogoutEndpoint,$method->invoke($Auth,$LogoutEndpoint,AuthController::ACTION_LOGOUT));
+        $this->assertEquals($AuthEndpoint,$method->invoke($Auth,$AuthEndpoint,AbstractAuthController::ACTION_AUTH));
+        $this->assertEquals($this->credentials,$AuthEndpoint->getData()->toArray());
+        $this->assertEquals($LogoutEndpoint,$method->invoke($Auth,$LogoutEndpoint,AbstractAuthController::ACTION_LOGOUT));
         $this->assertEquals(array(),$LogoutEndpoint->getData());
 
         return $Auth;
@@ -214,9 +221,9 @@ class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
      * @depends testConfigureData
      * @covers ::authenticate
      */
-    public function testAuthenticate(AuthController $Auth){
+    public function testAuthenticate(AuthController $Auth): AuthController{
         $Endpoint = new AuthEndpoint();
-        $Auth->setActionEndpoint(AuthController::ACTION_AUTH,$Endpoint);
+        $Auth->setActionEndpoint(AbstractAuthController::ACTION_AUTH,$Endpoint);
         $this->assertEquals(FALSE,$Auth->authenticate());
     }
 
@@ -227,7 +234,7 @@ class AbstractAuthControllerTest extends \PHPUnit_Framework_TestCase
      */
     public function testLogout(AuthController $Auth){
         $Endpoint = new LogoutEndpoint();
-        $Auth->setActionEndpoint(AuthController::ACTION_LOGOUT,$Endpoint);
+        $Auth->setActionEndpoint(AbstractAuthController::ACTION_LOGOUT,$Endpoint);
         $this->assertEquals(FALSE,$Auth->logout());
     }
 }

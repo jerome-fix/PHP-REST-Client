@@ -16,7 +16,7 @@ use MRussell\REST\Tests\Stubs\Endpoint\RefreshEndpoint;
  * @group AbstractOAuth2ControllerTest
  * @group Auth
  */
-class AbstractOAuth2ControllerTest extends \PHPUnit_Framework_TestCase
+class AbstractOAuth2ControllerTest extends TestCase
 {
 
 

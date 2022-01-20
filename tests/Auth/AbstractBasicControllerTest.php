@@ -17,7 +17,7 @@ use MRussell\REST\Tests\Stubs\Auth\BasicController;
  * @coversDefaultClass MRussell\REST\Auth\Abstracts\AbstractBasicController
  * @group AbstractBasicControllerTest
  */
-class AbstractBasicControllerTest extends \PHPUnit_Framework_TestCase
+class AbstractBasicControllerTest extends TestCase
 {
 
     public static function setUpBeforeClass()

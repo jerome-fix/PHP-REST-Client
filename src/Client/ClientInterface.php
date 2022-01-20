@@ -2,12 +2,18 @@
 
 namespace MRussell\REST\Client;
 
+use GuzzleHttp\Client;
 use MRussell\REST\Auth\AuthControllerInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Endpoint\Provider\EndpointProviderInterface;
 
 interface ClientInterface
 {
+
+    /**
+     * @return Client
+     */
+    public function getHttpClient();
 
     /**
      * Set the Auth Controller that handles Auth for the API

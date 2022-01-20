@@ -2,10 +2,14 @@
 
 namespace MRussell\REST\Client;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
 use MRussell\REST\Auth\AuthControllerInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Endpoint\Provider\EndpointProviderInterface;
 use MRussell\REST\Exception\Client\EndpointProviderMissing;
+use GuzzleHttp\Psr7\Request;
 
 /**
  * A Generic Abstract Client
@@ -13,6 +17,16 @@ use MRussell\REST\Exception\Client\EndpointProviderMissing;
  */
 abstract class AbstractClient implements ClientInterface
 {
+    /**
+     * @var Client
+     */
+    private $httpClient;
+
+    /**
+     * @var HandlerStack
+     */
+    private $clientHandlerStack;
+
     /**
      * @var AuthControllerInterface
      */
@@ -53,19 +67,52 @@ abstract class AbstractClient implements ClientInterface
      */
     protected $error;
 
+    public function __construct()
+    {
+        $this->initHttpClient();
+    }
+
+    /**
+     * @return void
+     */
+    protected function initHttpClient()
+    {
+        $this->clientHandlerStack = HandlerStack::create();
+        $this->httpClient = new Client(['handler' => $this->clientHandlerStack]);
+    }
+
+    /**
+     * @return Client
+     */
+    public function getHttpClient(): Client
+    {
+        return $this->httpClient;
+    }
+
+    /**
+     * @return HandlerStack
+     */
+    public function getHandlerStack(): HandlerStack
+    {
+        return $this->clientHandlerStack;
+    }
+
     /**
      * @inheritdoc
      */
-    public function setAuth(AuthControllerInterface $Auth)
+    public function setAuth(AuthControllerInterface $Auth): ClientInterface
     {
         $this->Auth = $Auth;
+        $this->getHandlerStack()->push(Middleware::mapRequest(function (Request $request)  use ($Auth){
+            return $Auth->configureRequest($request);
+        }),'configureAuth');
         return $this;
     }
 
     /**
      * @inheritdoc
      */
-    public function getAuth()
+    public function getAuth(): AuthControllerInterface
     {
         return $this->Auth;
     }
@@ -165,10 +212,8 @@ abstract class AbstractClient implements ClientInterface
             $this->setCurrentEndpoint($this->EndpointProvider->getEndpoint($name,$this->version))
                 ->current()
                     ->setBaseUrl($this->apiURL)
-                    ->setOptions($arguments);
-            if (!empty($this->Auth)){
-                $this->currentEndPoint->setAuth($this->Auth);
-            }
+                    ->setUrlArgs($arguments)
+                    ->setHttpClient($this->getHttpClient());
             return $this->currentEndPoint;
         }else{
             throw new EndpointProviderMissing();

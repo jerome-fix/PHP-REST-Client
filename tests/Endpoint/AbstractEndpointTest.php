@@ -15,7 +15,7 @@ use MRussell\REST\Tests\Stubs\Endpoint\EndpointData;
  * @coversDefaultClass MRussell\REST\Endpoint\Abstracts\AbstractEndpoint
  * @group AbstractEndpointTest
  */
-class AbstractEndpointTest extends \PHPUnit_Framework_TestCase
+class AbstractEndpointTest extends TestCase
 {
 
     public static function setUpBeforeClass()
@@ -68,7 +68,7 @@ class AbstractEndpointTest extends \PHPUnit_Framework_TestCase
             'httpMethod' => '',
             'auth' => false
         ), $Endpoint->getProperties());
-        $this->assertEquals(array(), $Endpoint->getOptions());
+        $this->assertEquals(array(), $Endpoint->getUrlArgs());
         $this->assertEmpty($Endpoint->getData());
         $this->assertEmpty($Endpoint->getRequest());
         $this->assertEmpty($Endpoint->getResponse());
@@ -82,7 +82,7 @@ class AbstractEndpointTest extends \PHPUnit_Framework_TestCase
             'httpMethod' => '',
             'auth' => false
         ), $Endpoint->getProperties());
-        $this->assertEquals($this->options, $Endpoint->getOptions());
+        $this->assertEquals($this->options, $Endpoint->getUrlArgs());
         $this->assertEmpty($Endpoint->getData());
         $this->assertEmpty($Endpoint->getRequest());
         $this->assertEmpty($Endpoint->getResponse());
@@ -96,7 +96,7 @@ class AbstractEndpointTest extends \PHPUnit_Framework_TestCase
             'httpMethod' => '',
             'auth' => false
         ), $Endpoint->getProperties());
-        $this->assertEquals($this->options, $Endpoint->getOptions());
+        $this->assertEquals($this->options, $Endpoint->getUrlArgs());
         $this->assertEmpty($Endpoint->getData());
         $this->assertEmpty($Endpoint->getRequest());
         $this->assertEmpty($Endpoint->getResponse());
@@ -112,11 +112,11 @@ class AbstractEndpointTest extends \PHPUnit_Framework_TestCase
     public function testSetOptions()
     {
         $Endpoint = new BasicEndpoint();
-        $this->assertEquals(array(), $Endpoint->getOptions());
-        $this->assertEquals($Endpoint, $Endpoint->setOptions($this->options));
-        $this->assertEquals($this->options, $Endpoint->getOptions());
-        $this->assertEquals($Endpoint, $Endpoint->setOptions(array()));
-        $this->assertEquals(array(), $Endpoint->getOptions());
+        $this->assertEquals(array(), $Endpoint->getUrlArgs());
+        $this->assertEquals($Endpoint, $Endpoint->setUrlArgs($this->options));
+        $this->assertEquals($this->options, $Endpoint->getUrlArgs());
+        $this->assertEquals($Endpoint, $Endpoint->setUrlArgs(array()));
+        $this->assertEquals(array(), $Endpoint->getUrlArgs());
     }
 
     /**
@@ -267,7 +267,7 @@ class AbstractEndpointTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($Endpoint,$Endpoint->setBaseUrl('http://localhost'));
         $this->assertEquals($Endpoint,$Endpoint->setProperty('url','$foo'));
         $this->assertEquals('$foo',$Endpoint->getEndPointUrl());
-        $this->assertEquals(array(),$Endpoint->getOptions());
+        $this->assertEquals(array(),$Endpoint->getUrlArgs());
         $this->assertEquals($Endpoint,$Endpoint->setRequest($Request));
         $Endpoint->execute();
     }

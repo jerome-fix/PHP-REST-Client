@@ -15,8 +15,9 @@ Install via Composer
 
 ## Developing the PHP REST Client
 
-#### Requirement:
-You need to have installed: [php 5.3+](https://php.org/)
+#### Requirements:
+You need to have installed: 
+- [php 7.2+](https://php.org/)
 
 #### Steps:
 1. With PHP installed, navigate to the repo folder (php-rest-client) via terminal.

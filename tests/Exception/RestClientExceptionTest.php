@@ -12,7 +12,7 @@ use MRussell\REST\Exception\RestClientException;
  * @coversDefaultClass MRussell\REST\Exception\RestClientException
  * @group RestClientExceptionTest
  */
-class UnknownExceptionTest extends \PHPUnit_Framework_TestCase
+class UnknownExceptionTest extends TestCase
 {
 
     public static function setUpBeforeClass()

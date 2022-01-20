@@ -2,33 +2,31 @@
 
 namespace MRussell\REST\Endpoint\Interfaces;
 
-use MRussell\Http\Request\RequestInterface;
-use MRussell\Http\Response\ResponseInterface;
-use MRussell\REST\Auth\AuthControllerInterface;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 use MRussell\REST\Endpoint\Data\AbstractEndpointData;
-use MRussell\REST\Endpoint\Data\DataInterface;
 
 interface EndpointInterface
 {
     /**
-     * Set the urlOptions property to configure the URL variables
-     * @param array $options
-     * @return mixed
+     * Set the urlArgs property to configure the URL variables
+     * @param array $args
+     * @return self
      */
-    public function setOptions(array $options);
+    public function setUrlArgs(array $args): self;
 
     /**
-     * Get the configured Url Options
-     * @return mixed
+     * Get the configured Url Arguments
+     * @return array
      */
-    public function getOptions();
+    public function getUrlArgs(): array;
 
     /**
      * Set the Properties that define the API Endpoint
      * @param array $properties
-     * @return self
      */
-    public function setProperties(array $properties);
+    public function setProperties(array $properties): void;
 
     /**
      * Set the Properties that define the API Endpoint
@@ -36,94 +34,75 @@ interface EndpointInterface
      * @param mixed $value
      * @return self
      */
-    public function setProperty($name,$value);
+    public function setProperty(string $name,$value): self;
 
     /**
      * Set the Properties that define the API Endpoint
      * @return array
      */
-    public function getProperties();
+    public function getProperties(): array;
 
     /**
      * Sets the data on the Endpoint Object, that will be passed to Request Object
      * @param mixed $data
      * @return self
      */
-    public function setData($data);
+    public function setData($data): self;
 
     /**
      * Get the data being used by the Endpoint
-     * @return AbstractEndpointData
+     * @return array|\ArrayAccess
      */
     public function getData();
 
     /**
      * Set the Base URL that the Endpoint uses in regards to it's pre-configured Endpoint URL
-     * @param $url
+     * @param string $url
      * @return self
      */
-    public function setBaseUrl($url);
+    public function setBaseUrl(string $url): self;
+
+    /**
+     * Set the Guzzle HTTP Client to utilize sending requests
+     * @param Client $client
+     * @return self
+     */
+    public function setHttpClient(Client $client): self;
 
     /**
      * Get the Base URL that is currently configured on the Endpoint
-     * @return mixed
+     * @return string
      */
-    public function getBaseUrl();
+    public function getBaseUrl(): string;
 
     /**
      * Get the Relative URL for the API Endpoint
-     * @return mixed
+     * @return string
      */
-    public function getEndPointUrl();
-
-    /**
-     * Set the Request Object used by the Endpoint
-     * @param RequestInterface $Request
-     * @return self
-     */
-    public function setRequest(RequestInterface $Request);
-
-    /**
-     * Set the Response Object used by the Endpoint
-     * @param ResponseInterface $Response
-     * @return self
-     */
-    public function setResponse(ResponseInterface $Response);
+    public function getEndPointUrl(): string;
 
     /**
      * Execute the Endpoint Object using the desired action
      * @return self
      */
-    public function execute();
+    public function execute(): self;
 
     /**
      * Get the Request Object being used by the Endpoint
-     * @return RequestInterface
+     * @return Request
      */
-    public function getRequest();
+    public function getRequest(): Request;
 
     /**
      * Get the Response Object being used by the Endpoint
-     * @return ResponseInterface
+     * @return Response
      */
-    public function getResponse();
+    public function getResponse(): Response;
 
     /**
      * Check if authentication is required for use of the Endpoint
      * @return bool
      */
-    public function authRequired();
-
-    /**
-     * Set the Auth controller used to add Authentication to Endpoint objects
-     * @param AuthControllerInterface $Auth
-     * @return $this
-     */
-    public function setAuth(AuthControllerInterface $Auth);
-
-    /**
-     * @return mixed
-     */
-    public function getAuth();
+    public function authRequired(): bool;
 
 }

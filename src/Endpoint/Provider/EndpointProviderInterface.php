@@ -9,26 +9,26 @@ interface EndpointProviderInterface {
 
     /**
      * @param string $name
-     * @param string $version
+     * @param string|null $version
      * @return EndpointInterface
      */
-    public function getEndpoint($name,$version = NULL);
+    public function getEndpoint(string $name,string $version = NULL): EndpointInterface;
 
     /**
      *
      * @param string $name
      * @param string $className
      * @param array $properties
-     * @return $this
+     * @return self
      */
-    public function registerEndpoint($name,$className,array $properties = array());
+    public function registerEndpoint(string $name,string $className,array $properties = array()): self;
 
     /**
      * Check if Endpoint is registered
-     * @param $name
-     * @param null $version
+     * @param string $name
+     * @param string|null $version
      * @return boolean
      */
-    public function hasEndpoint($name,$version = NULL);
+    public function hasEndpoint(string $name,string $version = NULL): bool;
 
 }

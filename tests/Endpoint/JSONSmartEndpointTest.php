@@ -12,7 +12,7 @@ use MRussell\REST\Endpoint\JSON\SmartEndpoint;
  * @coversDefaultClass MRussell\REST\Endpoint\JSON\SmartEndpoint
  * @group JSONEndpointTest
  */
-class JSONSmartEndpointTest extends \PHPUnit_Framework_TestCase
+class JSONSmartEndpointTest extends TestCase
 {
 
     public static function setUpBeforeClass()

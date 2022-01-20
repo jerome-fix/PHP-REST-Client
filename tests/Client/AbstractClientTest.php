@@ -14,7 +14,7 @@ use MRussell\REST\Tests\Stubs\Endpoint\EndpointProviderWithDefaults;
  * @coversDefaultClass MRussell\REST\Client\AbstractClient
  * @group AbstractClientTest
  */
-class AbstractClientTest extends \PHPUnit_Framework_TestCase
+class AbstractClientTest extends TestCase
 {
 
     public static function setUpBeforeClass()

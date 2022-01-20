@@ -9,7 +9,7 @@ use MRussell\REST\Storage\StaticStorage;
  * @package MRussell\REST\Tests\Storage
  * @coversDefaultClass MRussell\REST\Storage\StaticStorage
  */
-class StaticStorageTest extends \PHPUnit_Framework_TestCase {
+class StaticStorageTest extends TestCase {
 
     public static function setUpBeforeClass()
     {

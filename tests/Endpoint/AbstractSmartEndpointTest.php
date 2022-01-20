@@ -12,7 +12,7 @@ use MRussell\REST\Tests\Stubs\Endpoint\SmartEndpoint;
  * @coversDefaultClass MRussell\REST\Endpoint\Abstracts\AbstractSmartEndpoint
  * @group AbstractSmartEndpointTest
  */
-class AbstractSmartEndpointTest extends \PHPUnit_Framework_TestCase
+class AbstractSmartEndpointTest extends TestCase
 {
 
     public static function setUpBeforeClass()
@@ -128,7 +128,7 @@ class AbstractSmartEndpointTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($Data,$Endpoint->getData());
 
         $this->assertEquals($Endpoint,$Endpoint->setData(array('foo' => 'bar')));
-        $this->assertEquals(array('foo' => 'bar'),$Endpoint->getData()->asArray());
+        $this->assertEquals(array('foo' => 'bar'),$Endpoint->getData()->toArray());
 
         $Class = new \ReflectionClass('MRussell\REST\Endpoint\Abstracts\AbstractSmartEndpoint');
         $method = $Class->getMethod('configureData');

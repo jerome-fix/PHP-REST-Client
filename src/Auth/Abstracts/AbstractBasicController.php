@@ -2,7 +2,8 @@
 
 namespace MRussell\REST\Auth\Abstracts;
 
-use MRussell\Http\Request\RequestInterface;
+use MRussell\REST\Auth\AuthControllerInterface;
+use GuzzleHttp\Psr7\Request;
 
 /**
  * Class AbstractBasicController
@@ -21,17 +22,16 @@ class AbstractBasicController extends AbstractAuthController
     /**
      * @inheritdoc
      */
-    public function configureRequest(RequestInterface $Request)
+    public function configureRequest(Request $Request): Request
     {
-        $Request->addHeader(static::$_AUTH_HEADER, $this->getAuthHeaderValue());
-        return $this;
+        return $Request->withHeader(static::$_AUTH_HEADER, $this->getAuthHeaderValue());
     }
 
     /**
      * Parse the Credentials or Token to build out the Auth Header Value
      * @return string
      */
-    protected function getAuthHeaderValue()
+    protected function getAuthHeaderValue(): string
     {
         $value = "";
         if (isset($this->credentials['username']) && isset($this->credentials['password'])){

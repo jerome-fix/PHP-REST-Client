@@ -15,7 +15,7 @@ use MRussell\REST\Tests\Stubs\Endpoint\ModelEndpointWithActions;
  * @coversDefaultClass MRussell\REST\Endpoint\Abstracts\AbstractModelEndpoint
  * @group AbstractModelEndpointTest
  */
-class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
+class AbstractModelEndpointTest extends TestCase
 {
     protected static $_REFLECTED_CLASS = 'MRussell\REST\Tests\Stubs\Endpoint\ModelEndpoint';
 
@@ -122,21 +122,21 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('bar',$Model['foo']);
         $this->assertEquals(array(
             'foo' => 'bar'
-        ),$Model->asArray());
+        ),$Model->toArray());
         $this->assertEquals($Model,$Model->clear());
-        $this->assertEquals(array(),$Model->asArray());
+        $this->assertEquals(array(),$Model->toArray());
         $Model['foo'] = 'bar';
         $this->assertEquals('bar',$Model->get('foo'));
         unset($Model['foo']);
         $this->assertEquals(FALSE,isset($Model['foo']));
-        $this->assertEquals(array(),$Model->asArray());
+        $this->assertEquals(array(),$Model->toArray());
 
         $Model[] = array(
             'foo' => 'bar'
         );
         $this->assertEquals(array(array(
                                       'foo' => 'bar'
-                                  )),$Model->asArray());
+                                  )),$Model->toArray());
         $this->assertEquals($Model,$Model->update(array(
             'foo' => 'bar'
         )));
@@ -145,7 +145,7 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
             'foo' => 'bar'
         ),$Model[0]);
         $this->assertEquals($Model,$Model->reset());
-        $this->assertEquals(array(),$Model->asArray());
+        $this->assertEquals(array(),$Model->toArray());
     }
 
     /**
@@ -222,7 +222,7 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($Model,$Model->save());
         $this->assertEquals('create',$Model->getCurrentAction());
         $this->assertEquals('localhost/api/v1/model',$Model->getRequest()->getURL());
-        $this->assertEquals(JSON::HTTP_POST,$Model->getRequest()->getMethod());
+        $this->assertEquals("POST",$Model->getRequest()->getMethod());
         $this->assertEquals(array(
             'foo' => 'bar'
         ),$Model->getRequest()->getBody());
@@ -295,10 +295,10 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
             'id' => '1234',
             'name' => 'foo',
             'foo' => 'bar'
-        ),$Model->asArray());
+        ),$Model->toArray());
         $Model->setCurrentAction(ModelEndpoint::MODEL_ACTION_DELETE);
         $updateModel->invoke($Model);
-        $this->assertEquals(array(),$Model->asArray());
+        $this->assertEquals(array(),$Model->toArray());
         $this->assertEmpty($Model->get('id'));
 
         $Model->setCurrentAction(ModelEndpoint::MODEL_ACTION_UPDATE);
@@ -307,7 +307,7 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
             'id' => '1234',
             'name' => 'foo',
             'foo' => 'bar'
-        ),$Model->asArray());
+        ),$Model->toArray());
 
         $Model->clear();
         $Model->setCurrentAction(ModelEndpoint::MODEL_ACTION_RETRIEVE);
@@ -316,6 +316,6 @@ class AbstractModelEndpointTest extends \PHPUnit_Framework_TestCase
             'id' => '1234',
             'name' => 'foo',
             'foo' => 'bar'
-        ),$Model->asArray());
+        ),$Model->toArray());
     }
 }

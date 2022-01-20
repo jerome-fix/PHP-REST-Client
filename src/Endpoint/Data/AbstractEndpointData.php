@@ -42,7 +42,8 @@ abstract class AbstractEndpointData implements DataInterface
      * @param string The key data to retrieve
      * @access public
      */
-    public function &__get ($key) {
+    public function &__get ($key)
+    {
         return $this->data[$key];
     }
 
@@ -51,7 +52,8 @@ abstract class AbstractEndpointData implements DataInterface
      * @param string $key - The data key to assign the value to
      * @param mixed $value - The value to set
      */
-    public function __set($key,$value) {
+    public function __set($key,$value)
+    {
         $this->data[$key] = $value;
     }
 
@@ -60,7 +62,8 @@ abstract class AbstractEndpointData implements DataInterface
      * @param string $key - A data key to check for
      * @return boolean
      */
-    public function __isset($key) {
+    public function __isset($key)
+    {
         return isset($this->data[$key]);
     }
 
@@ -68,7 +71,8 @@ abstract class AbstractEndpointData implements DataInterface
      * Unsets data by key
      * @param string $key - The key to unset
      */
-    public function __unset($key) {
+    public function __unset($key)
+    {
         unset($this->data[$key]);
     }
 
@@ -79,7 +83,8 @@ abstract class AbstractEndpointData implements DataInterface
      * @param mixed $value - The value to set
      * @abstracting ArrayAccess
      */
-    public function offsetSet($offset,$value) {
+    public function offsetSet($offset,$value)
+    {
         if (is_null($offset)) {
             $this->data[] = $value;
         } else {
@@ -93,7 +98,8 @@ abstract class AbstractEndpointData implements DataInterface
      * @return boolean
      * @abstracting ArrayAccess
      */
-    public function offsetExists($offset) {
+    public function offsetExists($offset)
+    {
         return isset($this->data[$offset]);
     }
 
@@ -102,7 +108,8 @@ abstract class AbstractEndpointData implements DataInterface
      * @param string $offset - The offset to unset
      * @abstracting ArrayAccess
      */
-    public function offsetUnset($offset) {
+    public function offsetUnset($offset)
+    {
         if ($this->offsetExists($offset)) {
             unset($this->data[$offset]);
         }
@@ -114,7 +121,8 @@ abstract class AbstractEndpointData implements DataInterface
      * @return mixed
      * @abstracting ArrayAccess
      */
-    public function offsetGet($offset) {
+    public function offsetGet($offset)
+    {
         return $this->offsetExists($offset) ? $this->data[$offset] : null;
     }
 
@@ -125,7 +133,8 @@ abstract class AbstractEndpointData implements DataInterface
      * @return array
      * @throws InvalidData
      */
-    public function asArray($verify = FALSE){
+    public function toArray($verify = FALSE): array
+    {
         if ($verify){
             $this->verifyRequiredData();
         }
@@ -136,16 +145,17 @@ abstract class AbstractEndpointData implements DataInterface
      * Get the current Data Properties
      * @return array
      */
-    public function getProperties() {
+    public function getProperties(): array
+    {
         return $this->properties;
     }
 
     /**
      * Set properties for data
      * @param array $properties
-     * @return $this
      */
-    public function setProperties(array $properties) {
+    public function setProperties(array $properties): void
+    {
         if (!isset($properties[self::DATA_PROPERTY_REQUIRED])){
             $properties[self::DATA_PROPERTY_REQUIRED] = array();
         }
@@ -153,14 +163,14 @@ abstract class AbstractEndpointData implements DataInterface
             $properties[self::DATA_PROPERTY_DEFAULTS] = array();
         }
         $this->properties = $properties;
-        return $this;
     }
 
     /**
      * Set Data back to Defaults and clear out data
      * @return AbstractEndpointData
      */
-    public function reset(){
+    public function reset(): DataInterface
+    {
         $this->setProperties(static::$_DEFAULT_PROPERTIES);
         $this->clear();
         return $this->configureDefaultData();
@@ -170,7 +180,8 @@ abstract class AbstractEndpointData implements DataInterface
      * Clear out data array
      * @return $this
      */
-    public function clear(){
+    public function clear(): DataInterface
+    {
         $this->data = array();
         return $this;
     }
@@ -178,7 +189,8 @@ abstract class AbstractEndpointData implements DataInterface
     /**
      * @inheritdoc
      */
-    public function update(array $data){
+    public function update(array $data): DataInterface
+    {
         foreach($data as $key => $value){
             $this->data[$key] = $value;
         }
@@ -189,7 +201,8 @@ abstract class AbstractEndpointData implements DataInterface
      * Configures Data with defaults based on properties array
      * @return $this
      */
-    protected function configureDefaultData(){
+    protected function configureDefaultData(): DataInterface
+    {
         if (isset($this->properties['defaults']) && is_array($this->properties['defaults'])){
             foreach($this->properties['defaults'] as $data => $value){
                 if (!isset($this->data[$data])){
@@ -205,7 +218,7 @@ abstract class AbstractEndpointData implements DataInterface
      * @return bool
      * @throws InvalidData
      */
-    protected function verifyRequiredData()
+    protected function verifyRequiredData(): bool
     {
         $errors = array(
             'missing' => array(),

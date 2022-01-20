@@ -10,6 +10,6 @@ class LogoutEndpoint extends Endpoint
     protected static $_ENDPOINT_URL = 'logout';
 
     protected static $_DEFAULT_PROPERTIES = array(
-        'httpMethod' => JSON::HTTP_POST
+        'httpMethod' => "POST"
     );
 }

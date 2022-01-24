@@ -4,9 +4,8 @@ namespace MRussell\REST\Tests\Client;
 
 use MRussell\REST\Tests\Stubs\Auth\AuthController;
 use MRussell\REST\Tests\Stubs\Client\Client;
-use MRussell\REST\Tests\Stubs\Endpoint\EndpointProvider;
 use MRussell\REST\Tests\Stubs\Endpoint\EndpointProviderWithDefaults;
-
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class AbstractClientTest
@@ -17,12 +16,12 @@ use MRussell\REST\Tests\Stubs\Endpoint\EndpointProviderWithDefaults;
 class AbstractClientTest extends TestCase
 {
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass():void
     {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass():void
     {
         //Add Tear Down for static properties here
     }
@@ -36,13 +35,13 @@ class AbstractClientTest extends TestCase
 
     protected $version = '1.0';
 
-    public function setUp()
+    public function setUp():void
     {
         $this->Client = new Client();
         parent::setUp();
     }
 
-    public function tearDown()
+    public function tearDown():void
     {
         parent::tearDown();
     }

@@ -9,7 +9,7 @@ namespace MRussell\REST\Tests\Auth;
 
 use MRussell\Http\Request\JSON;
 use MRussell\REST\Tests\Stubs\Auth\BasicController;
-
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class AbstractBasicControllerTest
@@ -20,22 +20,22 @@ use MRussell\REST\Tests\Stubs\Auth\BasicController;
 class AbstractBasicControllerTest extends TestCase
 {
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass():void
     {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass():void
     {
         //Add Tear Down for static properties here
     }
 
-    public function setUp()
+    public function setUp():void
     {
         parent::setUp();
     }
 
-    public function tearDown()
+    public function tearDown():void
     {
         parent::tearDown();
     }

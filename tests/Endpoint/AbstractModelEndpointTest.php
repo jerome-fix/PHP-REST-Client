@@ -4,10 +4,9 @@ namespace MRussell\REST\Tests\Endpoint;
 
 use MRussell\Http\Request\Curl;
 use MRussell\Http\Request\JSON;
-use MRussell\REST\Exception\Endpoint\MissingModelId;
-use MRussell\REST\Exception\Endpoint\UnknownModelAction;
 use MRussell\REST\Tests\Stubs\Endpoint\ModelEndpoint;
 use MRussell\REST\Tests\Stubs\Endpoint\ModelEndpointWithActions;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class AbstractModelEndpointTest
@@ -19,22 +18,22 @@ class AbstractModelEndpointTest extends TestCase
 {
     protected static $_REFLECTED_CLASS = 'MRussell\REST\Tests\Stubs\Endpoint\ModelEndpoint';
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass():void
     {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass():void
     {
         //Add Tear Down for static properties here
     }
 
-    public function setUp()
+    public function setUp():void
     {
         parent::setUp();
     }
 
-    public function tearDown()
+    public function tearDown():void
     {
         ModelEndpoint::modelIdKey('id');
         parent::tearDown();

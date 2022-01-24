@@ -4,7 +4,7 @@ namespace MRussell\REST\Tests\Endpoint;
 
 use MRussell\Http\Request\JSON;
 use MRussell\REST\Endpoint\JSON\ModelEndpoint;
-
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class JSONEndpointTest
@@ -15,22 +15,22 @@ use MRussell\REST\Endpoint\JSON\ModelEndpoint;
 class JSONModelEndpointTest extends TestCase
 {
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass():void
     {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass():void
     {
         //Add Tear Down for static properties here
     }
 
-    public function setUp()
+    public function setUp():void
     {
         parent::setUp();
     }
 
-    public function tearDown()
+    public function tearDown():void
     {
         parent::tearDown();
     }

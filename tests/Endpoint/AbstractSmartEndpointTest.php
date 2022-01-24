@@ -4,7 +4,7 @@ namespace MRussell\REST\Tests\Endpoint;
 
 use MRussell\REST\Endpoint\Data\EndpointData;
 use MRussell\REST\Tests\Stubs\Endpoint\SmartEndpoint;
-
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class AbstractSmartEndpointTest
@@ -15,12 +15,12 @@ use MRussell\REST\Tests\Stubs\Endpoint\SmartEndpoint;
 class AbstractSmartEndpointTest extends TestCase
 {
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass():void
     {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass():void
     {
         //Add Tear Down for static properties here
     }
@@ -36,12 +36,12 @@ class AbstractSmartEndpointTest extends TestCase
         )
     );
 
-    public function setUp()
+    public function setUp():void
     {
         parent::setUp();
     }
 
-    public function tearDown()
+    public function tearDown():void
     {
         parent::tearDown();
     }

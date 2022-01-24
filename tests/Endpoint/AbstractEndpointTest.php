@@ -8,6 +8,7 @@ use MRussell\Http\Response\Standard;
 use MRussell\REST\Tests\Stubs\Auth\AuthController;
 use MRussell\REST\Tests\Stubs\Endpoint\BasicEndpoint;
 use MRussell\REST\Tests\Stubs\Endpoint\EndpointData;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class AbstractEndpointTest
@@ -18,12 +19,12 @@ use MRussell\REST\Tests\Stubs\Endpoint\EndpointData;
 class AbstractEndpointTest extends TestCase
 {
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass():void
     {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass():void
     {
         //Add Tear Down for static properties here
     }
@@ -37,12 +38,12 @@ class AbstractEndpointTest extends TestCase
         'url' => '$foo/$bar/$:test'
     );
 
-    public function setUp()
+    public function setUp():void
     {
         parent::setUp();
     }
 
-    public function tearDown()
+    public function tearDown():void
     {
         parent::tearDown();
     }

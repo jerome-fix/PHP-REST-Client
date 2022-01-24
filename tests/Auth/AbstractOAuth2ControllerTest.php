@@ -7,7 +7,7 @@ use MRussell\REST\Tests\Stubs\Auth\OAuth2Controller;
 use MRussell\REST\Tests\Stubs\Endpoint\AuthEndpoint;
 use MRussell\REST\Tests\Stubs\Endpoint\LogoutEndpoint;
 use MRussell\REST\Tests\Stubs\Endpoint\RefreshEndpoint;
-
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class AbstractOAuth2ControllerTest
@@ -20,12 +20,12 @@ class AbstractOAuth2ControllerTest extends TestCase
 {
 
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass():void
     {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass():void
     {
         //Add Tear Down for static properties here
     }
@@ -41,12 +41,12 @@ class AbstractOAuth2ControllerTest extends TestCase
         'client_secret' => 's3cr3t'
     );
 
-    public function setUp()
+    public function setUp():void
     {
         parent::setUp();
     }
 
-    public function tearDown()
+    public function tearDown():void
     {
         parent::tearDown();
     }

@@ -25,12 +25,12 @@ use PHPUnit\Framework\TestCase;
 class AbstractAuthControllerTest extends TestCase
 {
 
-    public static function setUpBeforeClass(): void
+    public static function setUpBeforeClass():void: void
     {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass(): void
+    public static function tearDownAfterClass():void: void
     {
         //Add Tear Down for static properties here
     }
@@ -45,12 +45,12 @@ class AbstractAuthControllerTest extends TestCase
         'password' => 'bar'
     );
 
-    public function setUp(): void
+    public function setUp():void: void
     {
         parent::setUp();
     }
 
-    public function tearDown(): void
+    public function tearDown():void: void
     {
         parent::tearDown();
     }

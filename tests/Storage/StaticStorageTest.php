@@ -11,20 +11,20 @@ use MRussell\REST\Storage\StaticStorage;
  */
 class StaticStorageTest extends TestCase {
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass():void
     {
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass():void
     {
     }
 
-    public function setUp()
+    public function setUp():void
     {
         parent::setUp();
     }
 
-    public function tearDown()
+    public function tearDown():void
     {
         parent::tearDown();
     }

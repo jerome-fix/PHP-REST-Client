@@ -2,7 +2,7 @@
 
 namespace MRussell\REST\Tests\Endpoint;
 
-use MRussell\REST\Endpoint\JSON\ModelEndpoint;
+use MRussell\REST\Endpoint\ModelEndpoint;
 use MRussell\REST\Tests\Stubs\Auth\AuthController;
 use MRussell\REST\Tests\Stubs\Endpoint\CollectionEndpointWithModel;
 use MRussell\REST\Tests\Stubs\Endpoint\CollectionEndpoint;
@@ -200,7 +200,7 @@ class AbstractCollectionEndpointTest extends TestCase
      * @covers ::fetch
      */
     public function testFetch(){
-        $Collection = new \MRussell\REST\Endpoint\JSON\CollectionEndpoint();
+        $Collection = new \MRussell\REST\Endpoint\CollectionEndpoint();
         $Collection->setBaseUrl('localhost');
         $Collection->setProperty('url','foo');
         $Collection->fetch();
@@ -213,13 +213,13 @@ class AbstractCollectionEndpointTest extends TestCase
      * @covers ::updateCollection
      */
     public function testConfigureResponse(){
-        $Collection = new \MRussell\REST\Endpoint\JSON\CollectionEndpoint();
+        $Collection = new \MRussell\REST\Endpoint\CollectionEndpoint();
         $Collection->setBaseUrl('localhost');
         $Collection->setProperty('url','foo');
         $Response = $Collection->getResponse();
 
-        $ReflectedResponse = new \ReflectionClass('MRussell\Http\Response\JSON');
-        $ReflectedCollection = new \ReflectionClass('MRussell\REST\Endpoint\JSON\CollectionEndpoint');
+        $ReflectedResponse = new \ReflectionClass('MRussell\Http\Response');
+        $ReflectedCollection = new \ReflectionClass('MRussell\REST\Endpoint\CollectionEndpoint');
         $status = $ReflectedResponse->getProperty('status');
         $status->setAccessible(TRUE);
         $status->setValue($Response,'200');

@@ -25,12 +25,12 @@ use PHPUnit\Framework\TestCase;
 class AbstractAuthControllerTest extends TestCase
 {
 
-    public static function setUpBeforeClass():void: void
+    public static function setUpBeforeClass(): void
     {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass():void: void
+    public static function tearDownAfterClass(): void
     {
         //Add Tear Down for static properties here
     }
@@ -45,12 +45,12 @@ class AbstractAuthControllerTest extends TestCase
         'password' => 'bar'
     );
 
-    public function setUp():void: void
+    public function setUp(): void
     {
         parent::setUp();
     }
 
-    public function tearDown():void: void
+    public function tearDown(): void
     {
         parent::tearDown();
     }
@@ -225,6 +225,7 @@ class AbstractAuthControllerTest extends TestCase
         $Endpoint = new AuthEndpoint();
         $Auth->setActionEndpoint(AbstractAuthController::ACTION_AUTH,$Endpoint);
         $this->assertEquals(FALSE,$Auth->authenticate());
+        return $Auth;
     }
 
     /**
@@ -232,9 +233,10 @@ class AbstractAuthControllerTest extends TestCase
      * @depends testConfigureData
      * @covers ::logout
      */
-    public function testLogout(AuthController $Auth){
+    public function testLogout(AuthController $Auth): AuthController{
         $Endpoint = new LogoutEndpoint();
         $Auth->setActionEndpoint(AbstractAuthController::ACTION_LOGOUT,$Endpoint);
         $this->assertEquals(FALSE,$Auth->logout());
+        return $Auth;
     }
 }

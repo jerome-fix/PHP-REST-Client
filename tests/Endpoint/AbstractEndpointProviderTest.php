@@ -64,7 +64,7 @@ class AbstractEndpointProviderTest extends TestCase
     public function testRegisterEndpoint(){
         $Provider = new EndpointProvider();
         $this->assertEquals($Provider,$Provider->registerEndpoint('auth','MRussell\REST\Tests\Stubs\Endpoint\AuthEndpoint'));
-        $this->assertEquals($Provider,$Provider->registerEndpoint('foo','MRussell\REST\Endpoint\JSON\Endpoint',array(
+        $this->assertEquals($Provider,$Provider->registerEndpoint('foo','MRussell\REST\Endpoint\Endpoint',array(
             'url' => 'foo',
             'httpMethod' => JSON::HTTP_GET
         )));

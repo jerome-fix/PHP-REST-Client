@@ -3,7 +3,7 @@
 namespace MRussell\REST\Tests\Stubs\Endpoint;
 
 use MRussell\Http\Request\JSON;
-use MRussell\REST\Endpoint\JSON\Endpoint;
+use MRussell\REST\Endpoint\Endpoint;
 
 class RefreshEndpoint extends Endpoint
 {

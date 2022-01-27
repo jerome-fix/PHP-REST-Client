@@ -2,7 +2,7 @@
 
 namespace MRussell\REST\Tests\Auth;
 
-use MRussell\Http\Request\JSON;
+use GuzzleHttp\Psr7\Request;
 use MRussell\REST\Tests\Stubs\Auth\OAuth2Controller;
 use MRussell\REST\Tests\Stubs\Endpoint\AuthEndpoint;
 use MRussell\REST\Tests\Stubs\Endpoint\LogoutEndpoint;
@@ -120,7 +120,7 @@ class AbstractOAuth2ControllerTest extends TestCase
     public function testConfigure(){
         $Auth = new OAuth2Controller();
         $Class = new \ReflectionClass('MRussell\REST\Tests\Stubs\Auth\AuthController');
-        $Request = new JSON();
+        $Request = new Request("POST", "");
         $this->assertEquals($Auth,$Auth->configureRequest($Request));
         $setToken = $Class->getMethod('setToken');
         $setToken->setAccessible(TRUE);

@@ -259,13 +259,13 @@ class AbstractModelEndpointTest extends TestCase
      * @covers ::updateModel
      */
     public function testConfigureResponse(){
-        $Model = new \MRussell\REST\Endpoint\JSON\ModelEndpoint();
+        $Model = new \MRussell\REST\Endpoint\ModelEndpoint();
         $Model->setBaseUrl('localhost/api/v1/');
         $Model->setProperty('url','model/$id');
         $Response = $Model->getResponse();
 
-        $ReflectedResponse = new \ReflectionClass('MRussell\Http\Response\JSON');
-        $ReflectedModel = new \ReflectionClass('MRussell\REST\Endpoint\JSON\ModelEndpoint');
+        $ReflectedResponse = new \ReflectionClass('MRussell\Http\Response');
+        $ReflectedModel = new \ReflectionClass('MRussell\REST\Endpoint\ModelEndpoint');
         $status = $ReflectedResponse->getProperty('status');
         $status->setAccessible(TRUE);
         $status->setValue($Response,'200');

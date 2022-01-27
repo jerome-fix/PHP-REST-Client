@@ -3,7 +3,7 @@
 namespace MRussell\REST\Tests\Client;
 
 use MRussell\REST\Tests\Stubs\Auth\AuthController;
-use MRussell\REST\Tests\Stubs\Client\Client;
+use GuzzleHttp\Client;
 use MRussell\REST\Tests\Stubs\Endpoint\EndpointProviderWithDefaults;
 use PHPUnit\Framework\TestCase;
 

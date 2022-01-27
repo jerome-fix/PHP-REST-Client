@@ -7,7 +7,7 @@
 
 namespace MRussell\REST\Tests\Auth;
 
-use MRussell\Http\Request\JSON;
+use GuzzleHttp\Psr7\Request;
 use MRussell\REST\Tests\Stubs\Auth\BasicController;
 use PHPUnit\Framework\TestCase;
 
@@ -47,8 +47,8 @@ class AbstractBasicControllerTest extends TestCase
     public function testConfigureRequest()
     {
         $Auth = new BasicController();
-        $Request = new JSON();
-        $this->assertEquals($Auth,$Auth->configureRequest($Request));
+        $Request = new Request("GET", "");
+        $this->assertEquals($Auth, $Auth->configureRequest($Request));
         $headers = $Request->getHeaders();
         $this->assertEquals("Basic ",$headers['Authorization']);
         $Auth->setCredentials(array(

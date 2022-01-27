@@ -3,6 +3,7 @@
 namespace MRussell\REST\Tests\Storage;
 
 use MRussell\REST\Storage\StaticStorage;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class StaticStorageTest

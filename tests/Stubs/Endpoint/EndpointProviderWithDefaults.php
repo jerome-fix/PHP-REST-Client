@@ -2,8 +2,6 @@
 
 namespace MRussell\REST\Tests\Stubs\Endpoint;
 
-
-use MRussell\Http\Request\JSON;
 use MRussell\REST\Endpoint\Provider\DefaultEndpointProvider;
 
 class EndpointProviderWithDefaults extends DefaultEndpointProvider
@@ -19,11 +17,11 @@ class EndpointProviderWithDefaults extends DefaultEndpointProvider
             'class' => 'MRussell\REST\Tests\Stubs\Endpoint\LogoutEndpoint'
         ),
         'ping' => array(
-            'class' => 'MRussell\REST\Endpoint\JSON\Endpoint',
-            'properties' => array(
-                'url' => 'ping',
-                'httpMethod' => JSON::HTTP_GET
-            )
+            'class' => 'GuzzleHttp\Psr7\Request',
+            'properties' => [
+                'GET',
+                'ping'
+            ],
         )
     );
 }

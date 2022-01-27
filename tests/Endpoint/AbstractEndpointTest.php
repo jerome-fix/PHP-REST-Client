@@ -2,8 +2,7 @@
 
 namespace MRussell\REST\Tests\Endpoint;
 
-use MRussell\Http\Request\Curl;
-use MRussell\Http\Request\JSON;
+use GuzzleHttp\Psr7\Request;
 use MRussell\Http\Response\Standard;
 use MRussell\REST\Tests\Stubs\Auth\AuthController;
 use MRussell\REST\Tests\Stubs\Endpoint\BasicEndpoint;
@@ -73,7 +72,6 @@ class AbstractEndpointTest extends TestCase
         $this->assertEmpty($Endpoint->getData());
         $this->assertEmpty($Endpoint->getRequest());
         $this->assertEmpty($Endpoint->getResponse());
-        $this->assertEmpty($Endpoint->getAuth());
         $this->assertEmpty($Endpoint->getBaseUrl());
         $this->assertEquals('', $Endpoint->getEndPointUrl());
 
@@ -87,7 +85,6 @@ class AbstractEndpointTest extends TestCase
         $this->assertEmpty($Endpoint->getData());
         $this->assertEmpty($Endpoint->getRequest());
         $this->assertEmpty($Endpoint->getResponse());
-        $this->assertEmpty($Endpoint->getAuth());
         $this->assertEmpty($Endpoint->getBaseUrl());
         $this->assertEquals('', $Endpoint->getEndPointUrl());
 
@@ -101,7 +98,6 @@ class AbstractEndpointTest extends TestCase
         $this->assertEmpty($Endpoint->getData());
         $this->assertEmpty($Endpoint->getRequest());
         $this->assertEmpty($Endpoint->getResponse());
-        $this->assertEmpty($Endpoint->getAuth());
         $this->assertEmpty($Endpoint->getBaseUrl());
         $this->assertEquals('$foo/$bar/$:test', $Endpoint->getEndPointUrl());
     }
@@ -183,7 +179,7 @@ class AbstractEndpointTest extends TestCase
      */
     public function testSetRequest(){
         $Endpoint = new BasicEndpoint();
-        $Request = new Curl();
+        $Request = new Request();
         $this->assertEquals($Endpoint,$Endpoint->setRequest($Request));
         $this->assertEquals($Request,$Endpoint->getRequest());
     }
@@ -207,7 +203,6 @@ class AbstractEndpointTest extends TestCase
         $Endpoint = new BasicEndpoint();
         $Auth = new AuthController();
         $this->assertEquals($Endpoint,$Endpoint->setAuth($Auth));
-        $this->assertEquals($Auth,$Endpoint->getAuth());
     }
 
     /**
@@ -239,7 +234,7 @@ class AbstractEndpointTest extends TestCase
      */
     public function testExecute(){
         $Endpoint = new BasicEndpoint();
-        $Request = new Curl();
+        $Request = new Request();
         $this->assertEquals($Endpoint,$Endpoint->setBaseUrl('http://localhost'));
         $this->assertEquals($Endpoint,$Endpoint->setProperty('url','basic'));
         $this->assertEquals($Endpoint,$Endpoint->setRequest($Request));

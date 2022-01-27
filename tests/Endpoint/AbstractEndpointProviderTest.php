@@ -8,7 +8,7 @@ use MRussell\REST\Endpoint\Provider\EndpointProviderInterface;
 use MRussell\REST\Tests\Stubs\Endpoint\AuthEndpoint;
 use MRussell\REST\Tests\Stubs\Endpoint\EndpointProvider;
 use MRussell\REST\Tests\Stubs\Endpoint\EndpointProviderWithDefaults;
-
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class AbstractEndpointProviderTest
@@ -19,22 +19,22 @@ use MRussell\REST\Tests\Stubs\Endpoint\EndpointProviderWithDefaults;
 class AbstractEndpointProviderTest extends TestCase
 {
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass():void
     {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass():void
     {
         //Add Tear Down for static properties here
     }
 
-    public function setUp()
+    public function setUp():void
     {
         parent::setUp();
     }
 
-    public function tearDown()
+    public function tearDown():void
     {
         parent::tearDown();
     }
@@ -64,7 +64,7 @@ class AbstractEndpointProviderTest extends TestCase
     public function testRegisterEndpoint(){
         $Provider = new EndpointProvider();
         $this->assertEquals($Provider,$Provider->registerEndpoint('auth','MRussell\REST\Tests\Stubs\Endpoint\AuthEndpoint'));
-        $this->assertEquals($Provider,$Provider->registerEndpoint('foo','MRussell\REST\Endpoint\JSON\Endpoint',array(
+        $this->assertEquals($Provider,$Provider->registerEndpoint('foo','MRussell\REST\Endpoint\Endpoint',array(
             'url' => 'foo',
             'httpMethod' => JSON::HTTP_GET
         )));

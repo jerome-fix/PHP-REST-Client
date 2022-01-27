@@ -2,8 +2,7 @@
 
 namespace MRussell\REST\Tests\Stubs\Endpoint;
 
-use MRussell\Http\Request\JSON;
-use MRussell\REST\Endpoint\JSON\SmartEndpoint;
+use MRussell\REST\Endpoint\SmartEndpoint;
 
 class AuthEndpoint extends SmartEndpoint
 {

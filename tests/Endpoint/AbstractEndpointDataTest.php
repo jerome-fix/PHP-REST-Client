@@ -4,6 +4,7 @@ namespace MRussell\REST\Tests\Endpoint;
 
 use MRussell\REST\Endpoint\Data\EndpointData as StockData;
 use MRussell\REST\Tests\Stubs\Endpoint\EndpointData as StubData;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class AbstractEndpointDataTest
@@ -14,12 +15,12 @@ use MRussell\REST\Tests\Stubs\Endpoint\EndpointData as StubData;
 class AbstractEndpointDataTest extends TestCase
 {
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass():void
     {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass():void
     {
         //Add Tear Down for static properties here
     }
@@ -38,12 +39,12 @@ class AbstractEndpointDataTest extends TestCase
         )
     );
 
-    public function setUp()
+    public function setUp():void
     {
         parent::setUp();
     }
 
-    public function tearDown()
+    public function tearDown():void
     {
         parent::tearDown();
     }

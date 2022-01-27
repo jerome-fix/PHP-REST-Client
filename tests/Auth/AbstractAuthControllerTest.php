@@ -225,6 +225,7 @@ class AbstractAuthControllerTest extends TestCase
         $Endpoint = new AuthEndpoint();
         $Auth->setActionEndpoint(AbstractAuthController::ACTION_AUTH,$Endpoint);
         $this->assertEquals(FALSE,$Auth->authenticate());
+        return $Auth;
     }
 
     /**
@@ -232,9 +233,10 @@ class AbstractAuthControllerTest extends TestCase
      * @depends testConfigureData
      * @covers ::logout
      */
-    public function testLogout(AuthController $Auth){
+    public function testLogout(AuthController $Auth): AuthController{
         $Endpoint = new LogoutEndpoint();
         $Auth->setActionEndpoint(AbstractAuthController::ACTION_LOGOUT,$Endpoint);
         $this->assertEquals(FALSE,$Auth->logout());
+        return $Auth;
     }
 }

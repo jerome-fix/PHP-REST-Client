@@ -9,10 +9,10 @@ class AuthController extends AbstractAuthController
 {
     protected $token = '12345';
 
-    public function configureRequest(Request $Request) {
+    public function configureRequest(Request $Request): Request {
         $body = $Request->getBody();
         $body['token'] = $this->token;
-        $Request->setBody($body);
-        return $this;
+        $Request->withBody($body);
+        return $Request;
     }
 }

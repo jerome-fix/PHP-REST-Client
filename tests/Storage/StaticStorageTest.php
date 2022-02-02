@@ -12,21 +12,17 @@ use PHPUnit\Framework\TestCase;
  */
 class StaticStorageTest extends TestCase {
 
-    public static function setUpBeforeClass():void
-    {
+    public static function setUpBeforeClass(): void {
     }
 
-    public static function tearDownAfterClass():void
-    {
+    public static function tearDownAfterClass(): void {
     }
 
-    public function setUp():void
-    {
+    public function setUp(): void {
         parent::setUp();
     }
 
-    public function tearDown():void
-    {
+    public function tearDown(): void {
         parent::tearDown();
     }
 
@@ -34,24 +30,24 @@ class StaticStorageTest extends TestCase {
      * @covers ::store
      * @covers ::get
      */
-    public function testStore(){
+    public function testStore() {
         $Storage = new StaticStorage();
-        $this->assertEquals(TRUE,$Storage->store('foo','bar'));
-        $this->assertEquals('bar',$Storage->get('foo'));
-        $this->assertEquals(TRUE,$Storage->store('bar','foo'));
-        $this->assertEquals('foo',$Storage->get('bar'));
+        $this->assertEquals(true, $Storage->store('foo', 'bar'));
+        $this->assertEquals('bar', $Storage->get('foo'));
+        $this->assertEquals(true, $Storage->store('bar', 'foo'));
+        $this->assertEquals('foo', $Storage->get('bar'));
         unset($Storage);
         $Storage = new StaticStorage();
-        $this->assertEquals('bar',$Storage->get('foo'));
-        $this->assertEquals('foo',$Storage->get('bar'));
+        $this->assertEquals('bar', $Storage->get('foo'));
+        $this->assertEquals('foo', $Storage->get('bar'));
     }
 
     /**
      * @covers ::getNamespace
      */
-    public function testGetNamespace(){
+    public function testGetNamespace() {
         $Storage = new StaticStorage();
-        $this->assertEquals('global',$Storage->getNamespace());
+        $this->assertEquals('global', $Storage->getNamespace());
     }
 
     /**
@@ -60,16 +56,16 @@ class StaticStorageTest extends TestCase {
      */
     public function testSetItem() {
         $Storage = new StaticStorage();
-        $this->assertEquals('bar',$Storage->get('foo'));
-        $this->assertEquals('foo',$Storage->get('bar'));
-        $this->assertEquals('bar',StaticStorage::getItem('global', 'foo'));
-        $this->assertEquals('foo',StaticStorage::getItem('global', 'bar'));
-        $this->assertEquals(TRUE,StaticStorage::setItem('global', 'baz', 'foz'));
-        $this->assertEquals(TRUE,StaticStorage::setItem('test', 'foz', 'baz'));
+        $this->assertEquals('bar', $Storage->get('foo'));
+        $this->assertEquals('foo', $Storage->get('bar'));
+        $this->assertEquals('bar', StaticStorage::getItem('global', 'foo'));
+        $this->assertEquals('foo', StaticStorage::getItem('global', 'bar'));
+        $this->assertEquals(true, StaticStorage::setItem('global', 'baz', 'foz'));
+        $this->assertEquals(true, StaticStorage::setItem('test', 'foz', 'baz'));
         $this->assertEquals('foz', $Storage->get('baz'));
         $this->assertEquals('foz', StaticStorage::getItem('global', 'baz'));
         $this->assertEmpty($Storage->get('foz'));
-        $this->assertEquals('baz',StaticStorage::getItem('test', 'foz'));
+        $this->assertEquals('baz', StaticStorage::getItem('test', 'foz'));
     }
 
     /**
@@ -77,15 +73,15 @@ class StaticStorageTest extends TestCase {
      * @covers ::removeItem
      * @covers ::clear
      */
-    public function testRemove(){
+    public function testRemove() {
         $Storage = new StaticStorage();
-        $this->assertEquals(TRUE,$Storage->remove('foo'));
+        $this->assertEquals(true, $Storage->remove('foo'));
         $this->assertEmpty($Storage->get('foo'));
-        $this->assertEquals(TRUE,StaticStorage::removeItem('test','foz'));
-        $this->assertEmpty(StaticStorage::getItem('test','foz'));
-        $this->assertEquals(TRUE,StaticStorage::clear('test'));
-        $this->assertEquals(TRUE,StaticStorage::clear($Storage->getNamespace()));
+        $this->assertEquals(true, StaticStorage::removeItem('test', 'foz'));
+        $this->assertEmpty(StaticStorage::getItem('test', 'foz'));
+        $this->assertEquals(true, StaticStorage::clear('test'));
+        $this->assertEquals(true, StaticStorage::clear($Storage->getNamespace()));
         $this->assertEmpty($Storage->get('bar'));
-        $this->assertEmpty(StaticStorage::getItem('global','baz'));
+        $this->assertEmpty(StaticStorage::getItem('global', 'baz'));
     }
 }

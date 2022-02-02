@@ -3,15 +3,14 @@
 namespace MRussell\REST\Endpoint\Interfaces;
 
 
-interface ModelInterface extends EndpointInterface
-{
+interface ModelInterface extends EndpointInterface {
 
     /**
      * Get or Set the Model ID Key used by the Model
      * @param null $id
      * @return mixed
      */
-    public static function modelIdKey($id = NULL);
+    public static function modelIdKey($id = null);
 
     /**
      * Set a particular Model property
@@ -19,7 +18,7 @@ interface ModelInterface extends EndpointInterface
      * @param mixed $value
      * @return mixed
      */
-    public function set($key,$value);
+    public function set($key, $value);
 
     /**
      * Get a specific piece of data on the Model
@@ -33,7 +32,7 @@ interface ModelInterface extends EndpointInterface
      * @param $id
      * @return mixed
      */
-    public function retrieve($id = NULL);
+    public function retrieve($id = null);
 
     /**
      * Save the current Model
@@ -48,6 +47,4 @@ interface ModelInterface extends EndpointInterface
      * @return mixed
      */
     public function delete();
-
-
 }

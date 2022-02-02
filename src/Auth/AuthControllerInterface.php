@@ -12,7 +12,7 @@ interface AuthControllerInterface
      * Get the configured Array of credentials used for authentication
      * @return array
      */
-    public function getCredentials():array;
+    public function getCredentials(): array;
 
     /**
      * Set the credentials used for authentication
@@ -37,7 +37,7 @@ interface AuthControllerInterface
      * @param EndpointInterface $Endpoint
      * @return self
      */
-    public function setActionEndpoint(string $action,EndpointInterface $Endpoint): self;
+    public function setActionEndpoint(string $action, EndpointInterface $Endpoint): self;
 
     /**
      * Get the Endpoint configured for an action
@@ -103,7 +103,7 @@ interface AuthControllerInterface
      * @param mixed $token
      * @return boolean
      */
-    public function storeToken($key,$token): bool;
+    public function storeToken($key, $token): bool;
 
     /**
      * Retrieve a Token from local storage

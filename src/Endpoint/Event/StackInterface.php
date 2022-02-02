@@ -4,8 +4,7 @@ namespace MRussell\REST\Endpoint\Event;
 
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 
-interface StackInterface
-{
+interface StackInterface {
     /**
      * Set the Endpoint for the Event Stack
      * @param EndpointInterface $endpoint
@@ -25,7 +24,7 @@ interface StackInterface
      * @param $data
      * @return StackInterface
      */
-    public function trigger(string $event,&$data = null): StackInterface;
+    public function trigger(string $event, &$data = null): StackInterface;
 
     /**
      * Register a new event handler
@@ -34,7 +33,7 @@ interface StackInterface
      * @param string|null $id
      * @return int|string
      */
-    public function register(string $event,callable $func,string $id = null);
+    public function register(string $event, callable $func, string $id = null);
 
     /**
      * Remove an event handler

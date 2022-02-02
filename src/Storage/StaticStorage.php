@@ -2,14 +2,12 @@
 
 namespace MRussell\REST\Storage;
 
-class StaticStorage implements StorageControllerInterface
-{
+class StaticStorage implements StorageControllerInterface {
     protected static $_STORAGE = array();
 
     protected $namespace = 'global';
 
-    public function setNamespace(string $namespace): StorageControllerInterface
-    {
+    public function setNamespace(string $namespace): StorageControllerInterface {
         $this->namespace = $namespace;
         return $this;
     }
@@ -18,33 +16,29 @@ class StaticStorage implements StorageControllerInterface
      * Return the configured namespace
      * @return string
      */
-    public function getNamespace(): string
-    {
+    public function getNamespace(): string {
         return $this->namespace;
     }
 
     /**
      * @inheritdoc
      */
-    public function get($key)
-    {
-        return static::getItem($this->namespace,$key);
+    public function get($key) {
+        return static::getItem($this->namespace, $key);
     }
 
     /**
      * @inheritdoc
      */
-    public function store($key, $value): bool
-    {
-        return static::setItem($this->namespace,$key,$value);
+    public function store($key, $value): bool {
+        return static::setItem($this->namespace, $key, $value);
     }
 
     /**
      * @inheritdoc
      */
-    public function remove($key): bool
-    {
-        return static::removeItem($this->namespace,$key);
+    public function remove($key): bool {
+        return static::removeItem($this->namespace, $key);
     }
 
     /**
@@ -53,14 +47,13 @@ class StaticStorage implements StorageControllerInterface
      * @param $key
      * @return mixed|null
      */
-    public static function getItem($namespace,$key)
-    {
-        if (isset(static::$_STORAGE[$namespace])){
-            if (isset(static::$_STORAGE[$namespace][$key])){
+    public static function getItem($namespace, $key) {
+        if (isset(static::$_STORAGE[$namespace])) {
+            if (isset(static::$_STORAGE[$namespace][$key])) {
                 return static::$_STORAGE[$namespace][$key];
             }
         }
-        return NULL;
+        return null;
     }
 
     /**
@@ -69,13 +62,12 @@ class StaticStorage implements StorageControllerInterface
      * @param $key
      * @return bool
      */
-    public static function setItem($namespace,$key,$value): bool
-    {
-        if (!isset(static::$_STORAGE[$namespace])){
+    public static function setItem($namespace, $key, $value): bool {
+        if (!isset(static::$_STORAGE[$namespace])) {
             static::$_STORAGE[$namespace] = array();
         }
         static::$_STORAGE[$namespace][$key] = $value;
-        return TRUE;
+        return true;
     }
 
     /**
@@ -83,14 +75,13 @@ class StaticStorage implements StorageControllerInterface
      * @param $key
      * @return bool
      */
-    public static function removeItem($namespace,$key): bool
-    {
-        if (isset(static::$_STORAGE[$namespace])){
-            if (static::$_STORAGE[$namespace][$key]){
+    public static function removeItem($namespace, $key): bool {
+        if (isset(static::$_STORAGE[$namespace])) {
+            if (static::$_STORAGE[$namespace][$key]) {
                 unset(static::$_STORAGE[$namespace][$key]);
             }
         }
-        return TRUE;
+        return true;
     }
 
     /**
@@ -98,12 +89,10 @@ class StaticStorage implements StorageControllerInterface
      * @param $namespace
      * @return bool
      */
-    public static function clear($namespace): bool
-    {
-        if (isset(static::$_STORAGE[$namespace])){
+    public static function clear($namespace): bool {
+        if (isset(static::$_STORAGE[$namespace])) {
             unset(static::$_STORAGE[$namespace]);
         }
-        return TRUE;
+        return true;
     }
-
 }

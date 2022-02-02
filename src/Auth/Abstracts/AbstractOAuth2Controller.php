@@ -7,18 +7,14 @@ use GuzzleHttp\Psr7\Request;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Exception\Auth\InvalidToken;
 
-abstract class AbstractOAuth2Controller extends AbstractBasicController
-{
+abstract class AbstractOAuth2Controller extends AbstractBasicController {
     const DEFAULT_AUTH_TYPE = 'Bearer';
 
     const ACTION_OAUTH_REFRESH = 'refresh';
 
     const OAUTH_RESOURCE_OWNER_GRANT = 'password';
-
     const OAUTH_CLIENT_CREDENTIALS_GRANT = 'client_credentials';
-
     const OAUTH_AUTHORIZATION_CODE_GRANT = 'authorization_code';
-
     const OAUTH_REFRESH_GRANT = 'refresh_token';
 
     /**
@@ -51,8 +47,7 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController
      */
     protected $grant_type;
 
-    public function __construct()
-    {
+    public function __construct() {
         parent::__construct();
         $this->setGrantType(static::$_DEFAULT_GRANT_TYPE);
     }
@@ -61,8 +56,7 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController
      * @param $grant_type
      * @return $this
      */
-    public function setGrantType($grant_type): AuthControllerInterface
-    {
+    public function setGrantType($grant_type): AuthControllerInterface {
         $this->grant_type = $grant_type;
         return $this;
     }
@@ -70,8 +64,7 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController
     /**
      * @return string
      */
-    public function getGrantType(): string
-    {
+    public function getGrantType(): string {
         return $this->grant_type;
     }
 
@@ -80,8 +73,7 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController
      * @param $header
      * @return string
      */
-    public static function oauthHeader($header = null): string
-    {
+    public static function oauthHeader($header = null): string {
         if ($header !== null) {
             static::$_AUTH_HEADER = $header;
         }
@@ -92,12 +84,11 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController
      * @inheritdoc
      * @throws InvalidToken
      */
-    protected function setToken($token): AuthControllerInterface
-    {
+    protected function setToken($token): AuthControllerInterface {
         if (is_array($token) && isset($token['access_token'])) {
             $token = $this->configureToken($token);
             return parent::setToken($token);
-        }else if (is_object($token) && $token->access_token){
+        } else if (is_object($token) && $token->access_token) {
             $token = $this->configureToken($token);
             return parent::setToken($token);
         }
@@ -109,14 +100,13 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController
      * @param $token
      * @return mixed
      */
-    protected function configureToken($token)
-    {
-        if (is_array($token)){
+    protected function configureToken($token) {
+        if (is_array($token)) {
             if (isset($token['expires_in'])) {
                 $token['expiration'] = time() + ($token['expires_in'] - 30);
             }
-        } elseif (is_object($token)){
-            if (isset($token->expires_in)){
+        } elseif (is_object($token)) {
+            if (isset($token->expires_in)) {
                 $token->expiration = time() + ($token['expires_in'] - 30);
             }
         }
@@ -127,8 +117,7 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController
     /**
      * @inheritdoc
      */
-    public function configureRequest(Request $Request): Request
-    {
+    public function configureRequest(Request $Request): Request {
         if ($this->isAuthenticated()) {
             return parent::configureRequest($Request);
         }
@@ -139,9 +128,8 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController
      * Get the Value to be set on the Auth Header
      * @return mixed
      */
-    protected function getAuthHeaderValue(): string
-    {
-        return static::$_AUTH_TYPE." ".$this->token['access_token'];
+    protected function getAuthHeaderValue(): string {
+        return static::$_AUTH_TYPE . " " . $this->token['access_token'];
     }
 
     /**
@@ -149,30 +137,26 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController
      * @return bool
      * @throws InvalidToken
      */
-    public function refresh(): bool
-    {
+    public function refresh(): bool {
         if (isset($this->token['refresh_token'])) {
             $Endpoint = $this->getActionEndpoint(self::ACTION_OAUTH_REFRESH);
             if ($Endpoint !== null) {
                 $Endpoint = $this->configureEndpoint($Endpoint, self::ACTION_OAUTH_REFRESH);
                 $response = $Endpoint->execute()->getResponse();
-                if ($response->getStatus() == '200') {
-                    //@codeCoverageIgnoreStart
-                    $this->setToken($response->getBody());
-                    return TRUE;
+                $res = $response->getStatusCode() == 200;
+                if ($res) {
+                    $this->setToken($response->getBody()->getContents());
                 }
-                //@codeCoverageIgnoreEnd
             }
         }
-        return FALSE;
+        return $res;
     }
 
     /**
      * Checks for Access Token property in token, and checks if Token is expired
      * @inheritdoc
      */
-    public function isAuthenticated(): bool
-    {
+    public function isAuthenticated(): bool {
         if (parent::isAuthenticated()) {
             if (isset($this->token['access_token'])) {
                 $expired = $this->isTokenExpired();
@@ -190,8 +174,7 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController
      * - Returns -1 if no expiration property is found
      * @return bool|int
      */
-    protected function isTokenExpired(): bool
-    {
+    protected function isTokenExpired(): bool|int {
         if (isset($this->token['expiration'])) {
             if (time() > $this->token['expiration']) {
                 return true;
@@ -205,9 +188,8 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController
     /**
      * @inheritdoc
      */
-    protected function configureEndpoint(EndpointInterface $Endpoint, $action): EndpointInterface
-    {
-        switch($action){
+    protected function configureEndpoint(EndpointInterface $Endpoint, $action): EndpointInterface {
+        switch ($action) {
             case self::ACTION_OAUTH_REFRESH:
                 return $this->configureRefreshEndpoint($Endpoint);
             default:
@@ -220,34 +202,30 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController
      * @param EndpointInterface $Endpoint
      * @return EndpointInterface
      */
-    protected function configureRefreshEndpoint(EndpointInterface $Endpoint): EndpointInterface
-    {
-        $data = array();
-        $data['client_id'] = $this->credentials['client_id'];
-        $data['client_secret'] = $this->credentials['client_secret'];
-        $data['grant_type'] = self::OAUTH_REFRESH_GRANT;
-        $data['refresh_token'] = $this->token['refresh_token'];
-        return $Endpoint->setData($data);
+    protected function configureRefreshEndpoint(EndpointInterface $Endpoint): EndpointInterface {
+        return $Endpoint->setData([
+            'client_id' => $this->credentials['client_id'],
+            'client_secret' => $this->credentials['client_secret'],
+            'grant_type' => self::OAUTH_REFRESH_GRANT,
+            'refresh_token' => $this->token['refresh_token'],
+        ]);
     }
 
     /**
      * Add OAuth Grant Type for Auth
      * @inheritdoc
      */
-    protected function configureAuthenticationEndpoint(EndpointInterface $Endpoint): EndpointInterface
-    {
+    protected function configureAuthenticationEndpoint(EndpointInterface $Endpoint): EndpointInterface {
         $data = $this->credentials;
-        $data['grant_type'] = ($this->grant_type?$this->grant_type:static::$_DEFAULT_GRANT_TYPE);
+        $data['grant_type'] = ($this->grant_type ? $this->grant_type : static::$_DEFAULT_GRANT_TYPE);
         return $Endpoint->setData($data);
     }
 
     /**
      * @inheritDoc
      */
-    public function reset(): AuthControllerInterface
-    {
+    public function reset(): AuthControllerInterface {
         $this->setGrantType(static::$_DEFAULT_GRANT_TYPE);
         return parent::reset();
     }
-
 }

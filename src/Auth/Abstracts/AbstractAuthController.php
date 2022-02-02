@@ -2,16 +2,13 @@
 
 namespace MRussell\REST\Auth\Abstracts;
 
-use GuzzleHttp\Client;
 use MRussell\REST\Auth\AuthControllerInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Exception\Auth\InvalidAuthenticationAction;
 use MRussell\REST\Storage\StorageControllerInterface;
 
-abstract class AbstractAuthController implements AuthControllerInterface
-{
+abstract class AbstractAuthController implements AuthControllerInterface {
     const ACTION_AUTH = 'authenticate';
-
     const ACTION_LOGOUT = 'logout';
 
     /**
@@ -52,8 +49,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
      */
     protected $storage;
 
-    public function __construct()
-    {
+    public function __construct() {
         foreach (static::$_DEFAULT_AUTH_ACTIONS as $action) {
             $this->actions[] = $action;
         }
@@ -62,8 +58,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
     /**
      * @inheritdoc
      */
-    public function setCredentials(array $credentials): AuthControllerInterface
-    {
+    public function setCredentials(array $credentials): AuthControllerInterface {
         $this->credentials = $credentials;
         return $this;
     }
@@ -71,8 +66,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
     /**
      * @inheritdoc
      */
-    public function getCredentials(): array
-    {
+    public function getCredentials(): array {
         return $this->credentials;
     }
 
@@ -81,8 +75,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
      * @param $token
      * @return $this
      */
-    protected function setToken($token): AuthControllerInterface
-    {
+    protected function setToken($token): AuthControllerInterface {
         $this->token = $token;
         return $this;
     }
@@ -90,16 +83,14 @@ abstract class AbstractAuthController implements AuthControllerInterface
     /**
      * @inheritdoc
      */
-    public function getToken()
-    {
+    public function getToken() {
         return $this->token;
     }
 
     /**
-     * Clear the token property to NULL
+     * Clear the token property to null
      */
-    protected function clearToken(): AuthControllerInterface
-    {
+    protected function clearToken(): AuthControllerInterface {
         $this->token = null;
         return $this;
     }
@@ -107,8 +98,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
     /**
      * @inheritdoc
      */
-    public function setActions(array $actions): AuthControllerInterface
-    {
+    public function setActions(array $actions): AuthControllerInterface {
         $this->actions = $actions;
         return $this;
     }
@@ -116,16 +106,14 @@ abstract class AbstractAuthController implements AuthControllerInterface
     /**
      * @inheritdoc
      */
-    public function getActions(): array
-    {
+    public function getActions(): array {
         return $this->actions;
     }
 
     /**
      * @inheritdoc
      */
-    public function setActionEndpoint(string $action, EndpointInterface $Endpoint): AuthControllerInterface
-    {
+    public function setActionEndpoint(string $action, EndpointInterface $Endpoint): AuthControllerInterface {
         if (in_array($action, $this->actions)) {
             $this->endpoints[$action] = $Endpoint;
         }
@@ -135,65 +123,65 @@ abstract class AbstractAuthController implements AuthControllerInterface
     /**
      * @inheritdoc
      */
-    public function getActionEndpoint($action): EndpointInterface
-    {
+    public function getActionEndpoint($action): EndpointInterface {
         if (isset($this->endpoints[$action])) {
             return $this->endpoints[$action];
         }
-        throw new InvalidAuthenticationAction([$action,__CLASS__]);
+        throw new InvalidAuthenticationAction([$action, __CLASS__]);
     }
 
     /**
      * @inheritdoc
      */
-    public function isAuthenticated(): bool
-    {
+    public function isAuthenticated(): bool {
         if (!empty($this->token)) {
-            return TRUE;
-        }
-        return FALSE;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function authenticate(): bool
-    {
-        $Endpoint = $this->configureEndpoint($this->getActionEndpoint(self::ACTION_AUTH),self::ACTION_AUTH);
-        $response = $Endpoint->execute()->getResponse();
-        if ($response->getStatusCode() == '200') {
-            //@codeCoverageIgnoreStart
-            $this->setToken($response->getBody()->getContents());
             return true;
         }
-        //@codeCoverageIgnoreEnd
         return false;
     }
 
     /**
      * @inheritdoc
      */
-    public function logout(): bool
-    {
-        $Endpoint = $this->getActionEndpoint(self::ACTION_LOGOUT);
-        if ($Endpoint !== NULL){
-            $Endpoint = $this->configureEndpoint($Endpoint,self::ACTION_LOGOUT);
+    public function authenticate(): bool {
+        $Endpoint = $this->configureEndpoint($this->getActionEndpoint(self::ACTION_AUTH), self::ACTION_AUTH);
+        try {
             $response = $Endpoint->execute()->getResponse();
-            if ($response->getStatusCode() == '200') {
+            $ret = $response->getStatusCode() == 200;
+            if ($ret) {
                 //@codeCoverageIgnoreStart
-                $this->clearToken();
-                return TRUE;
+                $this->setToken($response->getBody()->getContents());
             }
-            //@codeCoverageIgnoreEnd
+        } catch (\Exception $e) {
+            // TODO: Add a proper PSR-7 Logger here
+            $ret = false;
         }
-        return FALSE;
+        
+        //@codeCoverageIgnoreEnd
+        return $ret;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function logout(): bool {
+        $ret = false;
+        $Endpoint = $this->getActionEndpoint(self::ACTION_LOGOUT);
+        if ($Endpoint !== null) {
+            $Endpoint = $this->configureEndpoint($Endpoint, self::ACTION_LOGOUT);
+            $response = $Endpoint->execute()->getResponse();
+            $ret = $response->getStatusCode() == 200;
+            if ($ret) {
+                $this->clearToken();
+            }
+        }
+        return $ret;
     }
 
     /**
      * @inheritDoc
      **/
-    public function reset(): AuthControllerInterface
-    {
+    public function reset(): AuthControllerInterface {
         $this->credentials = array();
         return $this->clearToken();
     }
@@ -201,8 +189,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
     /**
      * @inheritdoc
      */
-    public function setStorageController(StorageControllerInterface $Storage): AuthControllerInterface
-    {
+    public function setStorageController(StorageControllerInterface $Storage): AuthControllerInterface {
         $this->storage = $Storage;
         return $this;
     }
@@ -210,42 +197,38 @@ abstract class AbstractAuthController implements AuthControllerInterface
     /**
      * @inheritdoc
      */
-    public function getStorageController(): StorageControllerInterface
-    {
+    public function getStorageController(): StorageControllerInterface {
         return $this->storage;
     }
 
     /**
      * @inheritdoc
      */
-    public function storeToken($key, $token): bool
-    {
+    public function storeToken($key, $token): bool {
         if (isset($this->storage)) {
             return $this->storage->store($key, $token);
         }
-        return FALSE;
+        return false;
     }
 
     /**
      * @inheritdoc
      */
-    public function getStoredToken($key)
-    {
+    public function getStoredToken($key) {
         if (isset($this->storage)) {
             return $this->storage->get($key);
         }
-        return NULL;
+        return null;
     }
 
     /**
      * @inheritdoc
      */
-    public function removeStoredToken($key): bool
-    {
-        if (isset($this->storage)){
+    public function removeStoredToken($key): bool {
+        if (isset($this->storage)) {
             return $this->storage->remove($key);
         }
-        return FALSE;
+        return false;
     }
 
     /**
@@ -254,8 +237,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
      * @param string $action
      * @return EndpointInterface
      */
-    protected function configureEndpoint(EndpointInterface $Endpoint, $action): EndpointInterface
-    {
+    protected function configureEndpoint(EndpointInterface $Endpoint, $action): EndpointInterface {
         switch ($action) {
             case self::ACTION_AUTH:
                 $Endpoint = $this->configureAuthenticationEndpoint($Endpoint);
@@ -272,8 +254,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
      * @param EndpointInterface $Endpoint
      * @return EndpointInterface
      */
-    protected function configureAuthenticationEndpoint(EndpointInterface $Endpoint): EndpointInterface
-    {
+    protected function configureAuthenticationEndpoint(EndpointInterface $Endpoint): EndpointInterface {
         return $Endpoint->setData($this->credentials);
     }
 
@@ -282,9 +263,7 @@ abstract class AbstractAuthController implements AuthControllerInterface
      * @param EndpointInterface $Endpoint
      * @return EndpointInterface
      */
-    protected function configureLogoutEndpoint(EndpointInterface $Endpoint): EndpointInterface
-    {
+    protected function configureLogoutEndpoint(EndpointInterface $Endpoint): EndpointInterface {
         return $Endpoint->setData(array());
     }
-
 }

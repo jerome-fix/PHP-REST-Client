@@ -3,8 +3,7 @@
 namespace MRussell\REST\Endpoint\Data;
 
 
-interface DataInterface extends \ArrayAccess
-{
+interface DataInterface extends \ArrayAccess {
     /**
      * Set the properties that control the data
      * @param array $properties
@@ -42,5 +41,4 @@ interface DataInterface extends \ArrayAccess
      * @return self
      */
     public function update(array $data): self;
-
 }

@@ -3,8 +3,7 @@
 namespace MRussell\REST\Endpoint\Interfaces;
 
 
-interface CollectionInterface extends EndpointInterface
-{
+interface CollectionInterface extends EndpointInterface {
 
     /**
      * Retrieve the Endpoint Collection

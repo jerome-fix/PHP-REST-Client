@@ -5,8 +5,7 @@ namespace MRussell\REST\Tests\Stubs\Auth;
 use GuzzleHttp\Psr7\Request;
 use MRussell\REST\Auth\Abstracts\AbstractAuthController;
 
-class AuthController extends AbstractAuthController
-{
+class AuthController extends AbstractAuthController {
     protected $token = '12345';
 
     public function configureRequest(Request $Request): Request {

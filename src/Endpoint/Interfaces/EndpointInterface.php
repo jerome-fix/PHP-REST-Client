@@ -5,10 +5,8 @@ namespace MRussell\REST\Endpoint\Interfaces;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
-use MRussell\REST\Endpoint\Data\AbstractEndpointData;
 
-interface EndpointInterface
-{
+interface EndpointInterface {
     /**
      * Set the urlArgs property to configure the URL variables
      * @param array $args
@@ -34,7 +32,7 @@ interface EndpointInterface
      * @param mixed $value
      * @return self
      */
-    public function setProperty(string $name,$value): self;
+    public function setProperty(string $name, $value): self;
 
     /**
      * Set the Properties that define the API Endpoint
@@ -104,5 +102,4 @@ interface EndpointInterface
      * @return bool
      */
     public function authRequired(): bool;
-
 }

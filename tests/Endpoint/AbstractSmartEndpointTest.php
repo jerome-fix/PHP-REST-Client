@@ -5,6 +5,7 @@ namespace MRussell\REST\Tests\Endpoint;
 use MRussell\REST\Endpoint\Data\EndpointData;
 use MRussell\REST\Tests\Stubs\Endpoint\SmartEndpoint;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 /**
  * Class AbstractSmartEndpointTest
@@ -12,37 +13,32 @@ use PHPUnit\Framework\TestCase;
  * @coversDefaultClass MRussell\REST\Endpoint\Abstracts\AbstractSmartEndpoint
  * @group AbstractSmartEndpointTest
  */
-class AbstractSmartEndpointTest extends TestCase
-{
+class AbstractSmartEndpointTest extends TestCase {
 
-    public static function setUpBeforeClass():void
-    {
+    public static function setUpBeforeClass(): void {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass():void
-    {
+    public static function tearDownAfterClass(): void {
         //Add Tear Down for static properties here
     }
 
-    protected $properties = array(
-        'data' => array(
-            'required' => array(
+    protected $properties = [
+        'data' => [
+            'required' => [
                 'foo' => 'string'
-            ),
-            'defaults' => array(
+            ],
+            'defaults' => [
                 'bar' => 'foo'
-            )
-        )
-    );
+            ]
+        ]
+    ];
 
-    public function setUp():void
-    {
+    public function setUp(): void {
         parent::setUp();
     }
 
-    public function tearDown():void
-    {
+    public function tearDown(): void {
         parent::tearDown();
     }
 
@@ -50,17 +46,22 @@ class AbstractSmartEndpointTest extends TestCase
      * @covers ::__construct
      * @covers ::configureDataProperties
      */
-    public function testConstructor(){
+    public function testConstructor() {
         $Endpoint = new SmartEndpoint();
         $this->assertNotEmpty($Endpoint->getData());
-        $Endpoint = new SmartEndpoint(array('foo'),array('url' => 'bar'));
+        $Endpoint = new SmartEndpoint(['foo'], ['url' => 'bar']);
         $this->assertNotEmpty($Endpoint->getData());
+        $this->assertEquals($Endpoint->getEndPointUrl(), 'bar');
+        $this->assertEquals($Endpoint->getUrlArgs(), ['foo']);
         $Endpoint = new SmartEndpoint(
-            array('foo'),
+            ['foo'],
             $this->properties
         );
         $this->assertNotEmpty($Endpoint->getData());
-        $this->assertEquals($this->properties['data'],$Endpoint->getData()->getProperties());
+        $this->assertEquals($Endpoint->getUrlArgs(), ['foo']);
+        $this->assertEquals($Endpoint->getUrlArgs(), ['foo']);
+        $this->assertEquals($Endpoint->getData()->toArray(), ['bar' => 'foo']);
+        $this->assertEquals($Endpoint->getProperties()['data'], $this->properties['data']);
     }
 
     /**
@@ -68,52 +69,47 @@ class AbstractSmartEndpointTest extends TestCase
      * @covers ::setProperty
      * @covers ::configureDataProperties
      */
-    public function testSetProperties(){
+    public function testSetProperties() {
         $Endpoint = new SmartEndpoint();
-        $this->assertEquals($Endpoint,$Endpoint->setProperties(array()));
+        $Endpoint->setProperties([]);
         $this->assertEquals(array(
             'url' => '',
             'httpMethod' => '',
-            'auth' => FALSE,
-            'data' => array(
-                'required' => array(),
-                'defaults' => array()
-            )
-        ),$Endpoint->getProperties());
-        $this->assertEquals(array(
-            'required' => array(),
-            'defaults' => array()
-        ),$Endpoint->getData()->getProperties());
-        $this->assertEquals($Endpoint,$Endpoint->setProperties($this->properties));
-        $this->assertEquals(array(
-            'url' => '',
-            'httpMethod' => '',
-            'auth' => FALSE,
-            'data' => array(
-                'required' => array(
-                    'foo' => 'string'
-                ),
-                'defaults' => array(
-                    'bar' => 'foo'
-                )
-            )
-        ),$Endpoint->getProperties());
-        $this->assertEquals(array(
-            'required' => array(
-                'foo' => 'string'
-            ),
-            'defaults' => array(
-                'bar' => 'foo'
-            )
-        ),$Endpoint->getData()->getProperties());
+            'auth' => false,
+            'data' => [
+                'required' => [],
+                'defaults' => []
+            ]
+        ), $Endpoint->getProperties());
 
-        $this->assertEquals($Endpoint,$Endpoint->setProperty('data',array(
-            'required' => array()
-        )));
-        $this->assertEquals(array(
-            'required' => array(),
-            'defaults' => array()
-        ),$Endpoint->getData()->getProperties());
+        $this->assertEquals([
+            'required' => [],
+            'defaults' => []
+        ], $Endpoint->getData()->getProperties());
+
+        $Endpoint->setProperties($this->properties);
+        $this->assertEquals([
+            'url' => '',
+            'httpMethod' => '',
+            'auth' => false,
+            'data' => [
+                'required' => [
+                    'foo' => 'string'
+                ],
+                'defaults' => [
+                    'bar' => 'foo'
+                ]
+            ]
+        ], $Endpoint->getProperties());
+        
+        $this->assertEquals([
+            'required' => [
+                'foo' => 'string'
+            ],
+            'defaults' => [
+                'bar' => 'foo'
+            ]
+        ], $Endpoint->getData()->getProperties());
     }
 
     /**
@@ -121,28 +117,28 @@ class AbstractSmartEndpointTest extends TestCase
      * @covers ::getData
      * @covers ::configureData
      */
-    public function testSetData(){
+    public function testSetData() {
         $Endpoint = new SmartEndpoint();
         $Data = new EndpointData();
-        $this->assertEquals($Endpoint,$Endpoint->setData($Data));
-        $this->assertEquals($Data,$Endpoint->getData());
+        $this->assertEquals($Endpoint, $Endpoint->setData($Data));
+        $this->assertEquals([
+            'required' => [],
+            'defaults' => []
+        ], $Endpoint->getData()->getProperties());
 
-        $this->assertEquals($Endpoint,$Endpoint->setData(array('foo' => 'bar')));
-        $this->assertEquals(array('foo' => 'bar'),$Endpoint->getData()->toArray());
-
-        $Class = new \ReflectionClass('MRussell\REST\Endpoint\Abstracts\AbstractSmartEndpoint');
-        $method = $Class->getMethod('configureData');
-        $method->setAccessible(TRUE);
-        $this->assertEquals(array('foo' => 'bar'),$method->invoke($Endpoint,$Endpoint->getData()));
-        $this->assertEquals(NULL,$method->invoke($Endpoint,NULL));
+        $this->assertEquals($Endpoint, $Endpoint->setData(['foo' => 'bar']));
+        $this->assertEquals([
+            'foo' => 'bar'
+        ], $Endpoint->getData()->toArray());
     }
 
     /**
-     * @expectedException MRussell\REST\Exception\Endpoint\InvalidDataType
+     * @throws MRussell\REST\Exception\Endpoint\InvalidDataType
      */
-    public function testInvalidDataType(){
+    public function testInvalidDataType() {
         $Endpoint = new SmartEndpoint();
+        $this->expectException(\MRussell\REST\Exception\Endpoint\InvalidDataType::class);
+        $this->expectExceptionMessage("Invalid data type passed to Endpoint [MRussell\REST\Tests\Stubs\Endpoint\SmartEndpoint]");
         $Endpoint->setData('test');
     }
-
 }

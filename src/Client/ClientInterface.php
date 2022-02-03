@@ -7,8 +7,7 @@ use MRussell\REST\Auth\AuthControllerInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Endpoint\Provider\EndpointProviderInterface;
 
-interface ClientInterface
-{
+interface ClientInterface {
 
     /**
      * @return Client
@@ -84,5 +83,4 @@ interface ClientInterface
      * @return EndpointInterface
      */
     public function last();
-
 }

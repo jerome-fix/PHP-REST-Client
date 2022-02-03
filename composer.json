@@ -8,6 +8,11 @@
       "name": "Mike Russell",
       "email": "mrussell@sugarcrm.com",
       "role": "Developer"
+    },
+    {
+      "name": "Tevfik Tümer",
+      "email": "ttuemer@sugarcrm.com",
+      "role": "Developer"
     }
   ],
   "keywords": [
@@ -31,6 +36,11 @@
   "autoload-dev": {
     "psr-4": {
       "MRussell\\REST\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "symfony/flex": true
     }
   }
 }

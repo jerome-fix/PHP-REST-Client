@@ -17,7 +17,7 @@ interface StorageControllerInterface {
      * @param $value
      * @return boolean
      */
-    public function store($key,$value): bool;
+    public function store($key, $value): bool;
 
     /**
      * Remove a Key from the storage interface
@@ -25,5 +25,4 @@ interface StorageControllerInterface {
      * @return boolean
      */
     public function remove($key): bool;
-
 }

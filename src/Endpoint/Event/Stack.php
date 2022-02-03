@@ -4,8 +4,7 @@ namespace MRussell\REST\Endpoint\Event;
 
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 
-class Stack implements StackInterface
-{
+class Stack implements StackInterface {
     private static $IN_EVENT = [];
 
     /**
@@ -27,8 +26,7 @@ class Stack implements StackInterface
      * @param EndpointInterface $endpoint
      * @return $this
      */
-    public function setEndpoint(EndpointInterface $endpoint): StackInterface
-    {
+    public function setEndpoint(EndpointInterface $endpoint): StackInterface {
         $this->endpoint = $endpoint;
         return $this;
     }
@@ -36,8 +34,7 @@ class Stack implements StackInterface
     /**
      * @return EndpointInterface
      */
-    public function getEndpoint(): EndpointInterface
-    {
+    public function getEndpoint(): EndpointInterface {
         return $this->endpoint;
     }
 
@@ -46,13 +43,12 @@ class Stack implements StackInterface
      * @param $data
      * @return StackInterface
      */
-    public function trigger(string $event,&$data = null): StackInterface
-    {
-        if (array_key_exists($event,$this->events) && !array_key_exists($event,self::$IN_EVENT)){
+    public function trigger(string $event, &$data = null): StackInterface {
+        if (array_key_exists($event, $this->events) && !array_key_exists($event, self::$IN_EVENT)) {
             $this->currentEvent = $event;
             self::$IN_EVENT[$event] = true;
-            foreach($this->events[$event] as $callable){
-                $this->runEventHandler($callable,$data);
+            foreach ($this->events[$event] as $callable) {
+                $this->runEventHandler($callable, $data);
             }
             unset(self::$IN_EVENT[$event]);
         }
@@ -64,20 +60,18 @@ class Stack implements StackInterface
      * @param $data
      * @return mixed
      */
-    private function runEventHandler(callable $handler,&$data = null)
-    {
-        return $handler($data,$this->getEndpoint());
+    private function runEventHandler(callable $handler, &$data = null) {
+        return $handler($data, $this->getEndpoint());
     }
 
     /**
      * @inheritDoc
      */
-    public function register(string $event,callable $func,string $id = null)
-    {
-        if (isset($this->events[$event])){
+    public function register(string $event, callable $func, string $id = null) {
+        if (isset($this->events[$event])) {
             $this->events[$event] = [];
         }
-        if ($id){
+        if ($id) {
             $this->events[$event][$id] = $func;
         } else {
             $id = count($this->events);
@@ -89,9 +83,8 @@ class Stack implements StackInterface
     /**
      * @inheritDoc
      */
-    public function remove(string $event,$id): bool
-    {
-        if (isset($this->events[$event]) && isset($this->events[$event][$id])){
+    public function remove(string $event, $id): bool {
+        if (isset($this->events[$event]) && isset($this->events[$event][$id])) {
             unset($this->events[$event][$id]);
             return true;
         }

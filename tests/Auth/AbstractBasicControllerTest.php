@@ -1,4 +1,5 @@
 <?php
+
 /**
  * User: mrussell
  * Date: 8/15/17
@@ -17,26 +18,21 @@ use PHPUnit\Framework\TestCase;
  * @coversDefaultClass MRussell\REST\Auth\Abstracts\AbstractBasicController
  * @group AbstractBasicControllerTest
  */
-class AbstractBasicControllerTest extends TestCase
-{
+class AbstractBasicControllerTest extends TestCase {
 
-    public static function setUpBeforeClass():void
-    {
+    public static function setUpBeforeClass(): void {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass():void
-    {
+    public static function tearDownAfterClass(): void {
         //Add Tear Down for static properties here
     }
 
-    public function setUp():void
-    {
+    public function setUp(): void {
         parent::setUp();
     }
 
-    public function tearDown():void
-    {
+    public function tearDown(): void {
         parent::tearDown();
     }
 
@@ -44,20 +40,15 @@ class AbstractBasicControllerTest extends TestCase
      * @covers ::configureRequest
      * @covers ::getAuthHeaderValue
      */
-    public function testConfigureRequest()
-    {
+    public function testConfigureRequest() {
         $Auth = new BasicController();
-        $Request = new Request("GET", "");
-        $this->assertEquals($Auth, $Auth->configureRequest($Request));
-        $headers = $Request->getHeaders();
-        $this->assertEquals("Basic ",$headers['Authorization']);
-        $Auth->setCredentials(array(
+        $Request = $Auth->configureRequest(new Request("GET", ""));
+        $this->assertEquals(['Authorization' => ["Basic"]], $Request->getHeaders());
+        $Auth->setCredentials([
             'username' => 'foo',
             'password' => 'bar'
-        ));
-        $this->assertEquals($Auth,$Auth->configureRequest($Request));
-        $headers = $Request->getHeaders();
-        $this->assertEquals('Basic '.base64_encode("foo:bar"),$headers['Authorization']);
+        ]);
+        $Request = $Auth->configureRequest($Request);
+        $this->assertEquals(['Authorization' => ['Basic ' . base64_encode("foo:bar")]], $Request->getHeaders());
     }
-
 }

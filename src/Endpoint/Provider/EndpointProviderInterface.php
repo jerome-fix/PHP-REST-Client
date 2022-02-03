@@ -2,7 +2,6 @@
 
 namespace MRussell\REST\Endpoint\Provider;
 
-use MRussell\REST\Auth\AuthControllerInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 
 interface EndpointProviderInterface {
@@ -12,7 +11,7 @@ interface EndpointProviderInterface {
      * @param string|null $version
      * @return EndpointInterface
      */
-    public function getEndpoint(string $name,string $version = NULL): EndpointInterface;
+    public function getEndpoint(string $name, string $version = null): EndpointInterface;
 
     /**
      *
@@ -21,7 +20,7 @@ interface EndpointProviderInterface {
      * @param array $properties
      * @return self
      */
-    public function registerEndpoint(string $name,string $className,array $properties = array()): self;
+    public function registerEndpoint(string $name, string $className, array $properties = array()): self;
 
     /**
      * Check if Endpoint is registered
@@ -29,6 +28,5 @@ interface EndpointProviderInterface {
      * @param string|null $version
      * @return boolean
      */
-    public function hasEndpoint(string $name,string $version = NULL): bool;
-
+    public function hasEndpoint(string $name, string $version = null): bool;
 }

@@ -161,7 +161,7 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController {
             if (isset($this->token['access_token'])) {
                 $expired = $this->isTokenExpired();
                 //We err on the side of valid vs invalid, as the API will invalidate if we are wrong, which isn't harmful
-                if ($expired === false || $expired === -1) {
+                if ($expired === 0 || $expired === -1) {
                     return true;
                 }
             }
@@ -172,14 +172,14 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController {
     /**
      * Checks if Token is expired based on 'expiration' flag on token
      * - Returns -1 if no expiration property is found
-     * @return bool|int
+     * @return int
      */
-    protected function isTokenExpired(): bool|int {
+    protected function isTokenExpired(): int {
         if (isset($this->token['expiration'])) {
             if (time() > $this->token['expiration']) {
-                return true;
+                return 1;
             } else {
-                return false;
+                return 0;
             }
         }
         return -1;

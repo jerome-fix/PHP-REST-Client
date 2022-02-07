@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Class AbstractEndpointDataTest
  * @package MRussell\REST\Tests\Endpoint\Data
- * @coversDefaultClass MRussell\REST\Endpoint\Data\AbstractEndpointData
+ * @coversDefaultClass \MRussell\REST\Endpoint\Data\AbstractEndpointData
  * @group AbstractEndpointDataTest
  */
 class AbstractEndpointDataTest extends TestCase {
@@ -47,8 +47,8 @@ class AbstractEndpointDataTest extends TestCase {
     /**
      * @covers ::__construct
      * @covers ::configureDefaultData
-     * @covers ::update
-     * @covers ::asArray
+     * @covers ::set
+     * @covers ::toArray
      * @covers ::getProperties
      */
     public function testConstructor() {
@@ -58,24 +58,24 @@ class AbstractEndpointDataTest extends TestCase {
             StockData::DATA_PROPERTY_DEFAULTS => array()
         ), $Data->getProperties());
         $this->assertEquals(array(), $Data->toArray());
-        $Data = new StockData($this->properties);
+        $Data = new StockData([],$this->properties);
         $this->assertEquals($this->properties, $Data->getProperties());
         $this->assertEquals(array(
             'bar' => 'foo'
         ), $Data->toArray());
-        $Data = new StockData($this->properties, $this->data);
+        $Data = new StockData($this->data,$this->properties);
         $this->assertEquals($this->properties, $Data->getProperties());
         $data = $this->data;
         $data['bar'] = 'foo';
         $this->assertEquals($data, $Data->toArray());
-        $Data = new StockData(array(), $this->data);
+        $Data = new StockData($this->data,array());
         $this->assertEquals(array(
             StockData::DATA_PROPERTY_REQUIRED => array(),
             StockData::DATA_PROPERTY_DEFAULTS => array()
         ), $Data->getProperties());
         $this->assertEquals($this->data, $Data->toArray());
 
-        $Data = new StubData(array());
+        $Data = new StubData([],array());
         $this->assertEquals($this->properties, $Data->getProperties());
         $this->assertEquals(array(
             'bar' => 'foo'
@@ -91,7 +91,7 @@ class AbstractEndpointDataTest extends TestCase {
      * @covers ::offsetExists
      * @covers ::offsetUnset
      * @covers ::offsetGet
-     * @covers ::asArray
+     * @covers ::toArray
      */
     public function testDataAccess() {
         $this->data = array_replace($this->data, array(
@@ -101,7 +101,7 @@ class AbstractEndpointDataTest extends TestCase {
             'arr' => array(),
             'iint' => 1234
         ));
-        $Data = new StockData(array(), $this->data);
+        $Data = new StockData($this->data);
         $Data['bar'] = 'foo';
         $this->assertEquals('foo', $Data['bar']);
         $this->assertEquals('foo', $Data->bar);
@@ -143,13 +143,11 @@ class AbstractEndpointDataTest extends TestCase {
             StockData::DATA_PROPERTY_DEFAULTS => array()
         ), $Data->getProperties());
         $Data->setProperties([]);
-        $this->assertEquals($Data->getProperties(), ['required' => [], 'defaults' => []]);
-        $this->assertEquals(array(
-            StockData::DATA_PROPERTY_REQUIRED => array(),
-            StockData::DATA_PROPERTY_DEFAULTS => array()
-        ), $Data->getProperties());
+        $this->assertEquals([
+            'required' => [],
+            'defaults' => []
+        ], $Data->getProperties());
         $Data->setProperties($this->properties);
-        $this->assertEquals($Data->getProperties(), $this->properties);
         $this->assertEquals($this->properties, $Data->getProperties());
     }
 
@@ -169,18 +167,15 @@ class AbstractEndpointDataTest extends TestCase {
         ), $Data->getProperties());
         $this->assertEquals(array(), $Data->toArray());
 
-        $Data = new StubData(array(), $this->data);
-        $Data->setProperties(array());
-        $this->assertEquals($Data, $Data->reset());
-        $this->assertEquals($this->properties, $Data->getProperties());
-        $this->assertEquals(array('bar' => 'foo'), $Data->toArray());
+        $Data = new StubData($this->data,$this->properties);
         $this->assertEquals($Data, $Data->clear());
         $this->assertEquals(array(), $Data->toArray());
+        $this->assertEquals($this->properties, $Data->getProperties());
     }
 
     /**
      * @covers ::verifyRequiredData
-     * @covers ::asArray
+     * @covers ::toArray
      */
     public function testVerifyRequiredData() {
         $Data = new StubData();

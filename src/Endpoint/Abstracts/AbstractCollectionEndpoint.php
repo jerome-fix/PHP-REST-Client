@@ -5,12 +5,19 @@ namespace MRussell\REST\Endpoint\Abstracts;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use MRussell\REST\Endpoint\Data\DataInterface;
+use MRussell\REST\Endpoint\Interfaces\ArrayableInterface;
+use MRussell\REST\Endpoint\Interfaces\ClearableInterface;
 use MRussell\REST\Endpoint\Interfaces\CollectionInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
+use MRussell\REST\Endpoint\Interfaces\GetInterface;
 use MRussell\REST\Endpoint\Interfaces\ModelInterface;
+use MRussell\REST\Endpoint\Interfaces\PropertiesInterface;
+use MRussell\REST\Endpoint\Interfaces\ResettableInterface;
+use MRussell\REST\Endpoint\Interfaces\SetInterface;
 use MRussell\REST\Exception\Endpoint\UnknownEndpoint;
 
-abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implements CollectionInterface, DataInterface {
+abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implements CollectionInterface,
+    \ArrayAccess,\Iterator {
     const EVENT_BEFORE_SYNC = 'before_sync';
 
     /**
@@ -27,7 +34,7 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * The Collection of Models
      * @var array
      */
-    protected $collection = array();
+    protected $models = array();
 
     /**
      * The Class Name of the ModelEndpoint
@@ -42,7 +49,6 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
         }
     }
 
-    //Data Interface
     /**
      * Assigns a value to the specified offset
      * @param string $offset - The offset to assign the value to
@@ -51,9 +57,9 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      */
     public function offsetSet($offset, $value): void {
         if (is_null($offset)) {
-            $this->collection[] = $value;
+            $this->models[] = $value;
         } else {
-            $this->collection[$offset] = $value;
+            $this->models[$offset] = $value;
         }
     }
 
@@ -64,7 +70,7 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * @abstracting ArrayAccess
      */
     public function offsetExists($offset): bool {
-        return isset($this->collection[$offset]);
+        return isset($this->models[$offset]);
     }
 
     /**
@@ -74,7 +80,7 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      */
     public function offsetUnset($offset): void {
         if ($this->offsetExists($offset)) {
-            unset($this->collection[$offset]);
+            unset($this->models[$offset]);
         }
     }
 
@@ -85,42 +91,74 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * @abstracting ArrayAccess
      */
     public function offsetGet($offset) {
-        return $this->offsetExists($offset) ? $this->collection[$offset] : null;
+        return $this->offsetExists($offset) ? $this->models[$offset] : null;
     }
 
     /**
      * @return array
+     * @implements ArrayableInterface
      */
     public function toArray(): array {
-        return $this->collection;
+        return $this->models;
     }
 
     /**
-     * @return self
+     * @return $this
+     * @implements ResettableInterface
      */
-    public function reset(): DataInterface {
+    public function reset() {
+        parent::reset();
         return $this->clear();
     }
 
     /**
      *
-     * @return self
+     * @return $this
+     * @implements ClearableInterface
      */
-    public function clear(): DataInterface {
-        $this->collection = array();
+    public function clear() {
+        $this->models = array();
         return $this;
     }
 
+    //Iterator
     /**
-     * Update and append to Collection array
-     * @param array $collection
-     * @return self
+     * @return mixed|void
+     * @implements \Iterator
      */
-    public function update(array $collection): DataInterface {
-        foreach ($collection as $key => $value) {
-            $this->collection[$key] = $value;
-        }
-        return $this;
+    public function current() {
+        return current($this->models);
+    }
+
+    /**
+     * @return mixed|void
+     * @implements \Iterator
+     */
+    public function key() {
+        return key($this->models);
+    }
+    /**
+     * @return mixed|void
+     * @implements \Iterator
+     */
+    public function next(): void {
+        next($this->models);
+    }
+
+    /**
+     * @return mixed|void
+     * @implements \Iterator
+     */
+    public function rewind(): void {
+        reset($this->models);
+    }
+
+    /**
+     * @return mixed|void
+     * @implements \Iterator
+     */
+    public function valid(): bool {
+        return key($this->models) !== null;
     }
 
     //Collection Interface
@@ -128,7 +166,7 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * @inheritdoc
      * @throws \MRussell\REST\Exception\Endpoint\InvalidRequest
      */
-    public function fetch(): self {
+    public function fetch() {
         $this->setProperty(self::PROPERTY_HTTP_METHOD, "GET");
         return $this->execute();
     }
@@ -139,7 +177,7 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
     public function get($id) {
         $data = null;
         if ($this->offsetExists($id)) {
-            $data = $this->collection[$id];
+            $data = $this->models[$id];
             $Model = $this->buildModel($data);
             if ($Model !== null) {
                 $data = $Model;
@@ -156,17 +194,16 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
     public function at($index) {
         $return = null;
         $index = intval($index);
-        $data = $this->toArray();
-        reset($data);
+        $this->rewind();
         if ($index < 0) {
             $index += $this->length();
         }
         $c = 1;
         while ($c <= $index) {
-            next($data);
+            $this->next();
             $c++;
         }
-        $return = current($data);
+        $return = $this->current();
         $Model = $this->buildModel($return);
         if ($Model !== null) {
             $return = $Model;
@@ -175,11 +212,38 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
     }
 
     /**
+     * Append models to the collection
+     * @param array $models
+     * @return AbstractCollectionEndpoint
+     */
+    public function set(array $models)
+    {
+        if (isset($this->model)) {
+            $modelIdKey = $this->buildModel()->modelIdKey();
+            foreach ($models as $key => $model) {
+                if ($model instanceof DataInterface){
+                    $model = $model->toArray();
+                }elseif ($model instanceof \stdClass){
+                    $model = (array)$model;
+                }
+                if (isset($model[$modelIdKey])) {
+                    $this->models[$model[$modelIdKey]] = $model;
+                } else {
+                    $this->models[] = $model;
+                }
+            }
+        } else {
+            $this->models = $models;
+        }
+        return $this;
+    }
+
+    /**
      * Return the current collection count
      * @return int
      */
     public function length(): int {
-        return count($this->collection);
+        return count($this->models);
     }
 
     /**
@@ -262,18 +326,7 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      */
     protected function syncFromApi(array $data) {
         $this->triggerEvent(self::EVENT_BEFORE_SYNC, $data);
-        if (isset($this->model)) {
-            $modelIdKey = $this->buildModel()->modelIdKey();
-            foreach ($data as $key => $model) {
-                if (isset($model[$modelIdKey])) {
-                    $this->collection[$model[$modelIdKey]] = $model;
-                } else {
-                    $this->collection[] = $model;
-                }
-            }
-        } else {
-            $this->collection = $data;
-        }
+        $this->set($data);
     }
 
     /**

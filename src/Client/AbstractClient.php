@@ -218,7 +218,7 @@ abstract class AbstractClient implements ClientInterface {
     /**
      * Rotates current Endpoint to Last Endpoint, and sets Current Endpoint with passed in Endpoint
      * @param EndpointInterface $Endpoint
-     * @return self
+     * @return $this
      */
     protected function setCurrentEndpoint(EndpointInterface $Endpoint) {
         if (isset($this->currentEndPoint)) {

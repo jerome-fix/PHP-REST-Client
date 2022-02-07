@@ -10,6 +10,8 @@ use MRussell\REST\Endpoint\Data\DataInterface;
 use MRussell\REST\Endpoint\Event\EventTriggerInterface;
 use MRussell\REST\Endpoint\Event\Stack;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
+use MRussell\REST\Endpoint\Traits\EventsTrait;
+use MRussell\REST\Endpoint\Traits\PropertiesTrait;
 use MRussell\REST\Exception\Endpoint\InvalidUrl;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
@@ -20,7 +22,11 @@ use MRussell\REST\Endpoint\Traits\JsonHandlerTrait;
  * @package MRussell\REST\Endpoint\Abstracts
  */
 abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterface {
-    use JsonHandlerTrait;
+    use JsonHandlerTrait,
+        EventsTrait;
+    use PropertiesTrait {
+        setProperties as rawSetProperties;
+    }
     
     const PROPERTY_URL = 'url';
     const PROPERTY_HTTP_METHOD = 'httpMethod';
@@ -37,15 +43,10 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      */
     private $client;
 
-    /**
-     * @var Stack
-     */
-    private $eventStack;
-
     protected static $_DEFAULT_PROPERTIES = array(
         self::PROPERTY_URL => '',
         self::PROPERTY_HTTP_METHOD => '',
-        self::PROPERTY_AUTH => false
+        self::PROPERTY_AUTH => -1
     );
 
     /**
@@ -71,12 +72,6 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      * @var array
      */
     protected $urlArgs = array();
-
-    /**
-     * Associative array of properties that define an Endpoint
-     * @var array
-     */
-    protected $properties = array();
 
     /**
      * The data being passed to the API Endpoint.
@@ -129,37 +124,6 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
     /**
      * @inheritdoc
      */
-    public function setProperties(array $properties): void {
-        if (!isset($properties[self::PROPERTY_HTTP_METHOD])) {
-            $properties[self::PROPERTY_HTTP_METHOD] = '';
-        }
-        if (!isset($properties[self::PROPERTY_URL])) {
-            $properties[self::PROPERTY_URL] = '';
-        }
-        if (!isset($properties[self::PROPERTY_AUTH])) {
-            $properties[self::PROPERTY_AUTH] = false;
-        }
-        $this->properties = $properties;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setProperty($name, $value): EndpointInterface {
-        $this->properties[$name] = $value;
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getProperties(): array {
-        return $this->properties;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function setBaseUrl($url): EndpointInterface {
         $this->baseUrl = $url;
         return $this;
@@ -189,7 +153,7 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
     /**
      * @inheritdoc
      */
-    public function setData($data): EndpointInterface {
+    public function setData($data) {
         $this->data = $data;
         return $this;
     }
@@ -241,16 +205,14 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
     }
 
     /**
+     *
      * @inheritdoc
      * @param array $options Guzzle Send Options
      * @return $this
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function execute(array $options = []): EndpointInterface {
-        try {
-            $this->setResponse($this->getHttpClient()->send($this->buildRequest(), $options));
-        } catch (\GuzzleHttp\Exception\RequestException $e){
-            throw new \MRussell\REST\Exception\Endpoint\InvalidRequest($e->getMessage());
-        }
+        $this->setResponse($this->getHttpClient()->send($this->buildRequest(), $options));
         return $this;
     }
 
@@ -285,7 +247,7 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
     public function authRequired(): bool {
         $required = false;
         if (isset($this->properties[self::PROPERTY_AUTH])) {
-            $required = $this->properties[self::PROPERTY_AUTH];
+            $required = $this->properties[self::PROPERTY_AUTH] === TRUE || $this->properties[self::PROPERTY_AUTH] === 1;
         }
         return $required;
     }
@@ -316,7 +278,8 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
         }
         $data = $this->configurePayload();
         $this->request = new Request($method, $url);
-        return $this->configureRequest($this->request, $data);
+        $this->request = $this->configureRequest($this->request, $data);
+        return $this->request;
     }
 
     /**
@@ -349,7 +312,6 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
             default:
                 $request = $request->withBody(Utils::streamFor($data));
         }
-        $this->request = $request;
         $args = array(
             'request' => $request,
             'data' => $data
@@ -451,23 +413,30 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
     }
 
     /**
-     * @inheritDoc
+     * @return $this
      */
-    public function triggerEvent(string $event, &$data = null): void {
-        $this->eventStack->trigger($event, $data);
+    public function reset()
+    {
+        unset($this->request);
+        unset($this->response);
+        $this->urlArgs = [];
+        $this->setData(null);
+        return $this;
     }
 
     /**
-     * @inheritDoc
+     * @inheritdoc
      */
-    public function onEvent(string $event, callable $func, string $id = null) {
-        return $this->eventStack->register($event, $func, $id);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function offEvent(string $event, $id): bool {
-        return $this->eventStack->remove($event, $id);
+    public function setProperties(array $properties) {
+        if (!isset($properties[self::PROPERTY_HTTP_METHOD])) {
+            $properties[self::PROPERTY_HTTP_METHOD] = '';
+        }
+        if (!isset($properties[self::PROPERTY_URL])) {
+            $properties[self::PROPERTY_URL] = '';
+        }
+        if (!isset($properties[self::PROPERTY_AUTH])) {
+            $properties[self::PROPERTY_AUTH] = -1;
+        }
+        return $this->rawSetProperties($properties);
     }
 }

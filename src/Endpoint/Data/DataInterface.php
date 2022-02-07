@@ -3,42 +3,13 @@
 namespace MRussell\REST\Endpoint\Data;
 
 
-interface DataInterface extends \ArrayAccess {
-    /**
-     * Set the properties that control the data
-     * @param array $properties
-     * @return self
-     */
-    public function setProperties(array $properties): void;
+use MRussell\REST\Endpoint\Interfaces\ClearableInterface;
+use MRussell\REST\Endpoint\Interfaces\ArrayableInterface;
+use MRussell\REST\Endpoint\Interfaces\GetInterface;
+use MRussell\REST\Endpoint\Interfaces\PropertiesInterface;
+use MRussell\REST\Endpoint\Interfaces\ResettableInterface;
+use MRussell\REST\Endpoint\Interfaces\SetInterface;
 
-    /**
-     * Get the properties configured on the Data
-     * @return array
-     */
-    public function getProperties(): array;
-
-    /**
-     * Return the data as an array
-     * @return array
-     */
-    public function toArray(): array;
-
-    /**
-     * Reset the DataInterface back to defaults
-     * @return self
-     */
-    public function reset(): self;
-
-    /**
-     * Clear out the Data
-     * @return self
-     */
-    public function clear(): self;
-
-    /**
-     * Update and append to Data array
-     * @param array $data
-     * @return self
-     */
-    public function update(array $data): self;
+interface DataInterface extends \ArrayAccess, PropertiesInterface, SetInterface, GetInterface, ClearableInterface,
+    ResettableInterface, ArrayableInterface {
 }

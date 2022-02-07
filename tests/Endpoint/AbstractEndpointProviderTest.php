@@ -97,7 +97,7 @@ class AbstractEndpointProviderTest extends TestCase {
         $this->assertEquals(array(
             'url' => 'foo',
             'httpMethod' => "GET",
-            'auth' => false
+            'auth' => -1
         ), $FooEP->getProperties());
     }
 

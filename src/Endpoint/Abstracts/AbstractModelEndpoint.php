@@ -7,6 +7,11 @@ use MRussell\REST\Endpoint\Data\AbstractEndpointData;
 use MRussell\REST\Endpoint\Data\DataInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Endpoint\Interfaces\ModelInterface;
+use MRussell\REST\Endpoint\Traits\ArrayObjectAttributesTrait;
+use MRussell\REST\Endpoint\Traits\ClearAttributesTrait;
+use MRussell\REST\Endpoint\Traits\GetAttributesTrait;
+use MRussell\REST\Endpoint\Traits\PropertiesTrait;
+use MRussell\REST\Endpoint\Traits\SetAttributesTrait;
 use MRussell\REST\Exception\Endpoint\MissingModelId;
 use MRussell\REST\Exception\Endpoint\UnknownModelAction;
 
@@ -15,6 +20,12 @@ use MRussell\REST\Exception\Endpoint\UnknownModelAction;
  * @package MRussell\REST\Endpoint\Abstracts
  */
 abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements ModelInterface, DataInterface {
+    use ArrayObjectAttributesTrait,
+        GetAttributesTrait,
+        SetAttributesTrait,
+        PropertiesTrait,
+        ClearAttributesTrait;
+
     const MODEL_ID_VAR = 'id';
 
     const MODEL_ACTION_CREATE = 'create';
@@ -57,12 +68,6 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
     );
 
     /**
-     * The Model
-     * @var array
-     */
-    protected $model = array();
-
-    /**
      * List of available actions and their associated Request Method
      * @var array
      */
@@ -101,98 +106,11 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
         throw new UnknownModelAction(array(get_class($this), $name));
     }
 
-    //Data Interface
-    /**
-     * Assigns a value to the specified offset
-     * @param string $offset - The offset to assign the value to
-     * @param mixed $value - The value to set
-     * @abstracting ArrayAccess
-     */
-    public function offsetSet($offset, $value): void {
-        if (is_null($offset)) {
-            $this->model[] = $value;
-        } else {
-            $this->model[$offset] = $value;
-        }
-    }
-
-    /**
-     * Whether or not an offset exists
-     * @param string $offset - An offset to check for
-     * @return bool
-     * @abstracting ArrayAccess
-     */
-    public function offsetExists($offset): bool {
-        return isset($this->model[$offset]);
-    }
-
-    /**
-     * Unsets an offset
-     * @param string|int $offset - The offset to unset
-     * @abstracting ArrayAccess
-     */
-    public function offsetUnset($offset): void {
-        if ($this->offsetExists($offset)) {
-            unset($this->model[$offset]);
-        }
-    }
-
-    /**
-     * Returns the value at specified offset
-     * @param string|int $offset - The offset to retrieve
-     * @return mixed
-     * @abstracting ArrayAccess
-     */
-    public function offsetGet($offset) {
-        return $this->offsetExists($offset) ? $this->model[$offset] : null;
-    }
-
     /**
      * @inheritdoc
      */
-    public function toArray(): array {
-        return $this->model;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function reset(): DataInterface {
+    public function reset() {
         return $this->clear();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function clear(): DataInterface {
-        $this->model = array();
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function update(array $data): DataInterface {
-        foreach ($data as $key => $value) {
-            $this->model[$key] = $value;
-        }
-        return $this;
-    }
-
-    //Model Interface
-    /**
-     * @inheritdoc
-     */
-    public function get($key) {
-        return $this->offsetGet($key);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function set($key, $value) {
-        $this->offsetSet($key, $value);
-        return $this;
     }
 
     /**
@@ -203,11 +121,11 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
         $this->setCurrentAction(self::MODEL_ACTION_RETRIEVE);
         $idKey = $this->modelIdKey();
         if ($id !== null) {
-            if (isset($this->model[$idKey])) {
+            if (isset($this->attributes[$idKey])) {
                 $this->reset();
             }
             $this->set($idKey, $id);
-        } else if (!isset($this->model[$idKey])) {
+        } else if (!isset($this->attributes[$idKey])) {
             throw new MissingModelId(array($this->action, get_class($this)));
         }
         $this->triggerEvent(self::EVENT_BEFORE_RETRIEVE);
@@ -221,7 +139,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @throws \MRussell\REST\Exception\Endpoint\InvalidRequest
      */
     public function save(): ModelInterface {
-        if (isset($this->model[$this->modelIdKey()])) {
+        if (isset($this->attributes[$this->modelIdKey()])) {
             $this->setCurrentAction(self::MODEL_ACTION_UPDATE);
         } else {
             $this->setCurrentAction(self::MODEL_ACTION_CREATE);
@@ -235,7 +153,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
     /**
      * @inheritdoc
      */
-    public function delete() {
+    public function delete(): ModelInterface {
         $this->setCurrentAction(self::MODEL_ACTION_DELETE);
         $this->triggerEvent(self::EVENT_BEFORE_DELETE);
         $this->execute();
@@ -287,7 +205,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
             case self::MODEL_ACTION_CREATE:
             case self::MODEL_ACTION_UPDATE:
                 if (is_object($requestData)) {
-                    $requestData->update($this->toArray());
+                    $requestData->set($this->toArray());
                 } else {
                     $requestData = array_replace($requestData->toArray(), $this->toArray());
                 }
@@ -349,7 +267,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      */
     protected function syncFromApi(array $model) {
         $this->triggerEvent(self::EVENT_BEFORE_SYNC, $model);
-        $this->update($model);
+        $this->set($model);
     }
 
     /**

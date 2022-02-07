@@ -18,7 +18,7 @@ interface EndpointProviderInterface {
      * @param string $name
      * @param string $className
      * @param array $properties
-     * @return self
+     * @return $this
      */
     public function registerEndpoint(string $name, string $className, array $properties = array()): self;
 

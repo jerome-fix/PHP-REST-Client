@@ -115,10 +115,10 @@ class AbstractModelEndpointTest extends TestCase {
      * @covers ::offsetExists
      * @covers ::set
      * @covers ::get
-     * @covers ::asArray
+     * @covers ::toArray
      * @covers ::reset
      * @covers ::clear
-     * @covers ::update
+     * @covers ::set
      */
     public function testDataAccess() {
         $Model = new ModelEndpoint();
@@ -142,7 +142,7 @@ class AbstractModelEndpointTest extends TestCase {
         $this->assertEquals(array(array(
             'foo' => 'bar'
         )), $Model->toArray());
-        $this->assertEquals($Model, $Model->update(array(
+        $this->assertEquals($Model, $Model->set(array(
             'foo' => 'bar'
         )));
         $this->assertEquals('bar', $Model->get('foo'));
@@ -218,7 +218,7 @@ class AbstractModelEndpointTest extends TestCase {
      * @covers ::save
      * @covers ::configureAction
      * @covers ::configureURL
-     * @covers ::configureData
+     * @covers ::configurePayload
      */
     public function testSave() {
         $Model = new ModelEndpoint();
@@ -263,8 +263,8 @@ class AbstractModelEndpointTest extends TestCase {
     }
 
     /**
-     * @covers ::configureResponse
-     * @covers ::updateModel
+     * @covers ::setResponse
+     * @covers ::syncFromApi
      */
     public function testGetResponse() {
         $Model = new ModelEndpoint();
@@ -287,7 +287,7 @@ class AbstractModelEndpointTest extends TestCase {
             'name' => 'foo',
             'foo' => 'bar'
         ])));
-        $Model->update([
+        $Model->set([
             'foo' => 'bar'
         ]);
         $Model->save();

@@ -6,13 +6,13 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 
-interface EndpointInterface {
+interface EndpointInterface extends PropertiesInterface, ResettableInterface {
     /**
      * Set the urlArgs property to configure the URL variables
      * @param array $args
-     * @return self
+     * @return $this
      */
-    public function setUrlArgs(array $args): self;
+    public function setUrlArgs(array $args);
 
     /**
      * Get the configured Url Arguments
@@ -21,31 +21,11 @@ interface EndpointInterface {
     public function getUrlArgs(): array;
 
     /**
-     * Set the Properties that define the API Endpoint
-     * @param array $properties
-     */
-    public function setProperties(array $properties): void;
-
-    /**
-     * Set the Properties that define the API Endpoint
-     * @param string $name
-     * @param mixed $value
-     * @return self
-     */
-    public function setProperty(string $name, $value): self;
-
-    /**
-     * Set the Properties that define the API Endpoint
-     * @return array
-     */
-    public function getProperties(): array;
-
-    /**
      * Sets the data on the Endpoint Object, that will be passed to Request Object
      * @param mixed $data
-     * @return self
+     * @return $this
      */
-    public function setData($data): self;
+    public function setData($data);
 
     /**
      * Get the data being used by the Endpoint
@@ -56,16 +36,16 @@ interface EndpointInterface {
     /**
      * Set the Base URL that the Endpoint uses in regards to it's pre-configured Endpoint URL
      * @param string $url
-     * @return self
+     * @return $this
      */
-    public function setBaseUrl(string $url): self;
+    public function setBaseUrl(string $url);
 
     /**
      * Set the Guzzle HTTP Client to utilize sending requests
      * @param Client $client
-     * @return self
+     * @return $this
      */
-    public function setHttpClient(Client $client): self;
+    public function setHttpClient(Client $client);
 
     /**
      * Get the Base URL that is currently configured on the Endpoint
@@ -81,9 +61,9 @@ interface EndpointInterface {
 
     /**
      * Execute the Endpoint Object using the desired action
-     * @return self
+     * @return $this
      */
-    public function execute(): self;
+    public function execute();
 
     /**
      * Get the Request Object being used by the Endpoint

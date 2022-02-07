@@ -17,15 +17,15 @@ interface AuthControllerInterface
     /**
      * Set the credentials used for authentication
      * @param array $credentials
-     * @return self
+     * @return $this
      */
-    public function setCredentials(array $credentials): self;
+    public function setCredentials(array $credentials);
 
     /**
      * @param array $actions
-     * @return self
+     * @return $this
      */
-    public function setActions(array $actions): self;
+    public function setActions(array $actions);
 
     /**
      * @return array
@@ -35,9 +35,9 @@ interface AuthControllerInterface
     /**
      * @param string $action
      * @param EndpointInterface $Endpoint
-     * @return self
+     * @return $this
      */
-    public function setActionEndpoint(string $action, EndpointInterface $Endpoint): self;
+    public function setActionEndpoint(string $action, EndpointInterface $Endpoint);
 
     /**
      * Get the Endpoint configured for an action
@@ -50,7 +50,7 @@ interface AuthControllerInterface
      * Configure a provided Request with proper Authentication/Authorization
      * Used by Client HttpClient Handler Middleware
      * @param Request $Request
-     * @return self
+     * @return $this
      */
     public function configureRequest(Request $Request): Request;
 
@@ -68,9 +68,9 @@ interface AuthControllerInterface
 
     /**
      * Reset the auth controller to default state. Does not call 'logout' but does clear current token/credentials
-     * @return self
+     * @return $this
      */
-    public function reset(): self;
+    public function reset();
 
     /**
      * Is currently authenticated
@@ -81,9 +81,9 @@ interface AuthControllerInterface
     /**
      * Set the storage Controller
      * @param StorageControllerInterface $Storage
-     * @return self
+     * @return $this
      */
-    public function setStorageController(StorageControllerInterface $Storage): self;
+    public function setStorageController(StorageControllerInterface $Storage);
 
     /**
      * Get the Storage Controller used by the Auth Controller

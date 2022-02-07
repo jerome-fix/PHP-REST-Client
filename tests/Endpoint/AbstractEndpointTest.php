@@ -52,14 +52,13 @@ class AbstractEndpointTest extends TestCase {
 
     /**
      * @covers ::__construct
-     * @covers ::setOptions
+     * @covers ::setUrlArgs
      * @covers ::setProperty
-     * @covers ::getOptions
+     * @covers ::getUrlArgs
      * @covers ::getProperties
      * @covers ::getData
      * @covers ::getRequest
      * @covers ::getResponse
-     * @covers ::getAuth
      * @covers ::getBaseUrl
      * @covers ::getEndpointUrl
      */
@@ -68,7 +67,7 @@ class AbstractEndpointTest extends TestCase {
         $this->assertEquals([
             'url' => '',
             'httpMethod' => '',
-            'auth' => false
+            'auth' => -1
         ], $Endpoint->getProperties());
         $this->assertEquals([], $Endpoint->getUrlArgs());
         $this->assertEmpty($Endpoint->getData());
@@ -79,7 +78,7 @@ class AbstractEndpointTest extends TestCase {
         $this->assertEquals(array(
             'url' => '',
             'httpMethod' => '',
-            'auth' => false
+            'auth' => -1
         ), $Endpoint->getProperties());
         $this->assertEquals($this->options, $Endpoint->getUrlArgs());
         $this->assertEmpty($Endpoint->getData());
@@ -90,7 +89,7 @@ class AbstractEndpointTest extends TestCase {
         $this->assertEquals([
             'url' => '$foo/$bar/$:test',
             'httpMethod' => '',
-            'auth' => false
+            'auth' => -1
         ], $Endpoint->getProperties());
         $this->assertEquals($this->options, $Endpoint->getUrlArgs());
         $this->assertEmpty($Endpoint->getData());
@@ -99,8 +98,8 @@ class AbstractEndpointTest extends TestCase {
     }
 
     /**
-     * @covers ::setOptions
-     * @covers ::getOptions
+     * @covers ::setUrlArgs
+     * @covers ::getUrlArgs
      */
     public function testSetOptions() {
         $Endpoint = new BasicEndpoint();
@@ -122,12 +121,12 @@ class AbstractEndpointTest extends TestCase {
         $this->assertEquals(array(
             'url' => '',
             'httpMethod' => '',
-            'auth' => ''
+            'auth' => -1
         ), $Endpoint->getProperties());
         $Endpoint->setProperties($this->properties);
         $props = $this->properties;
         $props['httpMethod'] = '';
-        $props['auth'] = false;
+        $props['auth'] = -1;
         $this->assertEquals($props, $Endpoint->getProperties());
         $Endpoint->setProperty(BasicEndpoint::PROPERTY_AUTH, true);
         $props['auth'] = true;
@@ -145,7 +144,7 @@ class AbstractEndpointTest extends TestCase {
         $Endpoint->setProperties($this->properties);
         $props = $this->properties;
         $props['httpMethod'] = '';
-        $props['auth'] = false;
+        $props['auth'] = -1;
         $this->assertEquals($props, $Endpoint->getProperties());
         $this->assertEquals($Endpoint, $Endpoint->setBaseUrl('localhost'));
         $this->assertEquals('localhost', $Endpoint->getBaseUrl());
@@ -188,15 +187,15 @@ class AbstractEndpointTest extends TestCase {
      */
     public function testInvalidRequest() {
         $Endpoint = new BasicEndpoint();
-        $this->expectException(\MRussell\REST\Exception\Endpoint\InvalidRequest::class);
+        $this->expectException(\GuzzleHttp\Exception\RequestException::class);
         $Endpoint->execute();
     }
 
     /**
      * @covers ::execute
      * @covers ::configureRequest
-     * @covers ::configureResponse
-     * @covers ::configureData
+     * @covers ::setResponse
+     * @covers ::configurePayload
      * @covers ::verifyUrl
      */
     public function testExecute() {

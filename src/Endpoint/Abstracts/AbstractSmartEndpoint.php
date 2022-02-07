@@ -43,7 +43,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
     /**
      * @inheritdoc
      */
-    public function setProperties(array $properties): void {
+    public function setProperties(array $properties) {
         if (!isset($properties[self::PROPERTY_DATA])) {
             $properties[self::PROPERTY_DATA] = [
                 'required' => [],
@@ -56,12 +56,13 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
             $this->data = $this->buildDataObject();
         }
         $this->configureDataProperties();
+        return $this;
     }
 
     /**
      * @inheritdoc
      */
-    public function setProperty($name, $value): EndpointInterface {
+    public function setProperty(string $name, $value) {
         parent::setProperty($name, $value);
         if ($name == self::PROPERTY_DATA && isset($this->data)) {
             $this->configureDataProperties();
@@ -80,7 +81,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
                 $this->data = $this->buildDataObject();
             }
             $this->data->reset();
-            $this->data->update($data);
+            $this->data->set($data);
         } elseif (is_null($data)) {
             $this->data = $this->buildDataObject();
         } else {
@@ -119,7 +120,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
     protected function buildDataObject(): DataInterface {
         $implements = class_implements(static::$_DATA_CLASS);
         if (is_array($implements) && isset($implements["MRussell\\REST\\Endpoint\\Data\\DataInterface"])) {
-            return new static::$_DATA_CLASS($this->properties[self::PROPERTY_DATA]);
+            return new static::$_DATA_CLASS([],$this->properties[self::PROPERTY_DATA]);
         }
         throw new InvalidData(get_class($this));
     }

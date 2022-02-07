@@ -75,7 +75,7 @@ class AbstractSmartEndpointTest extends TestCase {
         $this->assertEquals(array(
             'url' => '',
             'httpMethod' => '',
-            'auth' => false,
+            'auth' => -1,
             'data' => [
                 'required' => [],
                 'defaults' => []
@@ -91,7 +91,7 @@ class AbstractSmartEndpointTest extends TestCase {
         $this->assertEquals([
             'url' => '',
             'httpMethod' => '',
-            'auth' => false,
+            'auth' => -1,
             'data' => [
                 'required' => [
                     'foo' => 'string'
@@ -115,7 +115,7 @@ class AbstractSmartEndpointTest extends TestCase {
     /**
      * @covers ::setData
      * @covers ::getData
-     * @covers ::configureData
+     * @covers ::configurePayload
      */
     public function testSetData() {
         $Endpoint = new SmartEndpoint();

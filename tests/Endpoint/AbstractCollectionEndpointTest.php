@@ -75,7 +75,7 @@ class AbstractCollectionEndpointTest extends TestCase {
      * @covers ::offsetExists
      * @covers ::offsetUnset
      * @covers ::offsetGet
-     * @covers ::update
+     * @covers ::set
      * @covers ::toArray
      * @covers ::get
      * @covers ::buildModel
@@ -103,7 +103,7 @@ class AbstractCollectionEndpointTest extends TestCase {
         $this->assertEquals(false, isset($Collection[0]));
         $this->assertEquals(array(), $Collection->toArray());
         $this->assertEquals(0, $Collection->length());
-        $this->assertEquals($Collection, $Collection->update($this->collection));
+        $this->assertEquals($Collection, $Collection->set($this->collection));
         $this->assertEquals($this->collection, $Collection->toArray());
         $this->assertEquals(array(
             'id' => 'abc123',
@@ -140,13 +140,13 @@ class AbstractCollectionEndpointTest extends TestCase {
         $this->assertEquals(3, $Collection->length());
         $this->assertEquals($Collection, $Collection->reset());
         $this->assertEquals(array(), $Collection->toArray());
-        $this->assertEquals($Collection, $Collection->update($this->collection));
+        $this->assertEquals($Collection, $Collection->set($this->collection));
         $this->assertEquals($this->collection, $Collection->toArray());
         $this->assertEquals($Collection, $Collection->reset());
         $this->assertEquals(array(), $Collection->toArray());
 
         $Collection = new CollectionEndpointWithModel();
-        $Collection->update($this->collection);
+        $Collection->set($this->collection);
         $Model = $Collection->get('abc123');
         $this->assertEquals(true, is_object($Model));
         $this->assertEquals(array(
@@ -212,8 +212,8 @@ class AbstractCollectionEndpointTest extends TestCase {
     }
 
     /**
-     * @covers ::configureResponse
-     * @covers ::updateCollection
+     * @covers ::setResponse
+     * @covers ::syncFromApi
      */
     public function testGetResponse() {
         $Collection = new CollectionEndpoint();

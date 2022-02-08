@@ -3,12 +3,13 @@
 namespace MRussell\REST\Auth\Abstracts;
 
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 
 /**
  * Class AbstractBasicController
  * @package MRussell\REST\Auth\Abstracts
  */
-class AbstractBasicController extends AbstractAuthController {
+abstract class AbstractBasicController extends AbstractAuthController {
     const DEFAULT_AUTH_HEADER = 'Authorization';
     const DEFAULT_AUTH_TYPE = 'Basic';
 

@@ -2,9 +2,11 @@
 
 namespace MRussell\REST\Auth\Abstracts;
 
+use GuzzleHttp\Psr7\Response;
 use MRussell\REST\Auth\AuthControllerInterface;
 use GuzzleHttp\Psr7\Request;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
+use MRussell\REST\Exception\Auth\InvalidAuthenticationAction;
 use MRussell\REST\Exception\Auth\InvalidToken;
 
 abstract class AbstractOAuth2Controller extends AbstractBasicController {
@@ -84,7 +86,7 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController {
      * @inheritdoc
      * @throws InvalidToken
      */
-    protected function setToken($token): AuthControllerInterface {
+    public function setToken($token): AuthControllerInterface {
         if (is_array($token) && isset($token['access_token'])) {
             $token = $this->configureToken($token);
             return parent::setToken($token);
@@ -107,11 +109,29 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController {
             }
         } elseif (is_object($token)) {
             if (isset($token->expires_in)) {
-                $token->expiration = time() + ($token['expires_in'] - 30);
+                $token->expiration = time() + ($token->expires_in - 30);
             }
         }
 
         return $token;
+    }
+
+    /**
+     * Get a specific property from the Token
+     *
+     * @param $prop
+     * @return mixed|null
+     */
+    public function getTokenProp($prop)
+    {
+        if ($this->token){
+            if (is_object($this->token) && $this->token->$prop){
+                return $this->token->$prop;
+            } elseif (is_array($this->token) && isset($this->token[$prop])){
+                return $this->token[$prop];
+            }
+        }
+        return null;
     }
 
     /**
@@ -129,24 +149,31 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController {
      * @return mixed
      */
     protected function getAuthHeaderValue(): string {
-        return static::$_AUTH_TYPE . " " . $this->token['access_token'];
+        return static::$_AUTH_TYPE . " " . $this->getTokenProp('access_token');
     }
 
     /**
      * Refreshes the OAuth 2 Token
+     *
+     *
      * @return bool
-     * @throws InvalidToken
      */
     public function refresh(): bool {
-        if (isset($this->token['refresh_token'])) {
-            $Endpoint = $this->getActionEndpoint(self::ACTION_OAUTH_REFRESH);
-            if ($Endpoint !== null) {
+        $res = false;
+        if (!empty($this->getTokenProp('refresh_token'))) {
+            try {
+                $Endpoint = $this->getActionEndpoint(self::ACTION_OAUTH_REFRESH);
                 $Endpoint = $this->configureEndpoint($Endpoint, self::ACTION_OAUTH_REFRESH);
                 $response = $Endpoint->execute()->getResponse();
-                $res = $response->getStatusCode() == 200;
-                if ($res) {
-                    $this->setToken($response->getBody()->getContents());
+                if ($response->getStatusCode() == 200) {
+                    $token = $this->parseResponseToToken(self::ACTION_OAUTH_REFRESH,$response);
+                    $this->setToken($token);
+                    $res = true;
                 }
+            } catch(InvalidAuthenticationAction $ex){
+                $this->getLogger()->debug($ex->getMessage());
+            }catch(\Exception $ex){
+                $this->getLogger()->error("[REST] OAuth Refresh Exception - ".$ex->getMessage());
             }
         }
         return $res;
@@ -158,7 +185,7 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController {
      */
     public function isAuthenticated(): bool {
         if (parent::isAuthenticated()) {
-            if (isset($this->token['access_token'])) {
+            if (!empty($this->getTokenProp('access_token'))) {
                 $expired = $this->isTokenExpired();
                 //We err on the side of valid vs invalid, as the API will invalidate if we are wrong, which isn't harmful
                 if ($expired === 0 || $expired === -1) {
@@ -175,8 +202,9 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController {
      * @return int
      */
     protected function isTokenExpired(): int {
-        if (isset($this->token['expiration'])) {
-            if (time() > $this->token['expiration']) {
+        $expiration = $this->getTokenProp('expiration');
+        if ($expiration) {
+            if (time() > $expiration) {
                 return 1;
             } else {
                 return 0;
@@ -217,7 +245,7 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController {
      */
     protected function configureAuthenticationEndpoint(EndpointInterface $Endpoint): EndpointInterface {
         $data = $this->credentials;
-        $data['grant_type'] = ($this->grant_type ? $this->grant_type : static::$_DEFAULT_GRANT_TYPE);
+        $data['grant_type'] = $this->grant_type ?? static::$_DEFAULT_GRANT_TYPE;
         return $Endpoint->setData($data);
     }
 
@@ -227,5 +255,26 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController {
     public function reset(): AuthControllerInterface {
         $this->setGrantType(static::$_DEFAULT_GRANT_TYPE);
         return parent::reset();
+    }
+
+    /**
+     * Parse token responses as string
+     *
+     * @param string $action
+     * @param Response $response
+     * @return mixed
+     */
+    protected function parseResponseToToken(string $action, Response $response)
+    {
+        $tokenStr = $response->getBody()->getContents();
+        try {
+            $token = json_decode($tokenStr);
+            if ($token === null && !empty($tokenStr)){
+                throw new \Exception("Invalid JSON string.");
+            }
+        } catch(\Exception $ex){
+            $this->getLogger()->critical("[REST] OAuth Token Parse Exception - ".$ex->getMessage());
+        }
+        return $token ?? $tokenStr;
     }
 }

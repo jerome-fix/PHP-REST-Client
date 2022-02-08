@@ -74,9 +74,6 @@ abstract class AbstractClient implements ClientInterface {
      * @return void
      */
     protected function initHttpClient() {
-        if ($this->getHandlerStack() == null){
-            $this->clientHandlerStack = HandlerStack::create();
-        }
         $this->httpClient = new Client(['handler' => $this->getHandlerStack()]);
     }
 
@@ -94,7 +91,7 @@ abstract class AbstractClient implements ClientInterface {
      * @return HandlerStack
      */
     public function getHandlerStack(): HandlerStack {
-        return $this->clientHandlerStack;
+        return $this->clientHandlerStack ==  null ? HandlerStack::create() : $this->clientHandlerStack;
     }
 
     /**

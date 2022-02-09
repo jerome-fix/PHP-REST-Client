@@ -13,6 +13,7 @@ use MRussell\REST\Tests\Stubs\Client\Client;
 use MRussell\REST\Tests\Stubs\Endpoint\AuthEndpoint;
 use MRussell\REST\Tests\Stubs\Endpoint\LogoutEndpoint;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\Test\TestLogger;
 
 /**
  * Class AbstractAuthControllerTest
@@ -219,6 +220,7 @@ class AbstractAuthControllerTest extends TestCase {
      * @param AuthController $Auth
      * @depends testConfigureData
      * @covers ::authenticate
+     * @covers ::reset
      */
     public function testAuthenticate(AuthController $Auth): AuthController {
         $Endpoint = new AuthEndpoint();
@@ -226,6 +228,12 @@ class AbstractAuthControllerTest extends TestCase {
         $Endpoint->setHttpClient(self::$client->getHttpClient());
         $Auth->setActionEndpoint(AbstractAuthController::ACTION_AUTH, $Endpoint);
         $this->assertEquals(false, $Auth->authenticate());
+        self::$client->mockResponses->append(new Response(200,[],"12345"));
+        $this->assertEquals(true, $Auth->authenticate());
+        $this->assertEquals("12345", $Auth->getToken());
+        $this->assertEquals($Auth,$Auth->reset());
+        $this->assertEmpty($Auth->getToken());
+        $this->assertEmpty($Auth->getCredentials());
         return $Auth;
     }
 
@@ -236,10 +244,27 @@ class AbstractAuthControllerTest extends TestCase {
      */
     public function testLogout(AuthController $Auth): AuthController {
         $Endpoint = new LogoutEndpoint();
+        $Logger = new TestLogger();
         self::$client->mockResponses->append(new Response(200));
         $Endpoint->setHttpClient(self::$client->getHttpClient());
+        $Auth->setLogger($Logger);
         $Auth->setActionEndpoint(AbstractAuthController::ACTION_LOGOUT, $Endpoint);
         $this->assertEquals(true, $Auth->logout());
+        self::$client->mockResponses->append(new Response(404));
+        $this->assertEquals(false, $Auth->logout());
+        $this->assertEquals(true,$Logger->hasErrorThatContains("[REST] Logout Exception"));
         return $Auth;
+    }
+
+    /**
+     * @return void
+     */
+    public function testNoLogoutAction()
+    {
+        $Auth = new AuthController();
+        $Logger = new TestLogger();
+        $Auth->setLogger($Logger);
+        $this->assertEquals(false,$Auth->logout());
+        $this->assertEquals(true,$Logger->hasDebugThatContains("Unknown Auth Action [logout] requested on Controller"));
     }
 }

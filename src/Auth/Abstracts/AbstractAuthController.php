@@ -2,12 +2,16 @@
 
 namespace MRussell\REST\Auth\Abstracts;
 
+use GuzzleHttp\Psr7\Response;
 use MRussell\REST\Auth\AuthControllerInterface;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Exception\Auth\InvalidAuthenticationAction;
 use MRussell\REST\Storage\StorageControllerInterface;
+use MRussell\REST\Traits\PsrLoggerTrait;
 
 abstract class AbstractAuthController implements AuthControllerInterface {
+    use PsrLoggerTrait;
+
     const ACTION_AUTH = 'authenticate';
     const ACTION_LOGOUT = 'logout';
 
@@ -75,7 +79,7 @@ abstract class AbstractAuthController implements AuthControllerInterface {
      * @param $token
      * @return $this
      */
-    protected function setToken($token): AuthControllerInterface {
+    public function setToken($token): AuthControllerInterface {
         $this->token = $token;
         return $this;
     }
@@ -149,15 +153,13 @@ abstract class AbstractAuthController implements AuthControllerInterface {
             $response = $Endpoint->execute()->getResponse();
             $ret = $response->getStatusCode() == 200;
             if ($ret) {
-                //@codeCoverageIgnoreStart
-                $this->setToken($response->getBody()->getContents());
+                $token = $this->parseResponseToToken(self::ACTION_AUTH,$response);
+                $this->setToken($token);
             }
         } catch (\Exception $e) {
-            // TODO: Add a proper PSR-7 Logger here
+            $this->getLogger()->error("[REST] Authenticate Exception - ".$e->getMessage());
             $ret = false;
         }
-        
-        //@codeCoverageIgnoreEnd
         return $ret;
     }
 
@@ -166,14 +168,20 @@ abstract class AbstractAuthController implements AuthControllerInterface {
      */
     public function logout(): bool {
         $ret = false;
-        $Endpoint = $this->getActionEndpoint(self::ACTION_LOGOUT);
-        if ($Endpoint !== null) {
-            $Endpoint = $this->configureEndpoint($Endpoint, self::ACTION_LOGOUT);
-            $response = $Endpoint->execute()->getResponse();
-            $ret = $response->getStatusCode() == 200;
-            if ($ret) {
-                $this->clearToken();
+        try {
+            $Endpoint = $this->getActionEndpoint(self::ACTION_LOGOUT);
+            if ($Endpoint !== null) {
+                $Endpoint = $this->configureEndpoint($Endpoint, self::ACTION_LOGOUT);
+                $response = $Endpoint->execute()->getResponse();
+                $ret = $response->getStatusCode() == 200;
+                if ($ret) {
+                    $this->clearToken();
+                }
             }
+        } catch(InvalidAuthenticationAction $ex){
+            $this->getLogger()->debug($ex->getMessage());
+        } catch (\Exception $ex){
+            $this->getLogger()->error("[REST] Logout Exception - ".$ex->getMessage());
         }
         return $ret;
     }
@@ -265,5 +273,17 @@ abstract class AbstractAuthController implements AuthControllerInterface {
      */
     protected function configureLogoutEndpoint(EndpointInterface $Endpoint): EndpointInterface {
         return $Endpoint->setData(array());
+    }
+
+    /**
+     * Given a response from Authentication endpoint, parse the response
+     *
+     * @param string $action
+     * @param Response $response
+     * @return mixed
+     * @codeCoverageIgnore
+     */
+    protected function parseResponseToToken(string $action,Response $response){
+        return null;
     }
 }

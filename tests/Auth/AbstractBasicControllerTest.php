@@ -9,13 +9,13 @@
 namespace MRussell\REST\Tests\Auth;
 
 use GuzzleHttp\Psr7\Request;
-use MRussell\REST\Tests\Stubs\Auth\BasicController;
+use MRussell\REST\Auth\BasicAuthController;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Class AbstractBasicControllerTest
  * @package MRussell\REST\Tests\Auth
- * @coversDefaultClass MRussell\REST\Auth\Abstracts\AbstractBasicController
+ * @coversDefaultClass \MRussell\REST\Auth\Abstracts\AbstractBasicController
  * @group AbstractBasicControllerTest
  */
 class AbstractBasicControllerTest extends TestCase {
@@ -41,7 +41,7 @@ class AbstractBasicControllerTest extends TestCase {
      * @covers ::getAuthHeaderValue
      */
     public function testConfigureRequest() {
-        $Auth = new BasicController();
+        $Auth = new BasicAuthController();
         $Request = $Auth->configureRequest(new Request("GET", ""));
         $this->assertEquals(['Authorization' => ["Basic"]], $Request->getHeaders());
         $Auth->setCredentials([
@@ -50,5 +50,11 @@ class AbstractBasicControllerTest extends TestCase {
         ]);
         $Request = $Auth->configureRequest($Request);
         $this->assertEquals(['Authorization' => ['Basic ' . base64_encode("foo:bar")]], $Request->getHeaders());
+
+        $Auth = new BasicAuthController();
+        $Auth->setToken(base64_encode("foo:bar"));
+        $Request = $Auth->configureRequest(new Request("GET", ""));
+        $this->assertEquals(['Authorization' => ['Basic ' . base64_encode("foo:bar")]], $Request->getHeaders());
+
     }
 }

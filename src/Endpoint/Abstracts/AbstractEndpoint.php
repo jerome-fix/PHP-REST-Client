@@ -302,7 +302,7 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
     protected function configureRequest(Request $request, $data): Request {
         switch ($request->getMethod()) {
             case "GET":
-                if (is_string($data) || is_array($data)) {
+                if (!empty($data)){
                     $value = $data;
                     if (\is_array($value)) {
                         $value = \http_build_query($value, '', '&', \PHP_QUERY_RFC3986);
@@ -429,6 +429,7 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
         unset($this->response);
         $this->urlArgs = [];
         $this->setData(null);
+        $this->setProperties([]);
         return $this;
     }
 

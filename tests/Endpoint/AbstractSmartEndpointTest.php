@@ -2,8 +2,11 @@
 
 namespace MRussell\REST\Tests\Endpoint;
 
+use MRussell\REST\Endpoint\Data\DataInterface;
 use MRussell\REST\Endpoint\Data\EndpointData;
-use MRussell\REST\Tests\Stubs\Endpoint\SmartEndpoint;
+use MRussell\REST\Endpoint\SmartEndpoint;
+use MRussell\REST\Exception\Endpoint\InvalidData;
+use MRussell\REST\Tests\Stubs\Endpoint\SmartEndpointNoData;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -47,10 +50,10 @@ class AbstractSmartEndpointTest extends TestCase {
      * @covers ::configureDataProperties
      */
     public function testConstructor() {
-        $Endpoint = new SmartEndpoint();
-        $this->assertNotEmpty($Endpoint->getData());
-        $Endpoint = new SmartEndpoint(['foo'], ['url' => 'bar']);
-        $this->assertNotEmpty($Endpoint->getData());
+        $Endpoint = new SmartEndpointNoData();
+        $this->assertEmpty($Endpoint->getData());
+        $Endpoint = new SmartEndpointNoData(['foo'], ['url' => 'bar']);
+        $this->assertEmpty($Endpoint->getData());
         $this->assertEquals($Endpoint->getEndPointUrl(), 'bar');
         $this->assertEquals($Endpoint->getUrlArgs(), ['foo']);
         $Endpoint = new SmartEndpoint(
@@ -68,6 +71,7 @@ class AbstractSmartEndpointTest extends TestCase {
      * @covers ::setProperties
      * @covers ::setProperty
      * @covers ::configureDataProperties
+     * @covers ::setProperty
      */
     public function testSetProperties() {
         $Endpoint = new SmartEndpoint();
@@ -110,6 +114,21 @@ class AbstractSmartEndpointTest extends TestCase {
                 'bar' => 'foo'
             ]
         ], $Endpoint->getData()->getProperties());
+
+        $this->assertEquals($Endpoint,$Endpoint->setProperty('data',[
+            'required' => [
+                'foo' => 'string'
+            ],
+            'defaults' => [
+            ]
+        ]));
+        $this->assertEquals([
+            'required' => [
+                'foo' => 'string'
+            ],
+            'defaults' => [
+            ]
+        ], $Endpoint->getData()->getProperties());
     }
 
     /**
@@ -118,7 +137,12 @@ class AbstractSmartEndpointTest extends TestCase {
      * @covers ::configurePayload
      */
     public function testSetData() {
-        $Endpoint = new SmartEndpoint();
+        $Endpoint = new SmartEndpointNoData();
+        $this->assertEquals($Endpoint, $Endpoint->setData(null));
+        $this->assertInstanceOf(DataInterface::class, $Endpoint->getData());
+        $Endpoint = new SmartEndpointNoData();
+        $this->assertEquals($Endpoint, $Endpoint->setData([]));
+        $this->assertInstanceOf(DataInterface::class, $Endpoint->getData());
         $Data = new EndpointData();
         $this->assertEquals($Endpoint, $Endpoint->setData($Data));
         $this->assertEquals([
@@ -127,18 +151,33 @@ class AbstractSmartEndpointTest extends TestCase {
         ], $Endpoint->getData()->getProperties());
 
         $this->assertEquals($Endpoint, $Endpoint->setData(['foo' => 'bar']));
+        $this->assertInstanceOf(DataInterface::class, $Endpoint->getData());
         $this->assertEquals([
             'foo' => 'bar'
         ], $Endpoint->getData()->toArray());
+        $this->assertEquals('bar', $Endpoint->getData()->foo);
+
     }
 
     /**
      * @throws MRussell\REST\Exception\Endpoint\InvalidDataType
      */
     public function testInvalidDataType() {
-        $Endpoint = new SmartEndpoint();
+        $Endpoint = new SmartEndpointNoData();
         $this->expectException(\MRussell\REST\Exception\Endpoint\InvalidDataType::class);
-        $this->expectExceptionMessage("Invalid data type passed to Endpoint [MRussell\REST\Tests\Stubs\Endpoint\SmartEndpoint]");
+        $this->expectExceptionMessage("Invalid data type passed to Endpoint [MRussell\REST\Tests\Stubs\Endpoint\SmartEndpointNoData]");
         $Endpoint->setData('test');
+    }
+
+    public function testInvalidDataClass()
+    {
+        $Endpoint = new SmartEndpointNoData();
+        $Reflected = new \ReflectionClass($Endpoint);
+        $DataClass = $Reflected->getProperty('_DATA_CLASS');
+        $DataClass->setAccessible(true);
+        $DataClass->setValue($Endpoint,"MRussell\REST\Tests\Stubs\Endpoint\PingEndpoint");
+        $this->expectException(InvalidData::class);
+        $this->expectExceptionMessage("Missing or Invalid data on Endpoint Data. Errors: MRussell\REST\Tests\Stubs\Endpoint\PingEndpoint does not implement MRussell\\REST\\Endpoint\\Data\\DataInterface");
+        $Endpoint->setData([]);
     }
 }

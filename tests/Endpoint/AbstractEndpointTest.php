@@ -2,6 +2,7 @@
 
 namespace MRussell\REST\Tests\Endpoint;
 
+use GuzzleHttp\Exception\InvalidArgumentException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use MRussell\Http\Response\Standard;
@@ -12,6 +13,7 @@ use MRussell\REST\Tests\Stubs\Endpoint\BasicEndpoint;
 use MRussell\REST\Tests\Stubs\Endpoint\EndpointData;
 use MRussell\REST\Tests\Stubs\Endpoint\PingEndpoint;
 use PHPUnit\Framework\TestCase;
+use Sugarcrm\REST\Endpoint\Ping;
 
 /**
  * Class AbstractEndpointTest
@@ -310,6 +312,8 @@ class AbstractEndpointTest extends TestCase {
      * @covers ::configurePayload
      * @covers ::configureRequest
      * @covers ::getMethod
+     * @covers ::reset
+     * @covers \MRussell\REST\Endpoint\Abstracts\AbstractSmartEndpoint::configureRequest
      * @return void
      */
     public function testBuildRequest()
@@ -340,6 +344,10 @@ class AbstractEndpointTest extends TestCase {
         $this->assertEquals(json_encode([
             'foo' => 'bar'
         ]),$request->getBody()->getContents());
+
+        $Ping->reset();
+        $this->assertEmpty($Ping->getUrlArgs());
+        $this->assertEquals('GET',$Ping->getMethod());
     }
 
     /**
@@ -350,14 +358,31 @@ class AbstractEndpointTest extends TestCase {
     {
         $Ping = new PingEndpoint();
         $Ping->setClient(static::$client);
-        $Ping->setData([
-            'foo' => 'bar'
-        ]);
+        $Ping->onEvent(PingEndpoint::EVENT_CONFIGURE_PAYLOAD,function(&$data){
+            $data = new \stdClass();
+            $data->foo = 'bar';
+        });
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('query must be a string or array');
         $request = $Ping->buildRequest();
-        $this->assertInstanceOf(Request::class,$request);
-        $this->assertEquals('http',$request->getUri()->getScheme());
-        $this->assertEquals('phpunit.tests',$request->getUri()->getHost());
-        $this->assertEquals('/ping',$request->getUri()->getPath());
-        $this->assertEquals('foo=bar',$request->getUri()->getQuery());
+    }
+
+    /**
+     * @covers ::getResponse
+     * @covers ::getResponseBody
+     * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function testGetResponse()
+    {
+        $Ping = new PingEndpoint();
+        $Ping->setClient(static::$client);
+        $pong = ['pong' => time()];
+        $respBody = json_encode($pong);
+        static::$client->mockResponses->append(new Response(200,[],$respBody));
+        $Ping->execute();
+        $this->assertInstanceOf(Response::class,$Ping->getResponse());
+        $this->assertEquals($pong,$Ping->getResponseBody());
+        $this->assertEmpty($Ping->getResponse()->getBody()->getContents());
     }
 }

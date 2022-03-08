@@ -6,6 +6,8 @@ use GuzzleHttp\Psr7\Request;
 
 trait JsonHandlerTrait {
 
+    protected $respBody = null;
+
     /**
      * @param Request $request
      * @return Request
@@ -19,12 +21,16 @@ trait JsonHandlerTrait {
      * @param $associative
      * @return mixed
      */
-    public function getResponseBody($associative = true) {
-        $body = $this->getResponse()->getBody()->getContents();
+    public function getResponseBody($associative = true)
+    {
+        if (!$this->respBody) {
+            $this->respBody = $this->getResponse()->getBody()->getContents();
+        }
+        $body = null;
         try {
-            $body = json_decode($body, $associative);
-        }catch (\Exception $e){}
-
+            $body = json_decode($this->respBody, $associative);
+        } catch (\Exception $e) {
+        }
         return $body;
     }
 }

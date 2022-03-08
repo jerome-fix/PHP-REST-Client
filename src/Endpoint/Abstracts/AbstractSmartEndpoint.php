@@ -51,10 +51,6 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
             ];
         }
         parent::setProperties($properties);
-        // This is damn tricky! Data must be checked and set in place incase not initiated
-        if (!isset($this->data)) {
-            $this->data = $this->buildDataObject();
-        }
         $this->configureDataProperties();
         return $this;
     }
@@ -95,7 +91,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
      * @return $this
      */
     protected function configureDataProperties(): EndpointInterface {
-        if (isset($this->properties[self::PROPERTY_DATA])) {
+        if (isset($this->properties[self::PROPERTY_DATA]) && $this->data) {
             $this->data->setProperties($this->properties['data']);
         }
         return $this;
@@ -122,6 +118,6 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
         if (is_array($implements) && isset($implements["MRussell\\REST\\Endpoint\\Data\\DataInterface"])) {
             return new static::$_DATA_CLASS([], $this->properties[self::PROPERTY_DATA] ?? []);
         }
-        throw new InvalidData(get_class($this));
+        throw new InvalidData(static::$_DATA_CLASS." does not implement MRussell\\REST\\Endpoint\\Data\\DataInterface");
     }
 }

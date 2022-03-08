@@ -197,21 +197,22 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @inheritdoc
      */
     protected function configurePayload() {
-        $requestData = parent::configurePayload();
-        if ($requestData == null) {
-            $requestData = $this->buildDataObject();
-        }
+        $data = $this->getData() ?? null;
         switch ($this->action) {
             case self::MODEL_ACTION_CREATE:
             case self::MODEL_ACTION_UPDATE:
-                if (is_object($requestData)) {
-                    $requestData->set($this->toArray());
-                } else {
-                    $requestData = array_replace($requestData->toArray(), $this->toArray());
+                if ($data == null){
+                    $data = $this->buildDataObject();
+                }
+                if (is_object($data)) {
+                    $data->set($this->toArray());
+                } elseif (is_array($data)) {
+                    $data = array_replace($data, $this->toArray());
                 }
                 break;
         }
-        return $requestData;
+        $this->triggerEvent(self::EVENT_CONFIGURE_PAYLOAD, $data);
+        return $data;
     }
 
     /**
@@ -222,6 +223,13 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
         parent::setResponse($response);
         $this->parseResponse($response);
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getModelResponseProp(): string{
+        return static::$_RESPONSE_PROP;
     }
 
     /**
@@ -236,7 +244,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
                 case self::MODEL_ACTION_UPDATE:
                 case self::MODEL_ACTION_RETRIEVE:
                     $body = $this->getResponseBody();
-                    $this->syncFromApi($this->parseModelFromResponseBody($body));
+                    $this->syncFromApi($this->parseModelFromResponseBody($body,$this->getModelResponseProp()));
                     break;
                 case self::MODEL_ACTION_DELETE:
                     $this->clear();
@@ -247,19 +255,23 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
 
     /**
      * @param $body
+     * @param string $prop
      * @return array
      */
-    protected function parseModelFromResponseBody($body): array {
-        $prop = static::$_RESPONSE_PROP;
+    protected function parseModelFromResponseBody($body,string $prop = ""): array {
         if ($prop == '') {
+            if (is_object($body)) {
+                $body = json_decode(json_encode($body),true);
+            }
             return is_array($body) ? $body : [];
         } else {
-            if (is_object($body)) {
-                return $body->$prop ?? [];
-            } else {
-                return $body[$prop] ?? [];
+            if (is_object($body) && isset($body->$prop)) {
+                return $this->parseModelFromResponseBody($body->$prop);
+            } elseif (is_array($body) && isset($body[$prop])) {
+                return $this->parseModelFromResponseBody($body[$prop]);
             }
         }
+        return [];
     }
 
     /**

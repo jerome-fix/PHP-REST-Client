@@ -2,9 +2,9 @@
 
 namespace MRussell\REST\Tests\Stubs\Endpoint;
 
-use MRussell\REST\Endpoint\Abstracts\AbstractModelEndpoint;
+class ModelEndpointWithActions extends ModelEndpoint {
+    protected static $_RESPONSE_PROP = 'account';
 
-class ModelEndpointWithActions extends AbstractModelEndpoint {
     protected $actions = array(
         'foo' => "GET",
     );

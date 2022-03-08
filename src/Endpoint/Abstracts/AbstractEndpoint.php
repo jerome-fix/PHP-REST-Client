@@ -3,9 +3,11 @@
 namespace MRussell\REST\Endpoint\Abstracts;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\InvalidArgumentException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Stream;
 use GuzzleHttp\Psr7\Utils;
+use MRussell\REST\Client\ClientAwareTrait;
 use MRussell\REST\Endpoint\Data\DataInterface;
 use MRussell\REST\Endpoint\Event\EventTriggerInterface;
 use MRussell\REST\Endpoint\Event\Stack;
@@ -22,8 +24,9 @@ use MRussell\REST\Endpoint\Traits\JsonHandlerTrait;
  * @package MRussell\REST\Endpoint\Abstracts
  */
 abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterface {
-    use JsonHandlerTrait,
-        EventsTrait;
+    use EventsTrait,
+        ClientAwareTrait,
+        JsonHandlerTrait;
     use PropertiesTrait {
         setProperties as rawSetProperties;
     }
@@ -38,15 +41,14 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
     const EVENT_AFTER_CONFIGURED_REQUEST = 'after_configure_req';
     const EVENT_AFTER_RESPONSE = 'after_response';
 
-    /**
-     * @var Client
-     */
-    private $client;
+    const AUTH_NOAUTH = 0;
+    const AUTH_EITHER = 1;
+    const AUTH_REQUIRED = 2;
 
     protected static $_DEFAULT_PROPERTIES = array(
         self::PROPERTY_URL => '',
         self::PROPERTY_HTTP_METHOD => '',
-        self::PROPERTY_AUTH => -1
+        self::PROPERTY_AUTH => self::AUTH_EITHER
     );
 
     /**
@@ -133,6 +135,9 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      * @inheritdoc
      */
     public function getBaseUrl(): string {
+        if (empty($this->baseUrl) && $this->client){
+            return $this->getClient()->getAPIUrl();
+        }
         return $this->baseUrl;
     }
 
@@ -166,9 +171,15 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
     }
 
     /**
-     * @inheritdoc
+     * Due to how Guzzle Requests work, this may not return the actual Request object used
+     * - Use Middleware::history() if you need the request that was sent to server
+     *
+     * May deprecate in the future, just leaving it in right now to assess if its still needed
+     * TODO:Deprecate me
+     * @return Request
+     * @codeCoverageIgnore
      */
-    public function getRequest(): Request {
+    protected function getRequest(): Request {
         return $this->request;
     }
 
@@ -190,18 +201,10 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
     }
 
     /**
-     * @inheritDoc
-     */
-    public function setHttpClient(Client $client): EndpointInterface {
-        $this->client = $client;
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
+     * @return Client
      */
     public function getHttpClient(): Client {
-        return $this->client == null ? new Client() : $this->client;
+        return !$this->client? new Client() : $this->getClient()->getHttpClient();
     }
 
     /**
@@ -244,12 +247,12 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
     /**
      * @inheritdoc
      */
-    public function authRequired(): bool {
-        $required = false;
+    public function useAuth(): int {
+        $auth = self::AUTH_EITHER;
         if (isset($this->properties[self::PROPERTY_AUTH])) {
-            $required = $this->properties[self::PROPERTY_AUTH] === TRUE || $this->properties[self::PROPERTY_AUTH] === 1;
+            $auth = intval($this->properties[self::PROPERTY_AUTH]);
         }
-        return $required;
+        return $auth;
     }
 
     /**
@@ -277,8 +280,7 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
             $url = rtrim($this->getBaseUrl(), "/") . "/" . $url;
         }
         $data = $this->configurePayload();
-        $this->request = new Request($method, $url);
-        $this->request = $this->configureRequest($this->request, $data);
+        $this->request = $this->configureRequest(new Request($method, $url), $data);
         return $this->request;
     }
 
@@ -298,18 +300,24 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      * @return Request
      */
     protected function configureRequest(Request $request, $data): Request {
-        if (is_array($data)) {
-            $data = json_encode($data);
-        }
         switch ($request->getMethod()) {
             case "GET":
                 if (is_string($data) || is_array($data)) {
-                    $request = new Request($request->getMethod(), $request->getUri(), [
-                        'query' => $data
-                    ]);
+                    $value = $data;
+                    if (\is_array($value)) {
+                        $value = \http_build_query($value, '', '&', \PHP_QUERY_RFC3986);
+                    }
+                    if (!\is_string($value)) {
+                        throw new InvalidArgumentException('query must be a string or array');
+                    }
+                    $uri = $request->getUri()->withQuery($value);
+                    $request = $request->withUri($uri);
                     break;
                 }
             default:
+                if (is_array($data)) {
+                    $data = json_encode($data);
+                }
                 $request = $request->withBody(Utils::streamFor($data));
         }
         $args = array(
@@ -435,7 +443,9 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
             $properties[self::PROPERTY_URL] = '';
         }
         if (!isset($properties[self::PROPERTY_AUTH])) {
-            $properties[self::PROPERTY_AUTH] = -1;
+            $properties[self::PROPERTY_AUTH] = self::AUTH_EITHER;
+        } else {
+            $properties[self::PROPERTY_AUTH] = intval($properties[self::PROPERTY_AUTH]);
         }
         return $this->rawSetProperties($properties);
     }

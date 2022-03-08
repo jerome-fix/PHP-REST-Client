@@ -24,7 +24,7 @@ abstract class AbstractClient implements ClientInterface {
     /**
      * @var HandlerStack
      */
-    protected $clientHandlerStack;
+    protected $guzzleHandlerStack;
 
     /**
      * @var AuthControllerInterface
@@ -39,12 +39,12 @@ abstract class AbstractClient implements ClientInterface {
     /**
      * @var string
      */
-    protected $server;
+    protected $server = '';
 
     /**
      * @var string
      */
-    protected $apiURL;
+    protected $apiURL = '';
 
     /**
      * @var string
@@ -74,10 +74,15 @@ abstract class AbstractClient implements ClientInterface {
      * @return void
      */
     protected function initHttpClient() {
-        if ($this->getHandlerStack() == null){
-            $this->clientHandlerStack = HandlerStack::create();
-        }
         $this->httpClient = new Client(['handler' => $this->getHandlerStack()]);
+    }
+
+    /**
+     * @return void
+     */
+    protected function initHttpHandlerStack()
+    {
+        $this->guzzleHandlerStack = HandlerStack::create();
     }
 
     /**
@@ -94,15 +99,20 @@ abstract class AbstractClient implements ClientInterface {
      * @return HandlerStack
      */
     public function getHandlerStack(): HandlerStack {
-        return $this->clientHandlerStack;
+        if (!$this->guzzleHandlerStack){
+            $this->initHttpHandlerStack();
+        }
+        return $this->guzzleHandlerStack;
     }
 
     /**
-     * @return HandlerStack
+     * @param HandlerStack $stackHandler
+     * @return $this
      */
     public function setHandlerStack(HandlerStack $stackHandler) {
-        $this->clientHandlerStack = $stackHandler;
+        $this->guzzleHandlerStack = $stackHandler;
         $this->initHttpClient();
+        return $this;
     }
 
     /**
@@ -110,10 +120,27 @@ abstract class AbstractClient implements ClientInterface {
      */
     public function setAuth(AuthControllerInterface $Auth): ClientInterface {
         $this->Auth = $Auth;
-        $this->getHandlerStack()->push(Middleware::mapRequest(function (Request $request) use ($Auth) {
-            return $Auth->configureRequest($request);
-        }), 'configureAuth');
+        $this->configureAuth();
         return $this;
+    }
+
+    /**
+     * @return void
+     */
+    protected function configureAuth()
+    {
+        $api = $this;
+        $this->getHandlerStack()->remove('configureAuth');
+        $this->getHandlerStack()->push(Middleware::mapRequest(function (Request $request) use ($api) {
+            $Auth = $api->getAuth();
+            if ($Auth){
+                $EP = $api->current();
+                if (!$EP || ($EP && $EP->useAuth())){
+                    return $Auth->configureRequest($request);
+                }
+            }
+            return $request;
+        }), 'configureAuth');
     }
 
     /**
@@ -206,9 +233,8 @@ abstract class AbstractClient implements ClientInterface {
         if (isset($this->EndpointProvider)) {
             $this->setCurrentEndpoint($this->EndpointProvider->getEndpoint($name, $this->version))
                 ->current()
-                ->setBaseUrl($this->apiURL)
-                ->setUrlArgs($arguments)
-                ->setHttpClient($this->getHttpClient());
+                ->setClient($this)
+                ->setUrlArgs($arguments);
             return $this->currentEndPoint;
         } else {
             throw new EndpointProviderMissing();

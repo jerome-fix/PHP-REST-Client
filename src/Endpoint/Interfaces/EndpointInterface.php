@@ -41,13 +41,6 @@ interface EndpointInterface extends PropertiesInterface, ResettableInterface {
     public function setBaseUrl(string $url);
 
     /**
-     * Set the Guzzle HTTP Client to utilize sending requests
-     * @param Client $client
-     * @return $this
-     */
-    public function setHttpClient(Client $client);
-
-    /**
      * Get the Base URL that is currently configured on the Endpoint
      * @return string
      */
@@ -66,20 +59,14 @@ interface EndpointInterface extends PropertiesInterface, ResettableInterface {
     public function execute();
 
     /**
-     * Get the Request Object being used by the Endpoint
-     * @return Request
-     */
-    public function getRequest(): Request;
-
-    /**
      * Get the Response Object being used by the Endpoint
      * @return Response
      */
     public function getResponse(): Response;
 
     /**
-     * Check if authentication is required for use of the Endpoint
-     * @return bool
+     * Check if authentication should be applied
+     * @return int
      */
-    public function authRequired(): bool;
+    public function useAuth(): int;
 }

@@ -2,15 +2,19 @@
 
 namespace MRussell\REST\Tests\Client;
 
+use GuzzleHttp\Psr7\Response;
+use MRussell\REST\Endpoint\Abstracts\AbstractEndpoint;
 use MRussell\REST\Tests\Stubs\Auth\AuthController;
 use MRussell\REST\Tests\Stubs\Client\Client;
+use MRussell\REST\Tests\Stubs\Client\ClientOverridenConstructor;
 use MRussell\REST\Tests\Stubs\Endpoint\EndpointProviderWithDefaults;
+use MRussell\REST\Tests\Stubs\Endpoint\PingEndpoint;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Class AbstractClientTest
  * @package MRussell\REST\Tests\Client
- * @coversDefaultClass MRussell\REST\Client\AbstractClient
+ * @coversDefaultClass \MRussell\REST\Client\AbstractClient
  * @group AbstractClientTest
  */
 class AbstractClientTest extends TestCase {
@@ -42,15 +46,73 @@ class AbstractClientTest extends TestCase {
     }
 
     /**
+     * @covers ::__construct
+     * @covers ::initHttpClient
+     * @covers ::initHttpHandlerStack
+     * @covers ::getHttpClient
+     * @covers ::getHandlerStack
+     * @return void
+     */
+    public function testHttpClientConstructor()
+    {
+        $client = new Client();
+        $this->assertInstanceOf(\GuzzleHttp\Client::class,$client->getHttpClient());
+        $this->assertNotEmpty($client->getHandlerStack());
+
+        //Test that not calling parent::__construct() still allows getHttpClient and getHandlerStack() to return built out objects
+        $client = new ClientOverridenConstructor();
+        $this->assertInstanceOf(\GuzzleHttp\Client::class,$client->getHttpClient());
+        $this->assertNotEmpty($client->getHandlerStack());
+    }
+
+    /**
      * @covers ::setAuth
      * @covers ::getAuth
+     * @covers ::configureAuth
      * @return Client
      */
     public function testSetAuth() {
         $Auth = new AuthController();
         $this->assertEquals($this->Client, $this->Client->setAuth($Auth));
         $this->assertEquals($Auth, $this->Client->getAuth());
+
+        $handlerStack = $this->Client->getHandlerStack();
+        $reflectedHandler = new \ReflectionClass($handlerStack);
+        $stack = $reflectedHandler->getProperty('stack');
+        $stack->setAccessible(true);
+        $value = $stack->getValue($handlerStack);
+        $middleware = array_filter($value,function($item){
+            return $item[1] == 'configureAuth';
+        });
+        $this->assertNotEmpty($middleware);
+        $middleware = current($middleware);
+        $this->assertIsCallable($middleware[0]);
+
         return $this->Client;
+    }
+
+    /**
+     * Test the callable function that configures Auth on requests
+     * @covers ::configureAuth
+     * @group configureAuth
+     * @return void
+     */
+    public function testConfigureAuth()
+    {
+        $Auth = new AuthController();
+        $this->Client->setAuth($Auth);
+        $this->Client->mockResponses->append(new Response(200));
+        $Ping = new PingEndpoint();
+        $Ping->setClient($this->Client);
+        $Ping->setProperty(AbstractEndpoint::PROPERTY_AUTH,AbstractEndpoint::AUTH_NOAUTH);
+        $this->Client->current($Ping);
+        $Ping->execute();
+        $this->assertEmpty(current($this->Client->container)['request']->getHeader('token'));
+        $Ping->setProperty(AbstractEndpoint::PROPERTY_AUTH,AbstractEndpoint::AUTH_REQUIRED);
+        $this->Client->container = [];
+        $this->Client->mockResponses->append(new Response(200));
+        $Ping->execute();
+        $this->assertEquals(true,current($this->Client->container)['request']->hasHeader('token'));
     }
 
     /**

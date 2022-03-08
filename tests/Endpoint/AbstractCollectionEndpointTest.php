@@ -185,16 +185,20 @@ class AbstractCollectionEndpointTest extends TestCase {
 
     /**
      * @covers ::getEndpointUrl
+     * @covers ::setProperty
+     * @covers ::setBaseUrl
      */
     public function testGetEndpointUrl() {
         $Collection = new CollectionEndpointWithModel();
-        $this->assertEquals("account", $Collection->getEndPointUrl());
-        $this->assertEquals($Collection, $Collection->setProperty('url', 'accounts'));
-        $this->assertEquals("accounts", $Collection->getEndPointUrl());
+        $Collection->setClient(static::$client);
+        $this->assertEquals('accounts', $Collection->getEndPointUrl());
+        $this->assertEquals($Collection, $Collection->setProperty('url', 'foobar'));
+        $this->assertEquals("foobar", $Collection->getEndPointUrl());
+        $this->assertEquals("http://phpunit.tests/foobar", $Collection->getEndPointUrl(true));
         $this->assertEquals($Collection, $Collection->setBaseUrl('localhost'));
-        $this->assertEquals("localhost/accounts", $Collection->getEndPointUrl(true));
+        $this->assertEquals("localhost/foobar", $Collection->getEndPointUrl(true));
         $this->assertEquals($Collection, $Collection->setProperty('url', ''));
-        $this->assertEquals("localhost/account", $Collection->getEndPointUrl(true));
+        $this->assertEquals("localhost/accounts", $Collection->getEndPointUrl(true));
     }
 
     /**
@@ -202,10 +206,8 @@ class AbstractCollectionEndpointTest extends TestCase {
      */
     public function testFetch() {
         $Collection = new CollectionEndpoint();
-        $Collection->setBaseUrl('localhost');
-        $Collection->setProperty('url', 'foo');
         self::$client->mockResponses->append(new Response(200));
-        $Collection->setHttpClient(self::$client->getHttpClient());
+        $Collection->setClient(self::$client);
         $Collection->fetch();
         $props = $Collection->getProperties();
         $this->assertEquals('GET', $props['httpMethod']);
@@ -220,7 +222,7 @@ class AbstractCollectionEndpointTest extends TestCase {
         $Collection->setBaseUrl('localhost');
         $Collection->setProperty('url', 'foo');
         self::$client->mockResponses->append(new Response(200));
-        $Collection->setHttpClient(self::$client->getHttpClient());
+        $Collection->setClient(self::$client);
         $Collection->fetch();
         $Response = $Collection->getResponse();
         $this->assertEquals($Response->getStatusCode(), 200);
@@ -239,8 +241,7 @@ class AbstractCollectionEndpointTest extends TestCase {
             ]
         ])));
         $CollectionWithModel = new CollectionEndpointWithModel();
-        $CollectionWithModel->setHttpClient(self::$client->getHttpClient());
-        $CollectionWithModel->setBaseUrl('localhost');
+        $CollectionWithModel->setClient(self::$client);
         $CollectionWithModel->setProperty('url', 'foo');
         $CollectionWithModel->fetch();
         $this->assertEquals([
@@ -274,8 +275,7 @@ class AbstractCollectionEndpointTest extends TestCase {
             ]
         ])));
         $CollectionWithModel = new CollectionEndpointWithModel();
-        $CollectionWithModel->setHttpClient(self::$client->getHttpClient());
-        $CollectionWithModel->setBaseUrl('localhost');
+        $CollectionWithModel->setClient(self::$client);
         $CollectionWithModel->setProperty('url', 'foo');
         $CollectionWithModel->fetch();
         $this->assertEquals([

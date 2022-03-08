@@ -225,7 +225,7 @@ class AbstractAuthControllerTest extends TestCase {
     public function testAuthenticate(AuthController $Auth): AuthController {
         $Endpoint = new AuthEndpoint();
         self::$client->mockResponses->append(new Response(404));
-        $Endpoint->setHttpClient(self::$client->getHttpClient());
+        $Endpoint->setClient(self::$client);
         $Auth->setActionEndpoint(AbstractAuthController::ACTION_AUTH, $Endpoint);
         $this->assertEquals(false, $Auth->authenticate());
         self::$client->mockResponses->append(new Response(200,[],"12345"));
@@ -246,7 +246,7 @@ class AbstractAuthControllerTest extends TestCase {
         $Endpoint = new LogoutEndpoint();
         $Logger = new TestLogger();
         self::$client->mockResponses->append(new Response(200));
-        $Endpoint->setHttpClient(self::$client->getHttpClient());
+        $Endpoint->setClient(self::$client);
         $Auth->setLogger($Logger);
         $Auth->setActionEndpoint(AbstractAuthController::ACTION_LOGOUT, $Endpoint);
         $this->assertEquals(true, $Auth->logout());

@@ -24,12 +24,12 @@ class AbstractModelEndpointTest extends TestCase {
 
 
     public static function setUpBeforeClass(): void {
-        self::$client = new Client();
+        static::$client = new Client();
         //Add Setup for static properties here
     }
 
     public static function tearDownAfterClass(): void {
-        //Add Tear Down for static properties here
+        static::$client = null;
     }
 
     public function setUp(): void {
@@ -78,7 +78,7 @@ class AbstractModelEndpointTest extends TestCase {
      */
     public function testCall() {
         $Model = new ModelEndpointWithActions();
-        $Class = new \ReflectionClass(static::$_REFLECTED_CLASS . "WithActions");
+        $Class = new \ReflectionClass($Model);
         $actions = $Class->getProperty('actions');
         $actions->setAccessible(true);
         $this->assertEquals(array(
@@ -89,8 +89,8 @@ class AbstractModelEndpointTest extends TestCase {
             'delete' => "DELETE"
         ), $actions->getValue($Model));
 
-        self::$client->mockResponses->append(new Response(200));
-        $Model->setHttpClient(self::$client->getHttpClient());
+        static::$client->mockResponses->append(new Response(200));
+        $Model->setClient(static::$client);
 
         $this->assertEquals($Model, $Model->foo());
         $props = $Model->getProperties();
@@ -173,30 +173,32 @@ class AbstractModelEndpointTest extends TestCase {
      * @covers ::configureAction
      * @covers ::retrieve
      * @covers ::configureURL
+     * @group model
      */
     public function testRetrieve() {
         $Model = new ModelEndpoint();
-        $Model->setHttpClient(self::$client->getHttpClient());
+        $Model->setClient(static::$client);
         
-        self::$client->mockResponses->append(new Response(200, [], json_encode([['id' => 1234]])));
-        $Model->setBaseUrl('localhost/api/v1/');
-        $Model->setProperty('url', 'model/$id');
+        static::$client->mockResponses->append(new Response(200, [], json_encode([['id' => 1234]])));
         $this->assertEquals($Model, $Model->retrieve('1234'));
-        $this->assertEquals('localhost/api/v1/model/1234', $Model->getRequest()->getUri()->__toString());
+        $request = current(static::$client->container)['request'];
+        $this->assertEquals('http://phpunit.tests/account/1234', $request->getUri()->__toString());
         $this->assertEquals('1234', $Model['id']);
         $this->assertEquals(ModelEndpoint::MODEL_ACTION_RETRIEVE, $Model->getCurrentAction());
 
-        self::$client->mockResponses->append(new Response(200, [], json_encode([['id' => 5678]])));
+        static::$client->container = [];
+        static::$client->mockResponses->append(new Response(200, [], json_encode([['id' => 5678]])));
         $Model['id'] = '5678';
         $this->assertEquals($Model, $Model->retrieve());
-        $this->assertEquals('localhost/api/v1/model/5678', $Model->getRequest()->getUri());
-        $this->assertEquals("GET", $Model->getRequest()->getMethod());
+        $this->assertEquals('http://phpunit.tests/account/5678', current(static::$client->container)['request']->getUri()->__toString());
+        $this->assertEquals("GET", current(static::$client->container)['request']->getMethod());
         $this->assertEquals('5678', $Model->get('id'));
-        
-        self::$client->mockResponses->append(new Response(200, [], json_encode([['id' => 0000]])));
+
+        static::$client->container = [];
+        static::$client->mockResponses->append(new Response(200, [], json_encode([['id' => 0000]])));
         $this->assertEquals($Model, $Model->retrieve('0000'));
-        $this->assertEquals('localhost/api/v1/model/0000', $Model->getRequest()->getUri());
-        $this->assertEquals("GET", $Model->getRequest()->getMethod());
+        $this->assertEquals('http://phpunit.tests/account/0000', current(static::$client->container)['request']->getUri()->__toString());
+        $this->assertEquals("GET", current(static::$client->container)['request']->getMethod());
         $this->assertEquals('0000', $Model->get('id'));
     }
 
@@ -207,8 +209,6 @@ class AbstractModelEndpointTest extends TestCase {
      */
     public function testMissingModelId() {
         $Model = new ModelEndpoint();
-        $Model->setBaseUrl('localhost/api/v1/');
-        $Model->setProperty('url', 'model/$id');
         $this->expectException(\MRussell\REST\Exception\Endpoint\MissingModelId::class);
         $this->expectExceptionMessage("Model ID missing for current action [retrieve] on Endpoint: MRussell\REST\Tests\Stubs\Endpoint\ModelEndpoint");
         $Model->retrieve();
@@ -223,25 +223,25 @@ class AbstractModelEndpointTest extends TestCase {
     public function testSave() {
         $Model = new ModelEndpoint();
 
-        $Model->setHttpClient(self::$client->getHttpClient());
-        self::$client->mockResponses->append(new Response(200, [], json_encode(['id' => 1234])));
-        $Model->setBaseUrl('localhost/api/v1/');
-        $Model->setProperty('url', 'model/$id');
+        $Model->setClient(static::$client);
+        static::$client->container = [];
+        static::$client->mockResponses->append(new Response(200, [], json_encode(['id' => 1234])));
         $Model->set('foo', 'bar');
 
         $this->assertEquals($Model, $Model->save());
         $this->assertEquals('create', $Model->getCurrentAction());
-        $this->assertEquals('localhost/api/v1/model', $Model->getRequest()->getUri());
-        $this->assertEquals("POST", $Model->getRequest()->getMethod());
-        $this->assertEquals('{"foo":"bar"}', $Model->getRequest()->getBody()->getContents());
+        $this->assertEquals('http://phpunit.tests/account', current(static::$client->container)['request']->getUri()->__toString());
+        $this->assertEquals("POST", current(static::$client->container)['request']->getMethod());
+        $this->assertEquals('{"foo":"bar"}', current(static::$client->container)['request']->getBody()->getContents());
 
-        self::$client->mockResponses->append(new Response(200, [], json_encode(['id' => '1234'])));
+        static::$client->container = [];
+        static::$client->mockResponses->append(new Response(200, [], json_encode(['id' => '1234'])));
         $Model->set('id', '1234');
         $this->assertEquals($Model, $Model->save());
         $this->assertEquals('update', $Model->getCurrentAction());
-        $this->assertEquals('localhost/api/v1/model/1234', $Model->getRequest()->getUri());
-        $this->assertEquals("PUT", $Model->getRequest()->getMethod());
-        $this->assertEquals('{"foo":"bar","id":"1234"}', $Model->getRequest()->getBody()->getContents());
+        $this->assertEquals('http://phpunit.tests/account/1234', current(static::$client->container)['request']->getUri()->__toString());
+        $this->assertEquals("PUT", current(static::$client->container)['request']->getMethod());
+        $this->assertEquals('{"foo":"bar","id":"1234"}', current(static::$client->container)['request']->getBody()->getContents());
     }
 
     /**
@@ -250,16 +250,15 @@ class AbstractModelEndpointTest extends TestCase {
      */
     public function testDelete() {
         $Model = new ModelEndpoint();
-        $Model->setHttpClient(self::$client->getHttpClient());
-        self::$client->mockResponses->append(new Response(200, [], json_encode([['id' => 1234]])));
-        $Model->setBaseUrl('localhost/api/v1/');
-        $Model->setProperty('url', 'model/$id');
+        $Model->setClient(static::$client);
+        static::$client->container = [];
+        static::$client->mockResponses->append(new Response(200, [], json_encode([['id' => 1234]])));
         $Model->set('id', '1234');
 
         $this->assertEquals($Model, $Model->delete());
         $this->assertEquals(ModelEndpoint::MODEL_ACTION_DELETE, $Model->getCurrentAction());
-        $this->assertEquals('localhost/api/v1/model/1234', $Model->getRequest()->getUri());
-        $this->assertEquals("DELETE", $Model->getRequest()->getMethod());
+        $this->assertEquals('http://phpunit.tests/account/1234', current(static::$client->container)['request']->getUri()->__toString());
+        $this->assertEquals("DELETE", current(static::$client->container)['request']->getMethod());
     }
 
     /**
@@ -268,21 +267,20 @@ class AbstractModelEndpointTest extends TestCase {
      */
     public function testGetResponse() {
         $Model = new ModelEndpoint();
-        $Model->setHttpClient(self::$client->getHttpClient());
-        self::$client->mockResponses->append(new Response(200, [], json_encode([
+        $Model->setClient(static::$client);
+        static::$client->container = [];
+        static::$client->mockResponses->append(new Response(200, [], json_encode([
             'id' => '1234',
             'name' => 'foo'
         ])));
-        $Model->setBaseUrl('localhost/api/v1/');
-        $Model->setProperty('url', 'model');
         $Model->setData(['name' => 'foo']);
         $Model->save();
-        $this->assertEquals($Model->getRequest()->getMethod(), "POST");
+        $this->assertEquals( "POST",current(static::$client->container)['request']->getMethod());
         $this->assertEquals($Model->getResponse()->getStatusCode(), 200);
         $this->assertEquals($Model->get('id'), "1234");
         $this->assertEquals($Model->get('name'), "foo");
-        
-        self::$client->mockResponses->append(new Response(200, [], json_encode([
+        static::$client->container = [];
+        static::$client->mockResponses->append(new Response(200, [], json_encode([
             'id' => '1234',
             'name' => 'foo',
             'foo' => 'bar'
@@ -292,13 +290,13 @@ class AbstractModelEndpointTest extends TestCase {
         ]);
         $Model->save();
         $this->assertEquals($Model->getResponse()->getStatusCode(), 200);
-        $this->assertEquals($Model->getRequest()->getMethod(), "PUT");
+        $this->assertEquals(current(static::$client->container)['request']->getMethod(), "PUT");
 
-
-        self::$client->mockResponses->append(new Response(200, [], json_encode([])));
+        static::$client->container = [];
+        static::$client->mockResponses->append(new Response(200, [], json_encode([])));
         $Model->delete();
         $this->assertEquals($Model->getResponse()->getStatusCode(), 200);
-        $this->assertEquals($Model->getRequest()->getMethod(), "DELETE");
+        $this->assertEquals(current(static::$client->container)['request']->getMethod(), "DELETE");
         $this->assertEquals([], $Model->toArray());
         $this->assertEmpty($Model->get('id'));
         

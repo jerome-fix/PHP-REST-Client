@@ -5,10 +5,12 @@ namespace MRussell\REST\Tests\Endpoint;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use MRussell\Http\Response\Standard;
+use MRussell\REST\Endpoint\Abstracts\AbstractEndpoint;
 use MRussell\REST\Tests\Stubs\Auth\AuthController;
 use MRussell\REST\Tests\Stubs\Client\Client;
 use MRussell\REST\Tests\Stubs\Endpoint\BasicEndpoint;
 use MRussell\REST\Tests\Stubs\Endpoint\EndpointData;
+use MRussell\REST\Tests\Stubs\Endpoint\PingEndpoint;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -67,7 +69,7 @@ class AbstractEndpointTest extends TestCase {
         $this->assertEquals([
             'url' => '',
             'httpMethod' => '',
-            'auth' => -1
+            'auth' => 1
         ], $Endpoint->getProperties());
         $this->assertEquals([], $Endpoint->getUrlArgs());
         $this->assertEmpty($Endpoint->getData());
@@ -78,7 +80,7 @@ class AbstractEndpointTest extends TestCase {
         $this->assertEquals(array(
             'url' => '',
             'httpMethod' => '',
-            'auth' => -1
+            'auth' => 1
         ), $Endpoint->getProperties());
         $this->assertEquals($this->options, $Endpoint->getUrlArgs());
         $this->assertEmpty($Endpoint->getData());
@@ -89,7 +91,7 @@ class AbstractEndpointTest extends TestCase {
         $this->assertEquals([
             'url' => '$foo/$bar/$:test',
             'httpMethod' => '',
-            'auth' => -1
+            'auth' => 1
         ], $Endpoint->getProperties());
         $this->assertEquals($this->options, $Endpoint->getUrlArgs());
         $this->assertEmpty($Endpoint->getData());
@@ -121,12 +123,12 @@ class AbstractEndpointTest extends TestCase {
         $this->assertEquals(array(
             'url' => '',
             'httpMethod' => '',
-            'auth' => -1
+            'auth' => 1
         ), $Endpoint->getProperties());
         $Endpoint->setProperties($this->properties);
         $props = $this->properties;
         $props['httpMethod'] = '';
-        $props['auth'] = -1;
+        $props['auth'] = 1;
         $this->assertEquals($props, $Endpoint->getProperties());
         $Endpoint->setProperty(BasicEndpoint::PROPERTY_AUTH, true);
         $props['auth'] = true;
@@ -144,13 +146,14 @@ class AbstractEndpointTest extends TestCase {
         $Endpoint->setProperties($this->properties);
         $props = $this->properties;
         $props['httpMethod'] = '';
-        $props['auth'] = -1;
+        $props['auth'] = 1;
         $this->assertEquals($props, $Endpoint->getProperties());
         $this->assertEquals($Endpoint, $Endpoint->setBaseUrl('localhost'));
         $this->assertEquals('localhost', $Endpoint->getBaseUrl());
         $this->assertEquals('localhost/$foo/$bar/$:test', $Endpoint->getEndPointUrl(true));
         $this->assertEquals($Endpoint, $Endpoint->setBaseUrl(""));
-        $this->assertEquals(null, $Endpoint->getBaseUrl());
+        $Endpoint->setClient(static::$client);
+        $this->assertEquals(static::$client->getAPIUrl(), $Endpoint->getBaseUrl());
     }
 
     /**
@@ -172,13 +175,19 @@ class AbstractEndpointTest extends TestCase {
 
     /**
      * @depends testSetProperties
-     * @covers ::authRequired
+     * @covers ::useAuth
      */
-    public function testAuthRequired() {
+    public function testUseAuth() {
         $Endpoint = new BasicEndpoint();
-        $this->assertEquals(false, $Endpoint->authRequired());
+        $this->assertEquals(1, $Endpoint->useAuth());
         $this->assertEquals($Endpoint, $Endpoint->setProperty('auth', true));
-        $this->assertEquals(true, $Endpoint->authRequired());
+        $this->assertEquals(1, $Endpoint->useAuth());
+        $this->assertEquals($Endpoint, $Endpoint->setProperty('auth', 2));
+        $this->assertEquals(2, $Endpoint->useAuth());
+        $this->assertEquals($Endpoint, $Endpoint->setProperty('auth', true));
+        $this->assertEquals(1, $Endpoint->useAuth());
+        $this->assertEquals($Endpoint, $Endpoint->setProperty('auth', false));
+        $this->assertEquals(0, $Endpoint->useAuth());
     }
 
     /**
@@ -202,7 +211,7 @@ class AbstractEndpointTest extends TestCase {
         self::$client->mockResponses->append(new Response(200));
 
         $Endpoint = new BasicEndpoint();
-        $Endpoint->setHttpClient(self::$client->getHttpClient());
+        $Endpoint->setClient(self::$client);
         $this->assertEquals($Endpoint, $Endpoint->setBaseUrl('http://localhost'));
         $this->assertEquals($Endpoint, $Endpoint->setProperty('url', 'basic'));
         $this->assertEquals($Endpoint, $Endpoint->execute());
@@ -279,5 +288,76 @@ class AbstractEndpointTest extends TestCase {
                 0 => 1234
             )
         ));
+    }
+
+    /**
+     * @covers ::getHttpClient
+     * @return void
+     */
+    public function testHttpClient()
+    {
+        $Ping = new PingEndpoint();
+        $client = $Ping->getHttpClient();
+        $this->assertInstanceOf(\GuzzleHttp\Client::class,$client);
+        $Ping->setClient(static::$client);
+        $this->assertInstanceOf(\GuzzleHttp\Client::class,$Ping->getHttpClient());
+        $this->assertNotEquals($client,$Ping->getHttpClient());
+    }
+
+    /**
+     * @covers ::buildRequest
+     * @covers ::verifyUrl
+     * @covers ::configurePayload
+     * @covers ::configureRequest
+     * @covers ::getMethod
+     * @return void
+     */
+    public function testBuildRequest()
+    {
+        $Ping = new PingEndpoint();
+        $Ping->setClient(static::$client);
+        $Ping->setData([
+            'foo' => 'bar'
+        ]);
+        $request = $Ping->buildRequest();
+        $this->assertInstanceOf(Request::class,$request);
+        $this->assertEquals('http',$request->getUri()->getScheme());
+        $this->assertEquals('phpunit.tests',$request->getUri()->getHost());
+        $this->assertEquals('/ping',$request->getUri()->getPath());
+        $this->assertEquals('foo=bar',$request->getUri()->getQuery());
+
+        $Ping = new PingEndpoint();
+        $Ping->setProperty(AbstractEndpoint::PROPERTY_HTTP_METHOD,'POST');
+        $Ping->setClient(static::$client);
+        $Ping->setData([
+            'foo' => 'bar'
+        ]);
+        $request = $Ping->buildRequest();
+        $this->assertInstanceOf(Request::class,$request);
+        $this->assertEquals('http',$request->getUri()->getScheme());
+        $this->assertEquals('phpunit.tests',$request->getUri()->getHost());
+        $this->assertEquals('/ping',$request->getUri()->getPath());
+        $this->assertEquals(json_encode([
+            'foo' => 'bar'
+        ]),$request->getBody()->getContents());
+    }
+
+    /**
+     * @return void
+     * @throws \MRussell\REST\Exception\Endpoint\InvalidDataType
+     */
+    public function testInvalidQueryString()
+    {
+        $Ping = new PingEndpoint();
+        $Ping->setClient(static::$client);
+        $Ping->setData([
+            'foo' => 'bar'
+        ]);
+        $request = $Ping->buildRequest();
+        $this->assertInstanceOf(Request::class,$request);
+        $this->assertEquals('http',$request->getUri()->getScheme());
+        $this->assertEquals('phpunit.tests',$request->getUri()->getHost());
+        $this->assertEquals('/ping',$request->getUri()->getPath());
+        $this->assertEquals('foo=bar',$request->getUri()->getQuery());
     }
 }

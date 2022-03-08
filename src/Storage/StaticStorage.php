@@ -77,7 +77,7 @@ class StaticStorage implements StorageControllerInterface {
      */
     public static function removeItem($namespace, $key): bool {
         if (isset(static::$_STORAGE[$namespace])) {
-            if (static::$_STORAGE[$namespace][$key]) {
+            if (isset(static::$_STORAGE[$namespace][$key])) {
                 unset(static::$_STORAGE[$namespace][$key]);
             }
         }

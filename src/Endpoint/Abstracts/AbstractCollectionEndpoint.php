@@ -338,8 +338,11 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
         $Model = null;
         if (isset($this->model)) {
             $Model = new $this->model();
-            $Model->setBaseUrl($this->getBaseUrl());
-            $Model->setHttpClient($this->getHttpClient());
+            if ($this->client){
+                $Model->setClient($this->getClient());
+            } else {
+                $Model->setBaseUrl($this->getBaseUrl());
+            }
             if (!empty($data)) {
                 foreach ($data as $key => $value) {
                     $Model->set($key, $value);

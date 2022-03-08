@@ -165,7 +165,7 @@ class AbstractOAuth2ControllerTest extends TestCase {
 
         $RefreshEndpoint = new RefreshEndpoint();
         self::$client->mockResponses->append(new Response(200));
-        $RefreshEndpoint->setHttpClient(self::$client->getHttpClient());
+        $RefreshEndpoint->setClient(self::$client);
         $Auth->setActionEndpoint(OAuth2Controller::ACTION_OAUTH_REFRESH, $RefreshEndpoint);
         $this->assertEquals(false, $Auth->refresh());
         $this->assertEquals(true,$Logger->hasErrorThatContains("An Invalid Token was attempted to be set on the Auth Controller"));

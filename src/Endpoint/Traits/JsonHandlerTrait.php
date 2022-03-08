@@ -6,8 +6,12 @@ use GuzzleHttp\Psr7\Request;
 
 trait JsonHandlerTrait {
 
-    public function configureRequest(Request $request, $data): Request {
-        return parent::configureRequest($request, $data)->withHeader('Content-Type', 'application/json');
+    /**
+     * @param Request $request
+     * @return Request
+     */
+    protected function configureJsonRequest(Request $request): Request {
+        return $request->withHeader('Content-Type', 'application/json');
     }
 
     /**

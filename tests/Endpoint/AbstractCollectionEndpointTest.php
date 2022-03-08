@@ -7,6 +7,7 @@ use MRussell\REST\Endpoint\ModelEndpoint;
 use MRussell\REST\Tests\Stubs\Client\Client;
 use MRussell\REST\Tests\Stubs\Endpoint\CollectionEndpointWithModel;
 use MRussell\REST\Tests\Stubs\Endpoint\CollectionEndpoint;
+use MRussell\REST\Tests\Stubs\Endpoint\ModelEndpointWithActions;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -121,10 +122,12 @@ class AbstractCollectionEndpointTest extends TestCase {
             'foo' => 'bar'
         ), $Collection['k2r2d2']);
         $Model = $Collection->get('abc123');
+        $Collection->setClient(static::$client);
         $this->assertEquals(true, is_object($Model));
         $this->assertEquals('bar', $Model->get('foo'));
         $Model = $Collection->get('abc123');
         $this->assertEquals(true, is_object($Model));
+        $this->assertEquals(static::$client, $Model->getClient());
         $Model = $Collection->at(1);
         $this->assertEquals(array(
             'id' => 'efg234',
@@ -199,6 +202,16 @@ class AbstractCollectionEndpointTest extends TestCase {
         $this->assertEquals("localhost/foobar", $Collection->getEndPointUrl(true));
         $this->assertEquals($Collection, $Collection->setProperty('url', ''));
         $this->assertEquals("localhost/accounts", $Collection->getEndPointUrl(true));
+
+        $Collection = new CollectionEndpointWithModel();
+        $Reflected = new \ReflectionClass($Collection);
+        $defaultUrl = $Reflected->getProperty("_ENDPOINT_URL");
+        $defaultUrl->setAccessible(true);
+        $defaultUrl->setValue($Collection,"");
+        $Collection->setProperty('url','');
+        $this->assertEquals('account/$:id', $Collection->getEndPointUrl());
+
+        $defaultUrl->setValue($Collection,"accounts");
     }
 
     /**
@@ -215,6 +228,9 @@ class AbstractCollectionEndpointTest extends TestCase {
 
     /**
      * @covers ::setResponse
+     * @covers ::parseResponseBodyToArray
+     * @covers ::parseResponse
+     * @covers ::getCollectionResponseProp
      * @covers ::syncFromApi
      */
     public function testGetResponse() {
@@ -226,7 +242,6 @@ class AbstractCollectionEndpointTest extends TestCase {
         $Collection->fetch();
         $Response = $Collection->getResponse();
         $this->assertEquals($Response->getStatusCode(), 200);
-
 
         self::$client->mockResponses->append(new Response(200, [], json_encode([
             [
@@ -294,5 +309,84 @@ class AbstractCollectionEndpointTest extends TestCase {
                 'foo' => 'test-no-id-bar'
             ]
         ], $CollectionWithModel->toArray());
+    }
+
+    /**
+     * @covers ::parseResponseBodyToArray
+     * @covers ::getCollectionResponseProp
+     */
+    public function testParseResponse()
+    {
+        $Collection = new CollectionEndpointWithModel();
+        $Collection->setClient(static::$client);
+        static::$client->container = [];
+        static::$client->mockResponses->append(new Response(200, [], json_encode(['accounts' => array_values($this->collection)])));
+        $Collection->setProperty('response_prop','accounts');
+        $this->assertEquals('accounts',$Collection->getCollectionResponseProp());
+        $Collection->fetch();
+
+        $this->assertEquals($this->collection,$Collection->toArray());
+
+        $Reflect = new \ReflectionClass($Collection);
+        $parseFromResponseBody = $Reflect->getMethod('parseResponseBodyToArray');
+        $parseFromResponseBody->setAccessible(true);
+        $this->assertEquals(json_decode(json_encode(array_values($this->collection)),false),$parseFromResponseBody->invoke($Collection,$Collection->getResponseBody(false),$Collection->getCollectionResponseProp()));
+        $this->assertEquals(array_values($this->collection),$parseFromResponseBody->invoke($Collection,$Collection->getResponseBody(true),$Collection->getCollectionResponseProp()));
+
+        $Collection->setProperty('response_prop','foobar');
+        $this->assertEquals([],$parseFromResponseBody->invoke($Collection,"foobar",$Collection->getCollectionResponseProp()));
+    }
+
+    /**
+     * @covers ::current
+     * @covers ::key
+     * @covers ::next
+     * @covers ::rewind
+     * @covers ::valid
+     * @return void
+     */
+    public function testIteratorInterface()
+    {
+        $Collection = new CollectionEndpointWithModel();
+        $Collection->setClient(static::$client);
+        static::$client->container = [];
+        static::$client->mockResponses->append(new Response(200, [], json_encode(['accounts' => array_values($this->collection)])));
+        $Collection->setProperty('response_prop','accounts');
+        $this->assertEquals('accounts',$Collection->getCollectionResponseProp());
+        $Collection->fetch();
+
+        $this->assertEquals($this->collection,$Collection->toArray());
+        foreach($Collection as $key => $value){
+            $this->assertEquals(true,isset($this->collection[$key]));
+            $this->assertEquals($this->collection[$key],$value);
+        }
+    }
+
+    /**
+     * @covers ::set
+     * @covers ::reset
+     * @return void
+     * @depends testDataAccess
+     */
+    public function testModelsSet()
+    {
+        $Collection = new CollectionEndpoint();
+        $this->assertEquals($Collection,$Collection->set($this->collection));
+
+        $Collection = new CollectionEndpointWithModel();
+        ModelEndpoint::modelIdKey('foobar');
+        $this->assertEquals($Collection,$Collection->set($this->collection));
+        $this->assertEquals(array_values($this->collection),$Collection->toArray());
+        $Collection->reset();
+        $this->assertEquals([],$Collection->toArray());
+        $this->assertEquals($Collection,$Collection->set([
+            new ModelEndpoint(),
+            new \stdClass()
+        ]));
+        $this->assertEquals([
+            [],
+            []
+        ],$Collection->toArray());
+        ModelEndpoint::modelIdKey('id');
     }
 }

@@ -14,10 +14,15 @@ use MRussell\REST\Endpoint\Interfaces\ModelInterface;
 use MRussell\REST\Endpoint\Interfaces\PropertiesInterface;
 use MRussell\REST\Endpoint\Interfaces\ResettableInterface;
 use MRussell\REST\Endpoint\Interfaces\SetInterface;
+use MRussell\REST\Endpoint\Traits\ParseResponseBodyToArrayTrait;
 use MRussell\REST\Exception\Endpoint\UnknownEndpoint;
 
 abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implements CollectionInterface,
     \ArrayAccess,\Iterator {
+    use ParseResponseBodyToArrayTrait;
+
+    const PROPERTY_RESPONSE_PROP = 'response_prop';
+
     const EVENT_BEFORE_SYNC = 'before_sync';
 
     /**
@@ -47,6 +52,7 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
         if (static::$_MODEL_CLASS !== '') {
             $this->setModelEndpoint(static::$_MODEL_CLASS);
         }
+        $this->setProperty(self::PROPERTY_RESPONSE_PROP,static::$_RESPONSE_PROP);
     }
 
     /**
@@ -292,33 +298,24 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
     }
 
     /**
+     * @return string
+     */
+    public function getCollectionResponseProp(): string
+    {
+        if (isset($this->properties[self::PROPERTY_RESPONSE_PROP])){
+            $prop = $this->properties[self::PROPERTY_RESPONSE_PROP];
+        }
+        return $prop ?? static::$_RESPONSE_PROP;
+    }
+
+    /**
      * @inheritdoc
      */
     protected function parseResponse(Response $response): void {
         if ($response->getStatusCode() == 200) {
             $body = $this->getResponseBody();
-            $this->syncFromApi($this->parseCollectionFromResponseBody($body));
+            $this->syncFromApi($this->parseResponseBodyToArray($body,$this->getCollectionResponseProp()));
         }
-    }
-
-    /**
-     * @param object|array $body
-     * @return array
-     */
-    protected function parseCollectionFromResponseBody($body): array {
-        $prop = static::$_RESPONSE_PROP;
-        $ret = [];
-
-        if (!$prop) {
-            $ret = is_array($body) ? $body : [];
-        } else {
-            if (is_object($body)) {
-                $ret = $body->$prop ?? [];
-            } else {
-                $ret = $body[$prop] ?? [];
-            }
-        }
-        return $ret;
     }
 
     /**

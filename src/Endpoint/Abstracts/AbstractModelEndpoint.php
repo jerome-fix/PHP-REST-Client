@@ -10,6 +10,7 @@ use MRussell\REST\Endpoint\Interfaces\ModelInterface;
 use MRussell\REST\Endpoint\Traits\ArrayObjectAttributesTrait;
 use MRussell\REST\Endpoint\Traits\ClearAttributesTrait;
 use MRussell\REST\Endpoint\Traits\GetAttributesTrait;
+use MRussell\REST\Endpoint\Traits\ParseResponseBodyToArrayTrait;
 use MRussell\REST\Endpoint\Traits\PropertiesTrait;
 use MRussell\REST\Endpoint\Traits\SetAttributesTrait;
 use MRussell\REST\Exception\Endpoint\MissingModelId;
@@ -24,8 +25,10 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
         GetAttributesTrait,
         SetAttributesTrait,
         PropertiesTrait,
-        ClearAttributesTrait;
+        ClearAttributesTrait,
+        ParseResponseBodyToArrayTrait;
 
+    const PROPERTY_RESPONSE_PROP = 'response_prop';
     const MODEL_ID_VAR = 'id';
 
     const MODEL_ACTION_CREATE = 'create';
@@ -228,8 +231,12 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
     /**
      * @return string
      */
-    protected function getModelResponseProp(): string{
-        return static::$_RESPONSE_PROP;
+    public function getModelResponseProp(): string
+    {
+        if (isset($this->properties[self::PROPERTY_RESPONSE_PROP])){
+            $prop = $this->properties[self::PROPERTY_RESPONSE_PROP];
+        }
+        return $prop ?? static::$_RESPONSE_PROP;
     }
 
     /**
@@ -244,34 +251,13 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
                 case self::MODEL_ACTION_UPDATE:
                 case self::MODEL_ACTION_RETRIEVE:
                     $body = $this->getResponseBody();
-                    $this->syncFromApi($this->parseModelFromResponseBody($body,$this->getModelResponseProp()));
+                    $this->syncFromApi($this->parseResponseBodyToArray($body,$this->getModelResponseProp()));
                     break;
                 case self::MODEL_ACTION_DELETE:
                     $this->clear();
                     break;
             }
         }
-    }
-
-    /**
-     * @param $body
-     * @param string $prop
-     * @return array
-     */
-    protected function parseModelFromResponseBody($body,string $prop = ""): array {
-        if ($prop == '') {
-            if (is_object($body)) {
-                $body = json_decode(json_encode($body),true);
-            }
-            return is_array($body) ? $body : [];
-        } else {
-            if (is_object($body) && isset($body->$prop)) {
-                return $this->parseModelFromResponseBody($body->$prop);
-            } elseif (is_array($body) && isset($body[$prop])) {
-                return $this->parseModelFromResponseBody($body[$prop]);
-            }
-        }
-        return [];
     }
 
     /**

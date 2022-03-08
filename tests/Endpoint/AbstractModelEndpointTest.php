@@ -289,7 +289,7 @@ class AbstractModelEndpointTest extends TestCase {
      * @covers ::setResponse
      * @covers ::parseResponse
      * @covers ::syncFromApi
-     * @covers ::parseModelFromResponseBody
+     * @covers ::parseResponseBodyToArray
      * @depends testModelIdKey
      */
     public function testGetResponse() {
@@ -329,7 +329,7 @@ class AbstractModelEndpointTest extends TestCase {
     }
 
     /**
-     * @covers ::parseModelFromResponseBody
+     * @covers ::parseResponseBodyToArray
      * @covers ::getModelResponseProp
      */
     public function testParseResponse()
@@ -345,19 +345,19 @@ class AbstractModelEndpointTest extends TestCase {
         $Model->save();
 
         $Reflect = new \ReflectionClass($Model);
-        $getModelResponseProp = $Reflect->getMethod('getModelResponseProp');
-        $getModelResponseProp->setAccessible(true);
-        $parseModelFromResponseBody = $Reflect->getMethod('parseModelFromResponseBody');
+        $parseModelFromResponseBody = $Reflect->getMethod('parseResponseBodyToArray');
         $parseModelFromResponseBody->setAccessible(true);
         $this->assertEquals([
             'id' => '1234',
             'name' => 'foo'
-        ],$parseModelFromResponseBody->invoke($Model,$Model->getResponseBody(false),$getModelResponseProp->invoke($Model)));
+        ],$parseModelFromResponseBody->invoke($Model,$Model->getResponseBody(false),$Model->getModelResponseProp()));
         $this->assertEquals([
             'id' => '1234',
             'name' => 'foo'
-        ],$parseModelFromResponseBody->invoke($Model,$Model->getResponseBody(false),$getModelResponseProp->invoke($Model)));
+        ],$parseModelFromResponseBody->invoke($Model,$Model->getResponseBody(true),$Model->getModelResponseProp()));
 
-        $this->assertEquals([],$parseModelFromResponseBody->invoke($Model,"foobar",$getModelResponseProp->invoke($Model)));
+        $Model->setProperty('response_prop','foobar');
+        $this->assertEquals('foobar',$Model->getModelResponseProp());
+        $this->assertEquals([],$parseModelFromResponseBody->invoke($Model,"foobar",$Model->getModelResponseProp()));
     }
 }

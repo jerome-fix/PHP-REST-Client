@@ -103,10 +103,14 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
      * @return Request
      */
     protected function configureRequest(Request $request, $data): Request {
+        $parsedData = $data;
         if ($data instanceof DataInterface) {
-            $data = $data->toArray();
+            $parsedData = $data->toArray();
+            if (method_exists($data,'isNull')){
+                $parsedData = $data->isNull()?null:$parsedData;
+            }
         }
-        return parent::configureRequest($request, $data);
+        return parent::configureRequest($request, $parsedData);
     }
 
     /**

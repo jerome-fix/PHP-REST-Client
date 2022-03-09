@@ -2,6 +2,7 @@
 
 namespace MRussell\REST\Endpoint\Data;
 
+use MRussell\REST\Endpoint\Interfaces\ArrayableInterface;
 use MRussell\REST\Endpoint\Interfaces\ResettableInterface;
 use MRussell\REST\Endpoint\Traits\ArrayObjectAttributesTrait;
 use MRussell\REST\Endpoint\Traits\ClearAttributesTrait;
@@ -11,16 +12,26 @@ use MRussell\REST\Endpoint\Traits\SetAttributesTrait;
 use MRussell\REST\Exception\Endpoint\InvalidData;
 
 abstract class AbstractEndpointData implements DataInterface {
-    use SetAttributesTrait,
-        GetAttributesTrait,
+    use GetAttributesTrait,
         ClearAttributesTrait;
+    use SetAttributesTrait {
+        set as private setAttributes;
+    }
     use PropertiesTrait {
         setProperties as rawSetProperties;
     }
-    use ArrayObjectAttributesTrait {
-        toArray as asArray;
-    }
 
+    /**
+     * A way to determine between Empty Array and Null
+     * @var bool
+     */
+    protected $isNull = true;
+
+    /**
+     * The actual data
+     * @var array
+     */
+    protected $attributes = [];
 
     const DATA_PROPERTY_REQUIRED = 'required';
     const DATA_PROPERTY_DEFAULTS = 'defaults';
@@ -31,13 +42,114 @@ abstract class AbstractEndpointData implements DataInterface {
     );
 
     //Overloads
-    public function __construct(array $data = [],array $properties = []) {
+    public function __construct(array $data = null,array $properties = []) {
         $this->setProperties(static::$_DEFAULT_PROPERTIES);
-        foreach ($properties as $key => $value) {
-            $this->properties[$key] = $value;
+        if (!empty($properties)){
+            foreach ($properties as $key => $value) {
+                $this->setProperty($key,$value);
+            }
         }
         $this->configureDefaultData();
-        $this->set($data);
+        if (!empty($data)){
+            $this->set($data);
+        }
+    }
+
+    //Object Access
+    /**
+     * Get a data by key
+     * @param string The key data to retrieve
+     * @access public
+     */
+    public function &__get($key) {
+        return $this->attributes[$key];
+    }
+
+    /**
+     * Assigns a value to the specified data
+     * @param string $key - The data key to assign the value to
+     * @param mixed $value - The value to set
+     */
+    public function __set($key, $value) {
+        $this->isNull = false;
+        $this->attributes[$key] = $value;
+    }
+
+    /**
+     * Whether or not an data exists by key
+     * @param string $key - A data key to check for
+     * @return boolean
+     */
+    public function __isset($key) {
+        return isset($this->attributes[$key]);
+    }
+
+    /**
+     * Unsets data by key
+     * @param string $key - The key to unset
+     */
+    public function __unset($key) {
+        unset($this->attributes[$key]);
+    }
+
+    //Array Access
+    /**
+     * Assigns a value to the specified offset
+     * @param string $offset - The offset to assign the value to
+     * @param mixed $value - The value to set
+     * @abstracting ArrayAccess
+     */
+    public function offsetSet($offset, $value): void {
+        $this->isNull = false;
+        if (is_null($offset)) {
+            $this->attributes[] = $value;
+        } else {
+            $this->attributes[$offset] = $value;
+        }
+    }
+
+    /**
+     * Whether or not an offset exists
+     * @param string $offset - An offset to check for
+     * @return boolean
+     * @abstracting ArrayAccess
+     */
+    public function offsetExists($offset): bool {
+        return isset($this->attributes[$offset]);
+    }
+
+    /**
+     * Unsets an offset
+     * @param string $offset - The offset to unset
+     * @abstracting ArrayAccess
+     */
+    public function offsetUnset($offset): void {
+        if ($this->offsetExists($offset)) {
+            unset($this->attributes[$offset]);
+        }
+    }
+
+    /**
+     * Returns the value at specified offset
+     * @param string $offset - The offset to retrieve
+     * @return mixed
+     * @abstracting ArrayAccess
+     */
+    public function offsetGet($offset) {
+        return $this->offsetExists($offset) ? $this->attributes[$offset] : null;
+    }
+
+    /**
+     * @param $key
+     * @param $value
+     * @return $this
+     */
+    public function set($key,$value = null)
+    {
+        if ((is_array($key) && !empty($key)) || !is_array($key)){
+            $this->isNull = false;
+        }
+        return $this->setAttributes($key,$value);
     }
 
     /**
@@ -62,8 +174,26 @@ abstract class AbstractEndpointData implements DataInterface {
      */
     public function reset(): DataInterface {
         $this->setProperties(static::$_DEFAULT_PROPERTIES);
-        $this->clear();
+        $this->null();
         return $this->configureDefaultData();
+    }
+
+    /**
+     * Set data to null
+     * @return $this
+     */
+    public function null()
+    {
+        $this->clear();
+        $this->isNull = true;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isNull(): bool {
+        return $this->isNull && empty($this->attributes);
     }
 
     /**
@@ -71,12 +201,10 @@ abstract class AbstractEndpointData implements DataInterface {
      * @return $this
      */
     protected function configureDefaultData(): self {
-        if (isset($this->properties['defaults']) && is_array($this->properties['defaults'])) {
-            foreach ($this->properties['defaults'] as $data => $value) {
-                if (!isset($this->attributes[$data])) {
-                    $this->attributes[$data] = $value;
-                }
-            }
+        if (isset($this->properties[self::DATA_PROPERTY_DEFAULTS])
+            && is_array($this->properties[self::DATA_PROPERTY_DEFAULTS])
+            && !empty($this->properties[self::DATA_PROPERTY_DEFAULTS])) {
+            $this->set($this->properties[self::DATA_PROPERTY_DEFAULTS]);
         }
         return $this;
     }
@@ -92,7 +220,7 @@ abstract class AbstractEndpointData implements DataInterface {
         if ($verify){
             $this->verifyRequiredData();
         }
-        return $this->asArray();
+        return $this->attributes;
     }
 
     /**
@@ -106,8 +234,8 @@ abstract class AbstractEndpointData implements DataInterface {
             'invalid' => []
         ];
         $error = false;
-        if (!empty($this->properties['required'])) {
-            foreach ($this->properties['required'] as $property => $type) {
+        if (!empty($this->properties[self::DATA_PROPERTY_REQUIRED])) {
+            foreach ($this->properties[self::DATA_PROPERTY_REQUIRED] as $property => $type) {
                 if (!isset($this->attributes[$property])) {
                     $errors['missing'][] = $property;
                     $error = true;
@@ -122,15 +250,12 @@ abstract class AbstractEndpointData implements DataInterface {
         if ($error) {
             $errorMsg = '';
             if (!empty($errors['missing'])) {
-                $errorMsg .= "Missing [" . implode(",", $errors['missing']) . "]";
+                $errorMsg .= "Missing [" . implode(",", $errors['missing']) . "] ";
             }
             if (!empty($errors['invalid'])) {
-                if (!empty($errors['missing'])){
-                    $errorMsg .= " ";
-                }
                 $errorMsg .= "Invalid [" . implode(",", $errors['invalid']) . "]";
             }
-            throw new InvalidData($errorMsg);
+            throw new InvalidData(trim($errorMsg));
         }
         return $error;
     }

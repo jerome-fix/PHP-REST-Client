@@ -300,25 +300,27 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      * @return Request
      */
     protected function configureRequest(Request $request, $data): Request {
-        switch ($request->getMethod()) {
-            case "GET":
-                if (!empty($data)){
-                    $value = $data;
-                    if (\is_array($value)) {
-                        $value = \http_build_query($value, '', '&', \PHP_QUERY_RFC3986);
+        if ($data !== null){
+            switch ($request->getMethod()) {
+                case "GET":
+                    if (!empty($data)){
+                        $value = $data;
+                        if (\is_array($value)) {
+                            $value = \http_build_query($value, '', '&', \PHP_QUERY_RFC3986);
+                        }
+                        if (!\is_string($value)) {
+                            throw new InvalidArgumentException('query must be a string or array');
+                        }
+                        $uri = $request->getUri()->withQuery($value);
+                        $request = $request->withUri($uri);
                     }
-                    if (!\is_string($value)) {
-                        throw new InvalidArgumentException('query must be a string or array');
-                    }
-                    $uri = $request->getUri()->withQuery($value);
-                    $request = $request->withUri($uri);
                     break;
-                }
-            default:
-                if (is_array($data)) {
-                    $data = json_encode($data);
-                }
-                $request = $request->withBody(Utils::streamFor($data));
+                default:
+                    if (is_array($data)) {
+                        $data = json_encode($data);
+                    }
+                    $request = $request->withBody(Utils::streamFor($data));
+            }
         }
         $args = array(
             'request' => $request,

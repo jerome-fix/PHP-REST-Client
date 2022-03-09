@@ -53,6 +53,7 @@ class AbstractEndpointDataTest extends TestCase {
      */
     public function testConstructor() {
         $Data = new StockData();
+        $this->assertEquals(true,$Data->isNull());
         $this->assertEquals(array(
             StockData::DATA_PROPERTY_REQUIRED => array(),
             StockData::DATA_PROPERTY_DEFAULTS => array()
@@ -63,6 +64,7 @@ class AbstractEndpointDataTest extends TestCase {
         $this->assertEquals(array(
             'bar' => 'foo'
         ), $Data->toArray());
+        $this->assertEquals(false,$Data->isNull());
         $Data = new StockData($this->data,$this->properties);
         $this->assertEquals($this->properties, $Data->getProperties());
         $data = $this->data;
@@ -166,9 +168,11 @@ class AbstractEndpointDataTest extends TestCase {
             StockData::DATA_PROPERTY_DEFAULTS => array()
         ), $Data->getProperties());
         $this->assertEquals(array(), $Data->toArray());
+        $this->assertEquals(true, $Data->isNull());
 
         $Data = new StubData($this->data,$this->properties);
         $this->assertEquals($Data, $Data->clear());
+        $this->assertEquals(false, $Data->isNull());
         $this->assertEquals(array(), $Data->toArray());
         $this->assertEquals($this->properties, $Data->getProperties());
     }
@@ -222,5 +226,20 @@ class AbstractEndpointDataTest extends TestCase {
         $Data->setProperties($properties);
         $Data['foo'] = 1234;
         $Data->toArray(true);
+    }
+
+    /**
+     * @covers ::isNull
+     * @covers ::null
+     * @return void
+     */
+    public function testNullable()
+    {
+        $Data = new StockData();
+        $this->assertEquals(true,$Data->isNull());
+        $Data['foobar'] = 'test';
+        $this->assertEquals(false,$Data->isNull());
+        $this->assertEquals($Data,$Data->null());
+        $this->assertEquals(true,$Data->isNull());
     }
 }

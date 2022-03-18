@@ -109,6 +109,10 @@ class AbstractModelEndpointTest extends TestCase {
     }
 
     /**
+     * @covers ::__get
+     * @covers ::__set
+     * @covers ::__isset
+     * @covers ::__unset
      * @covers ::offsetSet
      * @covers ::offsetGet
      * @covers ::offsetUnset
@@ -151,6 +155,14 @@ class AbstractModelEndpointTest extends TestCase {
         ), $Model[0]);
         $this->assertEquals($Model, $Model->reset());
         $this->assertEquals(array(), $Model->toArray());
+
+        $Model->foo = 'bar';
+        $Model['bar'] = 'foo';
+        $this->assertEquals('bar',$Model['foo']);
+        $this->assertEquals('foo',$Model->bar);
+        $this->assertTrue(isset($Model->bar));
+        unset($Model->bar);
+        $this->assertEmpty($Model->bar);
     }
 
     /**

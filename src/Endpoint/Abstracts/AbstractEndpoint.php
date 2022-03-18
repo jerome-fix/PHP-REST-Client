@@ -5,6 +5,7 @@ namespace MRussell\REST\Endpoint\Abstracts;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\InvalidArgumentException;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Psr7\Stream;
 use GuzzleHttp\Psr7\Utils;
 use MRussell\REST\Client\ClientAwareTrait;
@@ -50,6 +51,11 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
         self::PROPERTY_HTTP_METHOD => '',
         self::PROPERTY_AUTH => self::AUTH_EITHER
     );
+
+    /**
+     * @var Promise
+     */
+    private $promise;
 
     /**
      * The Variable Identifier to parse Endpoint URL
@@ -226,9 +232,9 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      */
     public function asyncExecute(array $options = []): EndpointInterface {
         $request = $this->buildRequest();
-        $promise = $this->getHttpClient()->sendAsync($request, $options);
+        $this->promise = $this->getHttpClient()->sendAsync($request, $options);
         $endpoint = $this;
-        $promise->then(
+        $this->promise->then(
             function (Response $res) use ($endpoint, $options) {
                 $endpoint->setResponse($res);
                 if (is_callable($options['success'])) {
@@ -242,6 +248,14 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
             }
         );
         return $this;
+    }
+
+    /**
+     * @return Promise
+     */
+    public function getPromise()
+    {
+        return $this->promise;
     }
 
     /**
@@ -300,6 +314,7 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      * @return Request
      */
     protected function configureRequest(Request $request, $data): Request {
+        $request = $this->configureJsonRequest($request);
         if ($data !== null){
             switch ($request->getMethod()) {
                 case "GET":

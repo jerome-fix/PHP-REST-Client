@@ -3,6 +3,9 @@
 namespace MRussell\REST\Tests\Endpoint;
 
 use GuzzleHttp\Exception\InvalidArgumentException;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Promise\Promise;
+use GuzzleHttp\Promise\Utils;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use MRussell\Http\Response\Standard;
@@ -384,5 +387,44 @@ class AbstractEndpointTest extends TestCase {
         $this->assertInstanceOf(Response::class,$Ping->getResponse());
         $this->assertEquals($pong,$Ping->getResponseBody());
         $this->assertEmpty($Ping->getResponse()->getBody()->getContents());
+    }
+
+
+    /**
+     * @covers ::asyncExecute
+     * @covers ::getPromise
+     * @return void
+     */
+    public function testAsyncExecute()
+    {
+        $Ping = new PingEndpoint();
+        $Ping->setClient(static::$client);
+        $pong = ['pong' => time()];
+        $respBody = json_encode($pong);
+        static::$client->mockResponses->append(new Response(200,[],$respBody));
+        static::$client->mockResponses->append(new Response(400,[],json_encode(['error' => 'invalid_data'])));
+
+        $self = $this;
+        $promises = [];
+        $promises['first'] = $Ping->asyncExecute(['success' => function(Response $resp) use ($self,$respBody){
+            $self->assertInstanceOf(Response::class, $resp);
+            $self->assertEquals($respBody,$resp->getBody()->getContents());
+        }])->getPromise();
+        $promises['second'] = $Ping->asyncExecute(['error' => function(RequestException $exception) use ($self){
+            $self->assertInstanceOf(RequestException::class, $exception);
+            $self->assertInstanceOf(Response::class,$exception->getResponse());
+            $self->assertEquals(json_encode(['error' => 'invalid_data']),$exception->getResponse()->getBody()->getContents());
+        }])->getPromise();
+        $this->assertInstanceOf(Promise::class,$promises['first']);
+        $this->assertInstanceOf(Promise::class,$promises['second']);
+
+        $response = $promises['first']->wait();
+        $this->assertInstanceOf(Response::class,$response);
+        try{
+            $response = $promises['second']->wait();
+        } catch (\Exception $ex){
+            $self->assertInstanceOf(RequestException::class, $ex);
+            $self->assertInstanceOf(Response::class,$ex->getResponse());
+        }
     }
 }

@@ -22,6 +22,13 @@ interface AuthControllerInterface
     public function setCredentials(array $credentials);
 
     /**
+     * Update parts of credentials used for authentication
+     * @param array $credentials
+     * @return $this
+     */
+    public function updateCredentials(array $credentials);
+
+    /**
      * @param array $actions
      * @return $this
      */

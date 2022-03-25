@@ -62,9 +62,17 @@ abstract class AbstractAuthController implements AuthControllerInterface {
     /**
      * @inheritdoc
      */
-    public function setCredentials(array $credentials): AuthControllerInterface {
+    public function setCredentials(array $credentials) {
         $this->credentials = $credentials;
         return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function updateCredentials(array $credentials): AuthControllerInterface
+    {
+        return $this->setCredentials(array_replace($this->getCredentials(),$credentials));
     }
 
     /**
@@ -79,7 +87,7 @@ abstract class AbstractAuthController implements AuthControllerInterface {
      * @param $token
      * @return $this
      */
-    public function setToken($token): AuthControllerInterface {
+    public function setToken($token) {
         $this->token = $token;
         return $this;
     }
@@ -94,7 +102,7 @@ abstract class AbstractAuthController implements AuthControllerInterface {
     /**
      * Clear the token property to null
      */
-    protected function clearToken(): AuthControllerInterface {
+    protected function clearToken() {
         $this->token = null;
         return $this;
     }
@@ -102,7 +110,7 @@ abstract class AbstractAuthController implements AuthControllerInterface {
     /**
      * @inheritdoc
      */
-    public function setActions(array $actions): AuthControllerInterface {
+    public function setActions(array $actions) {
         $this->actions = $actions;
         return $this;
     }
@@ -148,8 +156,8 @@ abstract class AbstractAuthController implements AuthControllerInterface {
      * @inheritdoc
      */
     public function authenticate(): bool {
-        $Endpoint = $this->configureEndpoint($this->getActionEndpoint(self::ACTION_AUTH), self::ACTION_AUTH);
         try {
+            $Endpoint = $this->configureEndpoint($this->getActionEndpoint(self::ACTION_AUTH), self::ACTION_AUTH);
             $response = $Endpoint->execute()->getResponse();
             $ret = $response->getStatusCode() == 200;
             if ($ret) {
@@ -169,14 +177,11 @@ abstract class AbstractAuthController implements AuthControllerInterface {
     public function logout(): bool {
         $ret = false;
         try {
-            $Endpoint = $this->getActionEndpoint(self::ACTION_LOGOUT);
-            if ($Endpoint !== null) {
-                $Endpoint = $this->configureEndpoint($Endpoint, self::ACTION_LOGOUT);
-                $response = $Endpoint->execute()->getResponse();
-                $ret = $response->getStatusCode() == 200;
-                if ($ret) {
-                    $this->clearToken();
-                }
+            $Endpoint = $this->configureEndpoint($this->getActionEndpoint(self::ACTION_LOGOUT), self::ACTION_LOGOUT);
+            $response = $Endpoint->execute()->getResponse();
+            $ret = $response->getStatusCode() == 200;
+            if ($ret) {
+                $this->clearToken();
             }
         } catch(InvalidAuthenticationAction $ex){
             $this->getLogger()->debug($ex->getMessage());

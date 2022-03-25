@@ -15,7 +15,9 @@ use GuzzleHttp\Psr7\Request;
  * A Generic Abstract Client
  * @package MRussell\REST\Client\Abstracts\AbstractClient
  */
-abstract class AbstractClient implements ClientInterface {
+abstract class AbstractClient implements ClientInterface, AuthControllerAwareInterface, EndpointProviderAwareInterface {
+    use AuthControllerAwareTrait,
+        EndpointProviderAwareTrait;
     /**
      * @var Client
      */
@@ -25,16 +27,6 @@ abstract class AbstractClient implements ClientInterface {
      * @var HandlerStack
      */
     protected $guzzleHandlerStack;
-
-    /**
-     * @var AuthControllerInterface
-     */
-    protected $Auth;
-
-    /**
-     * @var EndpointProviderInterface
-     */
-    protected $EndpointProvider;
 
     /**
      * @var string
@@ -115,20 +107,7 @@ abstract class AbstractClient implements ClientInterface {
         return $this;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function setAuth(AuthControllerInterface $Auth): ClientInterface {
-        $this->Auth = $Auth;
-        $this->configureAuth();
-        return $this;
-    }
-
-    /**
-     * @return void
-     */
-    protected function configureAuth()
-    {
+    protected function configureAuth(){
         $api = $this;
         $this->getHandlerStack()->remove('configureAuth');
         $this->getHandlerStack()->push(Middleware::mapRequest(function (Request $request) use ($api) {
@@ -141,28 +120,6 @@ abstract class AbstractClient implements ClientInterface {
             }
             return $request;
         }), 'configureAuth');
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getAuth(): AuthControllerInterface {
-        return $this->Auth;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setEndpointProvider(EndpointProviderInterface $EndpointProvider) {
-        $this->EndpointProvider = $EndpointProvider;
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getEndpointProvider() {
-        return $this->EndpointProvider;
     }
 
     /**
@@ -230,8 +187,9 @@ abstract class AbstractClient implements ClientInterface {
      * @inheritdoc
      */
     public function __call($name, $arguments) {
-        if (isset($this->EndpointProvider)) {
-            $this->setCurrentEndpoint($this->EndpointProvider->getEndpoint($name, $this->version))
+        $provider = $this->getEndpointProvider();
+        if ($provider) {
+            $this->setCurrentEndpoint($provider->getEndpoint($name, $this->version))
                 ->current()
                 ->setClient($this)
                 ->setUrlArgs($arguments);

@@ -80,11 +80,17 @@ class AbstractAuthControllerTest extends TestCase {
      * @param AuthController $Auth
      * @covers ::setCredentials
      * @covers ::getCredentials
+     * @covers ::updateCredentials
      * @return AuthController
      */
     public function testSetCredentials(AuthController $Auth): AuthController {
         $this->assertEquals($Auth, $Auth->setCredentials($this->credentials));
         $this->assertEquals($this->credentials, $Auth->getCredentials());
+        $this->assertEquals($Auth, $Auth->updateCredentials(array('user' => 'foobar')));
+        $this->assertEquals(array(
+            'user' => 'foobar',
+            'password' => $this->credentials['password']
+        ), $Auth->getCredentials());
         $Auth->setCredentials(array());
         $this->assertEquals(array(), $Auth->getCredentials());
         return $Auth;
@@ -143,13 +149,20 @@ class AbstractAuthControllerTest extends TestCase {
         $LogoutEndpoint = new LogoutEndpoint();
         $this->assertEquals($Auth, $Auth->setActionEndpoint(AbstractAuthController::ACTION_LOGOUT, $LogoutEndpoint));
         $this->assertEquals($LogoutEndpoint, $Auth->getActionEndpoint('logout'));
-        // ttuemer
-        try {
-            $Auth->getActionEndpoint('test');
-        } catch (InvalidAuthenticationAction $e) {
-            $this->assertEquals($e->getMessage(), "Unknown Auth Action [test] requested on Controller: MRussell\REST\Auth\Abstracts\AbstractAuthController");
-        }
+
         return $Auth;
+    }
+
+    /**
+     * @depends testSetActions
+     * @param AuthController $Auth
+     * @return void
+     */
+    public function testInvalidActionException(AuthController $Auth)
+    {
+        $this->expectExceptionMessage("Unknown Auth Action [test] requested on Controller: MRussell\REST\Auth\Abstracts\AbstractAuthController");
+        $this->expectException(InvalidAuthenticationAction::class);
+        $Auth->getActionEndpoint('test');
     }
 
     /**

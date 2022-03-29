@@ -86,7 +86,7 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController {
      * @inheritdoc
      * @throws InvalidToken
      */
-    public function setToken($token): AuthControllerInterface {
+    public function setToken($token) {
         if (is_array($token) && isset($token['access_token'])) {
             $token = $this->configureToken($token);
             return parent::setToken($token);
@@ -132,6 +132,15 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController {
             }
         }
         return null;
+    }
+
+    /**
+     *
+     * @return bool
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    protected function cacheToken(): bool {
+        return $this->getCache()->set($this->getCacheKey(), $this->token,$this->getTokenProp('expires_in'));
     }
 
     /**

@@ -4,13 +4,15 @@ namespace MRussell\REST\Auth\Abstracts;
 
 use GuzzleHttp\Psr7\Response;
 use MRussell\REST\Auth\AuthControllerInterface;
+use MRussell\REST\Cache\MemoryCache;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Exception\Auth\InvalidAuthenticationAction;
-use MRussell\REST\Storage\StorageControllerInterface;
+use MRussell\REST\Traits\PsrSimpleCacheTrait;
 use MRussell\REST\Traits\PsrLoggerTrait;
 
 abstract class AbstractAuthController implements AuthControllerInterface {
     use PsrLoggerTrait;
+    use PsrSimpleCacheTrait;
 
     const ACTION_AUTH = 'authenticate';
     const ACTION_LOGOUT = 'logout';
@@ -49,9 +51,10 @@ abstract class AbstractAuthController implements AuthControllerInterface {
     protected $token = null;
 
     /**
-     * @var StorageControllerInterface
+     * The Cache Key to store the token
+     * @var string
      */
-    protected $storage;
+    protected $cacheKey;
 
     public function __construct() {
         foreach (static::$_DEFAULT_AUTH_ACTIONS as $action) {
@@ -64,7 +67,23 @@ abstract class AbstractAuthController implements AuthControllerInterface {
      */
     public function setCredentials(array $credentials) {
         $this->credentials = $credentials;
+        $this->cacheKey = '';
+        $token = $this->getCachedToken();
+        if (!empty($token)){
+            $this->setToken($token);
+        }
         return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCacheKey(): string
+    {
+        if (empty($this->cacheKey)){
+            $this->cacheKey = "AUTH_TOKEN_".sha1(json_encode($this->credentials));
+        }
+        return $this->cacheKey;
     }
 
     /**
@@ -89,6 +108,7 @@ abstract class AbstractAuthController implements AuthControllerInterface {
      */
     public function setToken($token) {
         $this->token = $token;
+        $this->cacheToken();
         return $this;
     }
 
@@ -102,7 +122,7 @@ abstract class AbstractAuthController implements AuthControllerInterface {
     /**
      * Clear the token property to null
      */
-    protected function clearToken() {
+    public function clearToken() {
         $this->token = null;
         return $this;
     }
@@ -182,6 +202,7 @@ abstract class AbstractAuthController implements AuthControllerInterface {
             $ret = $response->getStatusCode() == 200;
             if ($ret) {
                 $this->clearToken();
+                $this->removeCachedToken();
             }
         } catch(InvalidAuthenticationAction $ex){
             $this->getLogger()->debug($ex->getMessage());
@@ -200,48 +221,27 @@ abstract class AbstractAuthController implements AuthControllerInterface {
     }
 
     /**
-     * @inheritdoc
+     * Cache the current token on the Auth Controller
+     * @return bool
      */
-    public function setStorageController(StorageControllerInterface $Storage): AuthControllerInterface {
-        $this->storage = $Storage;
-        return $this;
+    protected function cacheToken(): bool {
+        return $this->getCache()->set($this->getCacheKey(), $this->token);
     }
 
     /**
-     * @inheritdoc
+     * Get the cached token for the Auth Controller
+     * @return mixed
      */
-    public function getStorageController(): StorageControllerInterface {
-        return $this->storage;
+    protected function getCachedToken() {
+        return $this->getCache()->get($this->getCacheKey(),null);
     }
 
     /**
-     * @inheritdoc
+     * Remove the cached token from the Auth Controller
+     * @return bool
      */
-    public function storeToken($key, $token): bool {
-        if (isset($this->storage)) {
-            return $this->storage->store($key, $token);
-        }
-        return false;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getStoredToken($key) {
-        if (isset($this->storage)) {
-            return $this->storage->get($key);
-        }
-        return null;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function removeStoredToken($key): bool {
-        if (isset($this->storage)) {
-            return $this->storage->remove($key);
-        }
-        return false;
+    protected function removeCachedToken(): bool {
+        return $this->getCache()->delete($this->getCacheKey());
     }
 
     /**

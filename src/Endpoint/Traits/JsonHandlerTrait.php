@@ -29,8 +29,10 @@ trait JsonHandlerTrait {
         $body = null;
         try {
             $body = json_decode($this->respBody, $associative);
+            // @codeCoverageIgnoreStart
         } catch (\Exception $e) {
         }
+        // @codeCoverageIgnoreEnd
         return $body;
     }
 }

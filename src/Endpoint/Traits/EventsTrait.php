@@ -13,6 +13,7 @@ trait EventsTrait
 
     /**
      * @abstracting EventTriggerInterface
+     * @codeCoverageIgnore
      */
     public function triggerEvent(string $event, &$data = null): void {
         $this->eventStack->trigger($event, $data);
@@ -20,6 +21,7 @@ trait EventsTrait
 
     /**
      * @abstracting EventTriggerInterface
+     * @codeCoverageIgnore
      */
     public function onEvent(string $event, callable $func, string $id = null) {
         return $this->eventStack->register($event, $func, $id);
@@ -27,6 +29,7 @@ trait EventsTrait
 
     /**
      * @abstracting EventTriggerInterface
+     * @codeCoverageIgnore
      */
     public function offEvent(string $event, $id): bool {
         return $this->eventStack->remove($event, $id);

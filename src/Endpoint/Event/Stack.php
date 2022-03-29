@@ -58,25 +58,23 @@ class Stack implements StackInterface {
     /**
      * @param callable $handler
      * @param $data
-     * @return mixed
+     * @return void
      */
     private function runEventHandler(callable $handler, &$data = null) {
-        return $handler($data, $this->getEndpoint());
+        $handler($data, $this->getEndpoint());
     }
 
     /**
      * @inheritDoc
      */
     public function register(string $event, callable $func, string $id = null) {
-        if (isset($this->events[$event])) {
+        if (!isset($this->events[$event])) {
             $this->events[$event] = [];
         }
-        if ($id) {
-            $this->events[$event][$id] = $func;
-        } else {
+        if (empty($id)) {
             $id = count($this->events);
-            $this->events[$event][$id] = $func;
         }
+        $this->events[$event][$id] = $func;
         return $id;
     }
 
@@ -86,6 +84,9 @@ class Stack implements StackInterface {
     public function remove(string $event, $id): bool {
         if (isset($this->events[$event]) && isset($this->events[$event][$id])) {
             unset($this->events[$event][$id]);
+            if (empty($this->events[$event])){
+                unset($this->events[$event]);
+            }
             return true;
         }
         return false;

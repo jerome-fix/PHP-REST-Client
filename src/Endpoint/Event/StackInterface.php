@@ -10,7 +10,7 @@ interface StackInterface {
      * @param EndpointInterface $endpoint
      * @return $this
      */
-    public function setEndpoint(EndpointInterface $endpoint): StackInterface;
+    public function setEndpoint(EndpointInterface $endpoint);
 
     /**
      * Get the configured Endpoint for the Event Stack
@@ -22,9 +22,9 @@ interface StackInterface {
      * Trigger an event to run
      * @param string $event
      * @param $data
-     * @return StackInterface
+     * @return $this
      */
-    public function trigger(string $event, &$data = null): StackInterface;
+    public function trigger(string $event, &$data = null);
 
     /**
      * Register a new event handler

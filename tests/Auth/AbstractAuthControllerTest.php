@@ -5,6 +5,7 @@ namespace MRussell\REST\Tests\Auth;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use MRussell\REST\Cache\MemoryCache;
 use MRussell\REST\Exception\Auth\InvalidAuthenticationAction;
 use MRussell\REST\Auth\Abstracts\AbstractAuthController;
 use MRussell\REST\Storage\StaticStorage;
@@ -13,6 +14,7 @@ use MRussell\REST\Tests\Stubs\Client\Client;
 use MRussell\REST\Tests\Stubs\Endpoint\AuthEndpoint;
 use MRussell\REST\Tests\Stubs\Endpoint\LogoutEndpoint;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 use Psr\Log\Test\TestLogger;
 
 /**
@@ -168,42 +170,52 @@ class AbstractAuthControllerTest extends TestCase {
     /**
      * @depends testSetActions
      * @param AuthController $Auth
-     * @covers ::setStorageController
-     * @covers ::getStorageController
+     * @covers ::setCache
+     * @covers ::getCache
+     * @covers ::cacheToken
+     * @covers ::getCacheKey
+     * @covers ::getCachedToken
+     * @covers ::removeCachedToken
      * @return AuthController
      */
-    public function testSetStorageController(AuthController $Auth) {
-        $Storage = new StaticStorage();
-        $this->assertEquals($Auth, $Auth->setStorageController($Storage));
-        $this->assertEquals($Storage, $Auth->getStorageController());
-        return $Auth;
-    }
+    public function testCaching(AuthController $Auth) {
+        $cache = MemoryCache::getInstance();
+        $ReflectedAuth = new \ReflectionClass($Auth);
+        $cacheTokenMethod = $ReflectedAuth->getMethod('cacheToken');
+        $cacheTokenMethod->setAccessible(true);
+        $getCachedTokenMethod = $ReflectedAuth->getMethod('getCachedToken');
+        $getCachedTokenMethod->setAccessible(true);
+        $removeCachedTokenMethod = $ReflectedAuth->getMethod('removeCachedToken');
+        $removeCachedTokenMethod->setAccessible(true);
 
-    /**
-     * @depends testSetStorageController
-     * @param AuthController $Auth
-     * @covers ::storeToken
-     * @covers ::getStoredToken
-     * @covers ::removeStoredToken
-     */
-    public function testTokenStorage(AuthController $Auth) {
+        $this->assertEquals($cache, $Auth->getCache());
+        $this->assertEquals($Auth, $Auth->setCache($cache));
         $token1 = $Auth->getToken();
-        $this->assertEquals(true, $Auth->storeToken('auth_token', $token1));
-        $this->assertEquals($token1, $Auth->getStoredToken('auth_token'));
+        $this->assertEquals($Auth, $Auth->setToken($token1));
+        $this->assertEquals($token1, $cache->get($Auth->getCacheKey()));
         $token2 = 'abcdefg';
-        $this->assertEquals(true, $Auth->storeToken('auth_token2', $token2));
-        $this->assertEquals($token2, $Auth->getStoredToken('auth_token2'));
-        $this->assertEquals($token1, $Auth->getStoredToken('auth_token'));
-        $this->assertEquals(true, $Auth->storeToken('auth_token', $token2));
-        $this->assertEquals($token2, $Auth->getStoredToken('auth_token'));
-        $this->assertEquals(true, $Auth->removeStoredToken('auth_token2'));
-        unset($Auth);
+        $this->assertEquals($Auth, $Auth->setToken($token2));
+        $this->assertEquals($token2, $cache->get($Auth->getCacheKey()));
+        $this->assertEquals(true,$cacheTokenMethod->invoke($Auth));
+        $this->assertEquals($token2, $cache->get($Auth->getCacheKey()));
+        $this->assertEquals(true,$removeCachedTokenMethod->invoke($Auth));
+        $this->assertEquals(null, $cache->get($Auth->getCacheKey(),null));
 
-        $Auth = new AuthController();
-        $this->assertEquals(false, $Auth->storeToken('auth_token', $token1));
-        $this->assertEquals(null, $Auth->getStoredToken('auth_token'));
-        $this->assertEquals(false, $Auth->removeStoredToken('auth_token'));
+        $cacheKey = $Auth->getCacheKey();
+        $Auth->setCredentials(['username' => 'foo']);
+        $this->assertNotEquals($cacheKey,$Auth->getCacheKey());
+        $cacheKey = $Auth->getCacheKey();
+        $this->assertEquals("AUTH_TOKEN_".sha1(json_encode(['username' => 'foo'])),$cacheKey);
+        $Auth->setToken($token1);
+        $this->assertEquals($token1, $getCachedTokenMethod->invoke($Auth));
+        $this->assertEquals($token1, $cache->get($cacheKey));
+        $Auth->clearToken();
+        $Auth->setCredentials(['username' => 'foo']);
+        $this->assertEquals($token1, $getCachedTokenMethod->invoke($Auth));
+        $this->assertEquals($token1, $cache->get($cacheKey));
+        $this->assertEquals($token1, $Auth->getToken());
     }
+
 
     /**
      * @covers ::configureEndpoint
@@ -254,12 +266,14 @@ class AbstractAuthControllerTest extends TestCase {
      * @param AuthController $Auth
      * @depends testConfigureData
      * @covers ::logout
+     * @covers ::getLogger
      */
     public function testLogout(AuthController $Auth): AuthController {
         $Endpoint = new LogoutEndpoint();
         $Logger = new TestLogger();
         self::$client->mockResponses->append(new Response(200));
         $Endpoint->setClient(self::$client);
+        $this->assertInstanceOf(NullLogger::class,$Auth->getLogger());
         $Auth->setLogger($Logger);
         $Auth->setActionEndpoint(AbstractAuthController::ACTION_LOGOUT, $Endpoint);
         $this->assertEquals(true, $Auth->logout());

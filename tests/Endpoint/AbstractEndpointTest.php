@@ -354,6 +354,7 @@ class AbstractEndpointTest extends TestCase {
     }
 
     /**
+     * @covers ::onEvent
      * @return void
      * @throws \MRussell\REST\Exception\Endpoint\InvalidDataType
      */

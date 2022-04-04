@@ -294,7 +294,9 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
             $url = rtrim($this->getBaseUrl(), "/") . "/" . $url;
         }
         $data = $this->configurePayload();
-        $this->request = $this->configureRequest(new Request($method, $url), $data);
+        $request = new Request($method, $url);
+        $request = $this->configureJsonRequest($request);
+        $this->request = $this->configureRequest($request, $data);
         return $this->request;
     }
 
@@ -314,7 +316,6 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      * @return Request
      */
     protected function configureRequest(Request $request, $data): Request {
-        $request = $this->configureJsonRequest($request);
         if ($data !== null){
             switch ($request->getMethod()) {
                 case "GET":

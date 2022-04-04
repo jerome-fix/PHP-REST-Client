@@ -102,9 +102,7 @@ abstract class AbstractAuthController implements AuthControllerInterface {
     }
 
     /**
-     * Set the Token on the Authentication Controller
-     * @param $token
-     * @return $this
+     * @inheritDoc
      */
     public function setToken($token) {
         $this->token = $token;

@@ -86,6 +86,13 @@ interface AuthControllerInterface
     public function isAuthenticated(): bool;
 
     /**
+     * Set the current token on the Auth Controller
+     * @param $token mixed
+     * @return $this
+     */
+    public function setToken($token);
+
+    /**
      * Get the current token on the Auth Controller
      * @return mixed
      */

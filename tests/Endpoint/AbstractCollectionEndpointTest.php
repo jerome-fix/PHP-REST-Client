@@ -335,6 +335,8 @@ class AbstractCollectionEndpointTest extends TestCase {
 
         $Collection->setProperty('response_prop','foobar');
         $this->assertEquals([],$parseFromResponseBody->invoke($Collection,"foobar",$Collection->getCollectionResponseProp()));
+        $Collection->setProperty('response_prop',null);
+        $this->assertEquals([],$parseFromResponseBody->invoke($Collection,"foobar",$Collection->getCollectionResponseProp()));
     }
 
     /**

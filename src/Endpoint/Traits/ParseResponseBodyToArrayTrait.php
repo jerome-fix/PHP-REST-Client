@@ -10,7 +10,7 @@ trait ParseResponseBodyToArrayTrait
      * @return array
      */
     protected function parseResponseBodyToArray($body,string $prop = ""): array {
-        if ($prop == '') {
+        if (empty($prop)) {
             if (is_object($body)) {
                 $body = json_decode(json_encode($body),true);
             }

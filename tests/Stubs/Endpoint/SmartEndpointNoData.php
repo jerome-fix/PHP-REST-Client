@@ -9,8 +9,8 @@ class SmartEndpointNoData extends AbstractSmartEndpoint {
     protected static $_DATA_CLASS = 'MRussell\REST\Endpoint\Data\EndpointData';
 
     //Override constructor to prevent building out of Data Object right away
-    public function __construct(array $options = array(), array $properties = array())
+    public function __construct(array $urlArgs = array(), array $properties = array())
     {
-        AbstractEndpoint::__construct($options,$properties);
+        AbstractEndpoint::__construct($urlArgs,$properties);
     }
 }

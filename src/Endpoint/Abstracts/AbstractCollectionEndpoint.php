@@ -47,8 +47,8 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      */
     protected $model;
 
-    public function __construct(array $options = array(), array $properties = array()) {
-        parent::__construct($options, $properties);
+    public function __construct(array $urlArgs = array(), array $properties = array()) {
+        parent::__construct($urlArgs, $properties);
         if (static::$_MODEL_CLASS !== '') {
             $this->setModelEndpoint(static::$_MODEL_CLASS);
         }

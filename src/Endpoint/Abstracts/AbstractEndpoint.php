@@ -100,12 +100,12 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      */
     protected $response;
 
-    public function __construct(array $options = array(), array $properties = array()) {
+    public function __construct(array $urlArgs = array(), array $properties = array()) {
         $this->eventStack = new Stack();
         $this->eventStack->setEndpoint($this);
         $this->setProperties(static::$_DEFAULT_PROPERTIES);
-        if (!empty($options)) {
-            $this->setUrlArgs($options);
+        if (!empty($urlArgs)) {
+            $this->setUrlArgs($urlArgs);
         }
         if (!empty($properties)) {
             foreach ($properties as $key => $value) {
@@ -238,12 +238,12 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
         $this->promise->then(
             function (Response $res) use ($endpoint, $options) {
                 $endpoint->setResponse($res);
-                if (is_callable($options['success'])) {
+                if (isset($options['success']) && is_callable($options['success'])) {
                     $options['success']($res);
                 }
             },
             function (RequestException $e) use ($options) {
-                if (is_callable($options['error'])) {
+                if (isset($options['success']) && is_callable($options['error'])) {
                     $options['error']($e);
                 }
             }

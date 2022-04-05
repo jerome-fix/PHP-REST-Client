@@ -195,6 +195,7 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      */
     protected function setResponse(Response $response) {
         $this->response = $response;
+        $this->respBody = null;
         $this->triggerEvent(self::EVENT_AFTER_RESPONSE, $response);
         return $this;
     }

@@ -373,6 +373,7 @@ class AbstractEndpointTest extends TestCase {
 
     /**
      * @covers ::getResponse
+     * @covers ::setResponse
      * @covers ::getResponseBody
      * @return void
      * @throws \GuzzleHttp\Exception\GuzzleException
@@ -384,9 +385,14 @@ class AbstractEndpointTest extends TestCase {
         $pong = ['pong' => time()];
         $respBody = json_encode($pong);
         static::$client->mockResponses->append(new Response(200,[],$respBody));
+        static::$client->mockResponses->append(new Response(200,[],json_encode([])));
         $Ping->execute();
         $this->assertInstanceOf(Response::class,$Ping->getResponse());
         $this->assertEquals($pong,$Ping->getResponseBody());
+        $this->assertEmpty($Ping->getResponse()->getBody()->getContents());
+        $Ping->execute();
+        $this->assertInstanceOf(Response::class,$Ping->getResponse());
+        $this->assertEquals([],$Ping->getResponseBody());
         $this->assertEmpty($Ping->getResponse()->getBody()->getContents());
     }
 

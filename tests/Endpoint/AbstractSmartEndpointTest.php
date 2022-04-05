@@ -51,9 +51,9 @@ class AbstractSmartEndpointTest extends TestCase {
      */
     public function testConstructor() {
         $Endpoint = new SmartEndpointNoData();
-        $this->assertEmpty($Endpoint->getData());
+        $this->assertNotEmpty($Endpoint->getData());
         $Endpoint = new SmartEndpointNoData(['foo'], ['url' => 'bar']);
-        $this->assertEmpty($Endpoint->getData());
+        $this->assertNotEmpty($Endpoint->getData());
         $this->assertEquals($Endpoint->getEndPointUrl(), 'bar');
         $this->assertEquals($Endpoint->getUrlArgs(), ['foo']);
         $Endpoint = new SmartEndpoint(

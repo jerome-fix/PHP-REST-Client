@@ -201,7 +201,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      */
     protected function configurePayload() {
         $data = $this->getData() ?? null;
-        switch ($this->action) {
+        switch ($this->getCurrentAction()) {
             case self::MODEL_ACTION_CREATE:
             case self::MODEL_ACTION_UPDATE:
                 if ($data == null){

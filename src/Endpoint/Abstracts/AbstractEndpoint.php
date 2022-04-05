@@ -351,17 +351,17 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      * Configures the URL, by updating any variable placeholders in the URL property on the Endpoint
      * - Replaces $var $options['var']
      * - If $options['var'] doesn't exist, replaces with next numeric option in array
-     * @param array $options
+     * @param array $urlArgs
      * @return string
      */
-    protected function configureURL(array $options): string {
+    protected function configureURL(array $urlArgs): string {
         $url = $this->getEndPointUrl();
-        $this->triggerEvent(self::EVENT_CONFIGURE_URL, $options);
+        $this->triggerEvent(self::EVENT_CONFIGURE_URL, $urlArgs);
         if ($this->hasUrlArgs()) {
             $urlArr = explode("/", $url);
             $optional = false;
             $optionNum = 0;
-            $keys = array_keys($options);
+            $keys = array_keys($urlArgs);
             sort($keys);
             foreach ($keys as $key) {
                 if (is_numeric($key)) {
@@ -377,11 +377,11 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
                         $replace = '';
                     }
                     $opt = str_replace(array(static::$_URL_VAR_CHARACTER, ':'), '', $urlPart);
-                    if (isset($options[$opt])) {
-                        $replace = $options[$opt];
+                    if (isset($urlArgs[$opt])) {
+                        $replace = $urlArgs[$opt];
                     }
-                    if (isset($options[$optionNum]) && ($replace == '' || $replace == null)) {
-                        $replace = $options[$optionNum];
+                    if (isset($urlArgs[$optionNum]) && ($replace == '' || $replace == null)) {
+                        $replace = $urlArgs[$optionNum];
                         $optionNum = $optionNum + 1;
                     }
                     if ($optional && $replace == '') {

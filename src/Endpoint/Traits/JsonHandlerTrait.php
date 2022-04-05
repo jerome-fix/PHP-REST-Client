@@ -25,7 +25,9 @@ trait JsonHandlerTrait {
     {
         if (!$this->respBody) {
             $this->respBody = $this->getResponse()->getBody()->getContents();
-            if (strpos($this->getResponse()->getHeader('Content-Type'),"json") == FALSE){
+            $contentType = $this->getResponse()->getHeader('Content-Type');
+            $contentType = is_array($contentType)?"":$contentType;
+            if (strpos($contentType,"json") == FALSE){
                 $this->respBody = html_entity_decode($this->respBody,ENT_QUOTES|ENT_HTML5,'UTF-8');
             }
         }

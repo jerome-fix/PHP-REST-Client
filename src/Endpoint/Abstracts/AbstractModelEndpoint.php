@@ -274,14 +274,16 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @return string
      */
     protected function configureURL(array $urlArgs): string {
-        switch ($this->getCurrentAction()) {
-            case self::MODEL_ACTION_CREATE:
-                $urlArgs[self::MODEL_ID_VAR] = '';
-                break;
-            default:
-                $idKey = $this->modelIdKey();
-                $id = $this->get($idKey);
-                $urlArgs[self::MODEL_ID_VAR] = (empty($id) ? '' : $id);
+        if (empty($urlArgs[self::MODEL_ID_VAR])){
+            switch ($this->getCurrentAction()) {
+                case self::MODEL_ACTION_CREATE:
+                    $urlArgs[self::MODEL_ID_VAR] = '';
+                    break;
+                default:
+                    $idKey = $this->modelIdKey();
+                    $id = $this->get($idKey);
+                    $urlArgs[self::MODEL_ID_VAR] = (empty($id) ? '' : $id);
+            }
         }
         return parent::configureURL($urlArgs);
     }

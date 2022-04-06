@@ -119,6 +119,7 @@ abstract class AbstractAuthController implements AuthControllerInterface {
 
     /**
      * Clear the token property to null
+     * @return $this
      */
     public function clearToken() {
         $this->token = null;

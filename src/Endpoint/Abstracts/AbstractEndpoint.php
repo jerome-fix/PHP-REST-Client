@@ -453,8 +453,8 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      */
     public function reset()
     {
-        unset($this->request);
-        unset($this->response);
+        $this->request = null;
+        $this->response = null;
         $this->urlArgs = [];
         $this->setData(null);
         $this->setProperties([]);

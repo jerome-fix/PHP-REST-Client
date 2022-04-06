@@ -83,6 +83,7 @@ class AbstractOAuth2ControllerTest extends TestCase {
 
     /**
      * @covers ::setToken
+     * @covers ::cacheToken
      * @covers ::getTokenProp
      * @covers ::configureToken
      * @covers ::isAuthenticated
@@ -106,6 +107,7 @@ class AbstractOAuth2ControllerTest extends TestCase {
         $this->assertEquals($Auth, $Auth->setToken($objToken));
         $this->assertNotEmpty($objToken->expiration);
         $this->assertEquals($newToken['access_token'],$Auth->getTokenProp('access_token'));
+        $this->assertEquals($objToken,$Auth->getCache()->get($Auth->getCacheKey()));
         $this->assertEquals(false, $Auth->isAuthenticated());
         $this->assertEquals(true, $isTokenExpired->invoke($Auth));
 

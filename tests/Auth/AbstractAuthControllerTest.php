@@ -176,6 +176,7 @@ class AbstractAuthControllerTest extends TestCase {
      * @covers ::getCacheKey
      * @covers ::getCachedToken
      * @covers ::removeCachedToken
+     * @covers ::setCredentials
      * @return AuthController
      */
     public function testCaching(AuthController $Auth) {

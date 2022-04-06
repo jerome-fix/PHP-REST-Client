@@ -160,6 +160,7 @@ class AbstractSmartEndpointTest extends TestCase {
     }
 
     /**
+     * @covers ::setData
      * @throws MRussell\REST\Exception\Endpoint\InvalidDataType
      */
     public function testInvalidDataType() {
@@ -169,6 +170,11 @@ class AbstractSmartEndpointTest extends TestCase {
         $Endpoint->setData('test');
     }
 
+    /**
+     * @covers ::setData
+     * @covers ::buildDataObject
+     * @throws \MRussell\REST\Exception\Endpoint\InvalidDataType
+     */
     public function testInvalidDataClass()
     {
         $Endpoint = new SmartEndpointNoData();
@@ -179,5 +185,21 @@ class AbstractSmartEndpointTest extends TestCase {
         $this->expectException(InvalidData::class);
         $this->expectExceptionMessage("Missing or Invalid data on Endpoint Data. Errors: MRussell\REST\Tests\Stubs\Endpoint\PingEndpoint does not implement MRussell\\REST\\Endpoint\\Data\\DataInterface");
         $Endpoint->setData([]);
+    }
+
+    /**
+     * @covers ::reset
+     * @covers ::buildDataObject
+     * @return void
+     */
+    public function testReset()
+    {
+        $Endpoint = new SmartEndpoint();
+        $this->assertInstanceOf(DataInterface::class,$Endpoint->getData());
+        $Endpoint->getData()['foo'] = 'bar';
+        $this->assertEquals('bar',$Endpoint->getData()['foo']);
+        $Endpoint->reset();
+        $this->assertEmpty($Endpoint->getData()->toArray());
+        $this->assertTrue($Endpoint->getData()->isNull());
     }
 }

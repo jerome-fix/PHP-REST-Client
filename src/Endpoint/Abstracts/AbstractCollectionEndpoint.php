@@ -313,7 +313,7 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      */
     protected function parseResponse(Response $response): void {
         if ($response->getStatusCode() == 200) {
-            $body = $this->getResponseBody();
+            $body = $this->getResponseContent($response);
             $this->syncFromApi($this->parseResponseBodyToArray($body,$this->getCollectionResponseProp()));
         }
     }

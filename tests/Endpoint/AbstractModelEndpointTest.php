@@ -343,6 +343,7 @@ class AbstractModelEndpointTest extends TestCase {
     /**
      * @covers ::parseResponseBodyToArray
      * @covers ::getModelResponseProp
+     * @covers ::getResponseBody
      */
     public function testParseResponse()
     {

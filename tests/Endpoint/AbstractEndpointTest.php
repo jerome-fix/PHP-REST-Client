@@ -211,6 +211,7 @@ class AbstractEndpointTest extends TestCase {
      * @covers ::setResponse
      * @covers ::configurePayload
      * @covers ::verifyUrl
+     * @covers ::configureJsonRequest
      */
     public function testExecute() {
         self::$client->mockResponses->append(new Response(200));
@@ -220,7 +221,10 @@ class AbstractEndpointTest extends TestCase {
         $this->assertEquals($Endpoint, $Endpoint->setBaseUrl('http://localhost'));
         $this->assertEquals($Endpoint, $Endpoint->setProperty('url', 'basic'));
         $this->assertEquals($Endpoint, $Endpoint->execute());
-        $this->assertEquals('http://localhost/basic', $Endpoint->buildRequest()->getUri()->__toString());
+        $request = self::$client->mockResponses->getLastRequest();
+        $this->assertEquals('http://localhost/basic', $request->getUri()->__toString());
+        $this->assertEquals('application/json',$request->getHeader('Content-Type')[0]);
+        $this->assertEquals('GET',$request->getMethod());
     }
 
     /**
@@ -297,7 +301,8 @@ class AbstractEndpointTest extends TestCase {
 
     /**
      * @covers ::getHttpClient
-     * @return void
+     * @covers ::setClient
+     * @covers ::getClient
      */
     public function testHttpClient()
     {
@@ -306,6 +311,7 @@ class AbstractEndpointTest extends TestCase {
         $this->assertInstanceOf(\GuzzleHttp\Client::class,$client);
         $Ping->setClient(static::$client);
         $this->assertInstanceOf(\GuzzleHttp\Client::class,$Ping->getHttpClient());
+        $this->assertEquals(static::$client,$Ping->getClient());
         $this->assertNotEquals($client,$Ping->getHttpClient());
     }
 
@@ -329,6 +335,7 @@ class AbstractEndpointTest extends TestCase {
         $request = $Ping->buildRequest();
         $this->assertInstanceOf(Request::class,$request);
         $this->assertEquals('http',$request->getUri()->getScheme());
+        $this->assertEquals('GET',$request->getMethod());
         $this->assertEquals('phpunit.tests',$request->getUri()->getHost());
         $this->assertEquals('/ping',$request->getUri()->getPath());
         $this->assertEquals('foo=bar',$request->getUri()->getQuery());
@@ -354,6 +361,20 @@ class AbstractEndpointTest extends TestCase {
     }
 
     /**
+     * @covers ::configureRequest
+     * @return void
+     */
+    public function testInvalidArgumentException()
+    {
+        $Basic = new BasicEndpoint();
+        $Basic->setClient(static::$client);
+        $Basic->setData(new EndpointData());
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('query must be a string or array');
+        $Basic->buildRequest();
+    }
+
+    /**
      * @covers ::onEvent
      * @return void
      * @throws \MRussell\REST\Exception\Endpoint\InvalidDataType
@@ -375,6 +396,7 @@ class AbstractEndpointTest extends TestCase {
      * @covers ::getResponse
      * @covers ::setResponse
      * @covers ::getResponseBody
+     * @covers ::getResponseContent
      * @return void
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
@@ -388,7 +410,7 @@ class AbstractEndpointTest extends TestCase {
         static::$client->mockResponses->append(new Response(200,[],json_encode([])));
         $Ping->execute();
         $this->assertInstanceOf(Response::class,$Ping->getResponse());
-        $this->assertEquals($pong,$Ping->getResponseBody());
+        $this->assertEquals($pong,$Ping->getResponseContent($Ping->getResponse()));
         $this->assertEmpty($Ping->getResponse()->getBody()->getContents());
         $Ping->execute();
         $this->assertInstanceOf(Response::class,$Ping->getResponse());
@@ -409,7 +431,7 @@ class AbstractEndpointTest extends TestCase {
         $pong = ['pong' => time()];
         $respBody = json_encode($pong);
         static::$client->mockResponses->append(new Response(200,[],$respBody));
-        static::$client->mockResponses->append(new Response(400,[],json_encode(['error' => 'invalid_data'])));
+        static::$client->mockResponses->append(new Response(401,[],json_encode(['error' => 'invalid_data'])));
 
         $self = $this;
         $promises = [];

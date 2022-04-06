@@ -205,9 +205,6 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
         switch ($this->getCurrentAction()) {
             case self::MODEL_ACTION_CREATE:
             case self::MODEL_ACTION_UPDATE:
-                if ($data == null){
-                    $data = $this->buildDataObject();
-                }
                 if (is_object($data)) {
                     $data->set($this->toArray());
                 } elseif (is_array($data)) {
@@ -247,11 +244,11 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      */
     protected function parseResponse(Response $response): void {
         if ($response->getStatusCode() == 200) {
-            switch ($this->action) {
+            switch ($this->getCurrentAction()) {
                 case self::MODEL_ACTION_CREATE:
                 case self::MODEL_ACTION_UPDATE:
                 case self::MODEL_ACTION_RETRIEVE:
-                    $body = $this->getResponseBody();
+                    $body = $this->getResponseContent($response);
                     $this->syncFromApi($this->parseResponseBodyToArray($body,$this->getModelResponseProp()));
                     break;
                 case self::MODEL_ACTION_DELETE:

@@ -195,7 +195,7 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      */
     protected function setResponse(Response $response) {
         $this->response = $response;
-        $this->respBody = null;
+        $this->respContent = null;
         $this->triggerEvent(self::EVENT_AFTER_RESPONSE, $response);
         return $this;
     }
@@ -205,6 +205,15 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      */
     public function getResponse(): Response {
         return $this->response;
+    }
+
+    /**
+     * @param bool $associative
+     * @return mixed|null
+     */
+    public function getResponseBody(bool $associative = true)
+    {
+        return $this->getResponseContent($this->getResponse(),$associative);
     }
 
     /**
@@ -243,7 +252,7 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
                 }
             },
             function (RequestException $e) use ($options) {
-                if (isset($options['success']) && is_callable($options['error'])) {
+                if (isset($options['error']) && is_callable($options['error'])) {
                     $options['error']($e);
                 }
             }

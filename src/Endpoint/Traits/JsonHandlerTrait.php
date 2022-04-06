@@ -3,10 +3,11 @@
 namespace MRussell\REST\Endpoint\Traits;
 
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 
 trait JsonHandlerTrait {
 
-    protected $respBody = null;
+    protected $respContent = null;
 
     /**
      * @param Request $request
@@ -21,19 +22,19 @@ trait JsonHandlerTrait {
      * @param $associative
      * @return mixed
      */
-    public function getResponseBody($associative = true)
+    public function getResponseContent(Response $response,$associative = true)
     {
-        if (!$this->respBody) {
-            $this->respBody = $this->getResponse()->getBody()->getContents();
-            $contentType = $this->getResponse()->getHeader('Content-Type');
+        if (!$this->respContent) {
+            $this->respContent = $response->getBody()->getContents();
+            $contentType = $response->getHeader('Content-Type');
             $contentType = is_array($contentType)?"":$contentType;
             if (strpos($contentType,"json") == FALSE){
-                $this->respBody = html_entity_decode($this->respBody,ENT_QUOTES|ENT_HTML5,'UTF-8');
+                $this->respContent = html_entity_decode($this->respContent,ENT_QUOTES|ENT_HTML5,'UTF-8');
             }
         }
         $body = null;
         try {
-            $body = json_decode($this->respBody, $associative);
+            $body = json_decode($this->respContent, $associative);
             // @codeCoverageIgnoreStart
         } catch (\Exception $e) {
         }

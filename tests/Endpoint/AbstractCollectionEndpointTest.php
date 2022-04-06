@@ -313,6 +313,8 @@ class AbstractCollectionEndpointTest extends TestCase {
 
     /**
      * @covers ::parseResponseBodyToArray
+     * @covers ::getResponseBody
+     * @covers ::getResponseContent
      * @covers ::getCollectionResponseProp
      */
     public function testParseResponse()
@@ -330,8 +332,8 @@ class AbstractCollectionEndpointTest extends TestCase {
         $Reflect = new \ReflectionClass($Collection);
         $parseFromResponseBody = $Reflect->getMethod('parseResponseBodyToArray');
         $parseFromResponseBody->setAccessible(true);
-        $this->assertEquals(json_decode(json_encode(array_values($this->collection)),false),$parseFromResponseBody->invoke($Collection,$Collection->getResponseBody(false),$Collection->getCollectionResponseProp()));
-        $this->assertEquals(array_values($this->collection),$parseFromResponseBody->invoke($Collection,$Collection->getResponseBody(true),$Collection->getCollectionResponseProp()));
+        $this->assertEquals(json_decode(json_encode(array_values($this->collection)),false),$parseFromResponseBody->invoke($Collection,$Collection->getResponseContent($Collection->getResponse(),false),$Collection->getCollectionResponseProp()));
+        $this->assertEquals(array_values($this->collection),$parseFromResponseBody->invoke($Collection,$Collection->getResponseContent($Collection->getResponse(),true),$Collection->getCollectionResponseProp()));
 
         $Collection->setProperty('response_prop','foobar');
         $this->assertEquals([],$parseFromResponseBody->invoke($Collection,"foobar",$Collection->getCollectionResponseProp()));

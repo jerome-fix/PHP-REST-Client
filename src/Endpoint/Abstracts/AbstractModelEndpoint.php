@@ -126,7 +126,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
         $idKey = $this->modelIdKey();
         if ($id !== null) {
             if (isset($this->attributes[$idKey])) {
-                $this->reset();
+                $this->clear();
             }
             $this->set($idKey, $id);
         } else if (!isset($this->attributes[$idKey])) {

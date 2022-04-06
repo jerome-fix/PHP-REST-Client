@@ -30,8 +30,8 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
 
     /**
      * The data being passed to the API Endpoint.
-     * Defaults to Array, but can be mixed based on how you want to use Endpoint.
-     * @var AbstractEndpointData
+     * Uses the DataInterface to provide a more robust way of configuring data and an automation API
+     * @var DataInterface
      */
     protected $data;
 
@@ -42,6 +42,8 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
 
     /**
      * @inheritdoc
+     * Passes through the data properties on the Data Object
+     * @return $this
      */
     public function setProperties(array $properties) {
         if (!isset($properties[self::PROPERTY_DATA])) {
@@ -84,6 +86,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
     }
 
     /**
+     * Get the current data object, or build out a new one if one is not set
      * @return DataInterface
      */
     public function getData()
@@ -106,6 +109,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
     }
 
     /**
+     * Parse Data Object to array for handling by Guzzle
      * @param Request $request
      * @param $data
      * @return Request
@@ -122,7 +126,19 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
     }
 
     /**
-     * @return mixed
+     * @inheritDoc
+     * Reset data
+     * @return $this
+     */
+    public function reset()
+    {
+        $this->getData()->reset();
+        return parent::reset();
+    }
+
+    /**
+     * Build out the configured Data Object for the Endpoint
+     * @return DataInterface
      * @throws InvalidData
      */
     protected function buildDataObject(): DataInterface {

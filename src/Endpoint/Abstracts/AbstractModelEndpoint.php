@@ -113,6 +113,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @inheritdoc
      */
     public function reset() {
+        parent::reset();
         return $this->clear();
     }
 

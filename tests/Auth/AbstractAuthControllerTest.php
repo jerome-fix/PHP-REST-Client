@@ -70,6 +70,7 @@ class AbstractAuthControllerTest extends TestCase {
         $actions[] = 'test';
         $this->assertEquals($Auth, $Auth->setActions($actions));
         $this->assertEquals($actions, $Auth->getActions());
+        $this->assertInstanceOf(NullLogger::class,$Auth->getLogger());
         unset($Auth);
 
         $Auth = new AuthController();

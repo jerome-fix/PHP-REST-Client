@@ -121,10 +121,12 @@ class AbstractEndpointTest extends TestCase {
      * @covers ::setProperties
      * @covers ::getProperties
      * @covers ::setProperty
+     * @covers ::getProperty
      */
     public function testSetProperties() {
         $Endpoint = new BasicEndpoint();
         $Endpoint->setProperties([]);
+        $this->assertEquals(null, $Endpoint->getProperty('foobar'));
         $this->assertEquals(array(
             'url' => '',
             'httpMethod' => '',
@@ -138,6 +140,8 @@ class AbstractEndpointTest extends TestCase {
         $Endpoint->setProperty(BasicEndpoint::PROPERTY_AUTH, true);
         $props['auth'] = true;
         $this->assertEquals($props, $Endpoint->getProperties());
+        $this->assertEquals(1, $Endpoint->getProperty('auth'));
+        $this->assertEquals('', $Endpoint->getProperty('httpMethod'));
     }
 
     /**

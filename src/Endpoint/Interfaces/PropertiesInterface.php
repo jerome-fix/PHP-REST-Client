@@ -27,4 +27,10 @@ interface PropertiesInterface
      * @return array
      */
     public function getProperties(): array;
+
+    /**
+     * Get the properties configured on the Data
+     * @return mixed
+     */
+    public function getProperty(string $name);
 }

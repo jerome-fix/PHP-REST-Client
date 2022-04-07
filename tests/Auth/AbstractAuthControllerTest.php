@@ -61,6 +61,8 @@ class AbstractAuthControllerTest extends TestCase {
     /**
      * @covers ::__construct
      * @covers ::getActions
+     * @covers ::getLogger
+     * @covers ::setLogger
      * @return AuthController
      */
     public function testConstructor(): AuthController {

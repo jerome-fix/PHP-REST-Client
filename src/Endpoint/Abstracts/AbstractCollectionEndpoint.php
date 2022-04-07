@@ -23,6 +23,8 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
 
     const PROPERTY_RESPONSE_PROP = 'response_prop';
 
+    const PROPERTY_MODEL_CLASS = 'model';
+
     const EVENT_BEFORE_SYNC = 'before_sync';
 
     /**
@@ -46,14 +48,6 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      * @var string
      */
     protected $model;
-
-    public function __construct(array $urlArgs = array(), array $properties = array()) {
-        parent::__construct($urlArgs, $properties);
-        if (static::$_MODEL_CLASS !== '') {
-            $this->setModelEndpoint(static::$_MODEL_CLASS);
-        }
-        $this->setProperty(self::PROPERTY_RESPONSE_PROP,static::$_RESPONSE_PROP);
-    }
 
     /**
      * Assigns a value to the specified offset
@@ -224,18 +218,19 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      */
     public function set(array $models)
     {
-        if (isset($this->model)) {
-            $modelIdKey = $this->buildModel()->modelIdKey();
-            foreach ($models as $key => $model) {
-                if ($model instanceof DataInterface){
-                    $model = $model->toArray();
-                }elseif ($model instanceof \stdClass){
-                    $model = (array)$model;
+        $model = $this->buildModel();
+        if ($model) {
+            $modelIdKey = $model->modelIdKey();
+            foreach ($models as $key => $m) {
+                if ($m instanceof DataInterface){
+                    $m = $m->toArray();
+                }elseif ($m instanceof \stdClass){
+                    $m = (array)$m;
                 }
-                if (isset($model[$modelIdKey])) {
-                    $this->models[$model[$modelIdKey]] = $model;
+                if (isset($m[$modelIdKey])) {
+                    $this->models[$m[$modelIdKey]] = $m;
                 } else {
-                    $this->models[] = $model;
+                    $this->models[] = $m;
                 }
             }
         } else {
@@ -263,7 +258,7 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
                 if (is_object($model)) {
                     $model = get_class($model);
                 }
-                $this->model = $model;
+                $this->setProperty(self::PROPERTY_MODEL_CLASS,$model);
                 return $this;
             }
         } catch (\Exception $ex) {
@@ -278,8 +273,11 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      */
     public function getEndPointUrl($full = false): string {
         $epURL = parent::getEndPointUrl();
-        if ($epURL == '' && isset($this->model)) {
-            $epURL = $this->buildModel()->getEndPointUrl();
+        if ($epURL == ''){
+            $model = $this->buildModel();
+            if ($model) {
+                $epURL = $model->getEndPointUrl();
+            }
         }
         if ($full) {
             $epURL = rtrim($this->getBaseUrl(), "/") . "/$epURL";
@@ -302,10 +300,7 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
      */
     public function getCollectionResponseProp(): string
     {
-        if (isset($this->properties[self::PROPERTY_RESPONSE_PROP])){
-            $prop = $this->properties[self::PROPERTY_RESPONSE_PROP];
-        }
-        return $prop ?? static::$_RESPONSE_PROP;
+        return $this->getProperty(self::PROPERTY_RESPONSE_PROP) ?? static::$_RESPONSE_PROP;
     }
 
     /**
@@ -329,21 +324,20 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
     /**
      * Build the ModelEndpoint
      * @param array $data
-     * @return AbstractModelEndpoint
+     * @return AbstractModelEndpoint|null
      */
-    protected function buildModel(array $data = array()): AbstractModelEndpoint {
+    protected function buildModel(array $data = array()) {
         $Model = null;
-        if (isset($this->model)) {
-            $Model = new $this->model();
+        $class = $this->getProperty(self::PROPERTY_MODEL_CLASS) ?? static::$_MODEL_CLASS;
+        if (!empty($class)) {
+            $Model = new $class;
             if ($this->client){
                 $Model->setClient($this->getClient());
             } else {
                 $Model->setBaseUrl($this->getBaseUrl());
             }
             if (!empty($data)) {
-                foreach ($data as $key => $value) {
-                    $Model->set($key, $value);
-                }
+                $Model->set($data);
             }
         }
         return $Model;

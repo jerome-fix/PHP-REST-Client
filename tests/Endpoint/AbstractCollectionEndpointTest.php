@@ -54,24 +54,6 @@ class AbstractCollectionEndpointTest extends TestCase {
     }
 
     /**
-     * @covers ::__construct
-     * @covers ::setModelEndpoint
-     */
-    public function testConstructor() {
-        $Endpoint = new CollectionEndpoint();
-        $Class = new \ReflectionClass(static::$_REFLECTED_CLASS);
-        $model = $Class->getProperty('model');
-        $model->setAccessible(true);
-        $this->assertEmpty($model->getValue($Endpoint));
-
-        $Endpoint = new CollectionEndpointWithModel();
-        $Class = new \ReflectionClass(static::$_REFLECTED_CLASS . 'WithModel');
-        $model = $Class->getProperty('model');
-        $model->setAccessible(true);
-        $this->assertEquals('MRussell\\REST\\Tests\\Stubs\\Endpoint\\ModelEndpoint', $model->getValue($Endpoint));
-    }
-
-    /**
      * @covers ::offsetSet
      * @covers ::offsetExists
      * @covers ::offsetUnset
@@ -165,12 +147,9 @@ class AbstractCollectionEndpointTest extends TestCase {
     public function testSetModelEndpoint() {
         $Collection = new CollectionEndpointWithModel();
         $Collection->setModelEndpoint(new ModelEndpoint());
-        $Class = new \ReflectionClass(static::$_REFLECTED_CLASS . "WithModel");
-        $model = $Class->getProperty('model');
-        $model->setAccessible(true);
-        $this->assertEquals('MRussell\\REST\\Endpoint\\ModelEndpoint', $model->getValue($Collection));
+        $this->assertEquals('MRussell\\REST\\Endpoint\\ModelEndpoint', $Collection->getProperty('model'));
         $Collection->setModelEndpoint('MRussell\\REST\\Tests\\Stubs\\Endpoint\\ModelEndpoint');
-        $this->assertEquals('MRussell\\REST\\Tests\\Stubs\\Endpoint\\ModelEndpoint', $model->getValue($Collection));
+        $this->assertEquals('MRussell\\REST\\Tests\\Stubs\\Endpoint\\ModelEndpoint', $Collection->getProperty('model'));
     }
 
     /**

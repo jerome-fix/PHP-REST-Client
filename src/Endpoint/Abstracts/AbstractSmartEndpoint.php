@@ -102,8 +102,9 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
      * @return $this
      */
     protected function configureDataProperties(): EndpointInterface {
-        if (isset($this->properties[self::PROPERTY_DATA]) && $this->data) {
-            $this->data->setProperties($this->properties['data']);
+        $dataProps = $this->getProperty(self::PROPERTY_DATA);
+        if (!empty($dataProps)) {
+            $this->getData()->setProperties($dataProps);
         }
         return $this;
     }
@@ -144,7 +145,7 @@ abstract class AbstractSmartEndpoint extends AbstractEndpoint {
     protected function buildDataObject(): DataInterface {
         $implements = class_implements(static::$_DATA_CLASS);
         if (is_array($implements) && isset($implements["MRussell\\REST\\Endpoint\\Data\\DataInterface"])) {
-            return new static::$_DATA_CLASS([], $this->properties[self::PROPERTY_DATA] ?? []);
+            return new static::$_DATA_CLASS([], $this->getProperty(self::PROPERTY_DATA) ?? []);
         }
         throw new InvalidData(static::$_DATA_CLASS." does not implement MRussell\\REST\\Endpoint\\Data\\DataInterface");
     }

@@ -231,10 +231,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      */
     public function getModelResponseProp(): string
     {
-        if (isset($this->properties[self::PROPERTY_RESPONSE_PROP])){
-            $prop = $this->properties[self::PROPERTY_RESPONSE_PROP];
-        }
-        return $prop ?? static::$_RESPONSE_PROP;
+        return $this->getProperty(self::PROPERTY_RESPONSE_PROP) ?? static::$_RESPONSE_PROP;
     }
 
     /**

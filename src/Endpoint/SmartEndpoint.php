@@ -6,7 +6,5 @@ use MRussell\REST\Endpoint\Abstracts\AbstractSmartEndpoint;
 use MRussell\REST\Endpoint\Traits\JsonHandlerTrait;
 
 class SmartEndpoint extends AbstractSmartEndpoint {
-    use JsonHandlerTrait;
-
     protected static $_DATA_CLASS = 'MRussell\\REST\\Endpoint\\Data\\EndpointData';
 }

@@ -35,7 +35,8 @@ interface CollectionInterface extends EndpointInterface, ClearableInterface, Get
     /**
      * Set the collection of models
      * @param array $models
+     * @param array $options = []
      * @return $this
      */
-    public function set(array $models);
+    public function set(array $models,array $options = []);
 }

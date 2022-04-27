@@ -25,12 +25,19 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
 
     const PROPERTY_MODEL_CLASS = 'model';
 
+    const PROPERTY_MODEL_ID_KEY = 'model_id';
+
     const EVENT_BEFORE_SYNC = 'before_sync';
 
     /**
      * @var string
      */
     protected static $_MODEL_CLASS = '';
+
+    /**
+     * @var string
+     */
+    protected static $_MODEL_ID_KEY = 'id';
 
     /**
      * @var string
@@ -212,29 +219,46 @@ abstract class AbstractCollectionEndpoint extends AbstractSmartEndpoint implemen
     }
 
     /**
+     * @return string
+     */
+    protected function getModelIdKey(): string
+    {
+        $model = $this->buildModel();
+        if ($model){
+            return $model->modelIdKey();
+        }
+        return $this->getProperty(self::PROPERTY_MODEL_ID_KEY) ?? static::$_MODEL_ID_KEY;
+    }
+
+    /**
      * Append models to the collection
      * @param array $models
      * @return AbstractCollectionEndpoint
      */
-    public function set(array $models)
+    public function set(array $models,array $options = [])
     {
-        $model = $this->buildModel();
-        if ($model) {
-            $modelIdKey = $model->modelIdKey();
-            foreach ($models as $key => $m) {
-                if ($m instanceof DataInterface){
-                    $m = $m->toArray();
-                }elseif ($m instanceof \stdClass){
-                    $m = (array)$m;
-                }
-                if (isset($m[$modelIdKey])) {
-                    $this->models[$m[$modelIdKey]] = $m;
-                } else {
-                    $this->models[] = $m;
-                }
+        $modelIdKey = $this->getModelIdKey();
+        $reset = $options['reset'] ?? false;
+        $merge = $options['merge'] ?? false;
+        if ($reset) {
+            $this->models = [];
+        }
+        foreach ($models as $key => $m) {
+            if ($m instanceof DataInterface){
+                $m = $m->toArray();
+            }elseif ($m instanceof \stdClass){
+                $m = (array)$m;
             }
-        } else {
-            $this->models = $models;
+            if (!empty($m[$modelIdKey])) {
+                $id = $m[$modelIdKey];
+                if ($merge && isset($this->models[$id])){
+                    $this->models[$id] = array_merge($this->models[$id],$m);
+                } else {
+                    $this->models[$id] = $m;
+                }
+            } else {
+                $this->models[] = $m;
+            }
         }
         return $this;
     }

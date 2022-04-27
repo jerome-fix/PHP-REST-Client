@@ -1,4 +1,5 @@
 <?php
+
 /**
  * User: mrussell
  * Date: 8/15/17
@@ -7,36 +8,31 @@
 
 namespace MRussell\REST\Tests\Auth;
 
-use MRussell\Http\Request\JSON;
-use MRussell\REST\Tests\Stubs\Auth\BasicController;
-
+use GuzzleHttp\Psr7\Request;
+use MRussell\REST\Auth\BasicAuthController;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class AbstractBasicControllerTest
  * @package MRussell\REST\Tests\Auth
- * @coversDefaultClass MRussell\REST\Auth\Abstracts\AbstractBasicController
+ * @coversDefaultClass \MRussell\REST\Auth\Abstracts\AbstractBasicController
  * @group AbstractBasicControllerTest
  */
-class AbstractBasicControllerTest extends \PHPUnit_Framework_TestCase
-{
+class AbstractBasicControllerTest extends TestCase {
 
-    public static function setUpBeforeClass()
-    {
+    public static function setUpBeforeClass(): void {
         //Add Setup for static properties here
     }
 
-    public static function tearDownAfterClass()
-    {
+    public static function tearDownAfterClass(): void {
         //Add Tear Down for static properties here
     }
 
-    public function setUp()
-    {
+    public function setUp(): void {
         parent::setUp();
     }
 
-    public function tearDown()
-    {
+    public function tearDown(): void {
         parent::tearDown();
     }
 
@@ -44,20 +40,21 @@ class AbstractBasicControllerTest extends \PHPUnit_Framework_TestCase
      * @covers ::configureRequest
      * @covers ::getAuthHeaderValue
      */
-    public function testConfigureRequest()
-    {
-        $Auth = new BasicController();
-        $Request = new JSON();
-        $this->assertEquals($Auth,$Auth->configureRequest($Request));
-        $headers = $Request->getHeaders();
-        $this->assertEquals("Basic ",$headers['Authorization']);
-        $Auth->setCredentials(array(
+    public function testConfigureRequest() {
+        $Auth = new BasicAuthController();
+        $Request = $Auth->configureRequest(new Request("GET", ""));
+        $this->assertEquals(['Authorization' => ["Basic"]], $Request->getHeaders());
+        $Auth->setCredentials([
             'username' => 'foo',
             'password' => 'bar'
-        ));
-        $this->assertEquals($Auth,$Auth->configureRequest($Request));
-        $headers = $Request->getHeaders();
-        $this->assertEquals('Basic '.base64_encode("foo:bar"),$headers['Authorization']);
-    }
+        ]);
+        $Request = $Auth->configureRequest($Request);
+        $this->assertEquals(['Authorization' => ['Basic ' . base64_encode("foo:bar")]], $Request->getHeaders());
 
+        $Auth = new BasicAuthController();
+        $Auth->setToken(base64_encode("foo:bar"));
+        $Request = $Auth->configureRequest(new Request("GET", ""));
+        $this->assertEquals(['Authorization' => ['Basic ' . base64_encode("foo:bar")]], $Request->getHeaders());
+
+    }
 }

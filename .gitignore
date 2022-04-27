@@ -1,5 +1,10 @@
 *.iml
 .idea/
+.phive/
 vendor/
 coverage/
+docs/
+tools/
 composer.lock
+.phpunit*
+phive.phar.asc

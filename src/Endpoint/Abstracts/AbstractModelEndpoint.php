@@ -2,11 +2,17 @@
 
 namespace MRussell\REST\Endpoint\Abstracts;
 
-use MRussell\Http\Request\Curl;
-use MRussell\Http\Response\ResponseInterface;
+use GuzzleHttp\Psr7\Response;
 use MRussell\REST\Endpoint\Data\AbstractEndpointData;
 use MRussell\REST\Endpoint\Data\DataInterface;
+use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
 use MRussell\REST\Endpoint\Interfaces\ModelInterface;
+use MRussell\REST\Endpoint\Traits\ArrayObjectAttributesTrait;
+use MRussell\REST\Endpoint\Traits\ClearAttributesTrait;
+use MRussell\REST\Endpoint\Traits\GetAttributesTrait;
+use MRussell\REST\Endpoint\Traits\ParseResponseBodyToArrayTrait;
+use MRussell\REST\Endpoint\Traits\PropertiesTrait;
+use MRussell\REST\Endpoint\Traits\SetAttributesTrait;
 use MRussell\REST\Exception\Endpoint\MissingModelId;
 use MRussell\REST\Exception\Endpoint\UnknownModelAction;
 
@@ -14,17 +20,32 @@ use MRussell\REST\Exception\Endpoint\UnknownModelAction;
  * Class AbstractModelEndpoint
  * @package MRussell\REST\Endpoint\Abstracts
  */
-abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements ModelInterface, DataInterface
-{
+abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements ModelInterface, DataInterface {
+    use ArrayObjectAttributesTrait,
+        GetAttributesTrait,
+        SetAttributesTrait,
+        PropertiesTrait,
+        ClearAttributesTrait,
+        ParseResponseBodyToArrayTrait;
+
+    const PROPERTY_RESPONSE_PROP = 'response_prop';
     const MODEL_ID_VAR = 'id';
 
     const MODEL_ACTION_CREATE = 'create';
-
     const MODEL_ACTION_RETRIEVE = 'retrieve';
-
     const MODEL_ACTION_UPDATE = 'update';
-
     const MODEL_ACTION_DELETE = 'delete';
+
+    const EVENT_BEFORE_SAVE = 'before_save';
+    const EVENT_AFTER_SAVE = 'after_save';
+
+    const EVENT_BEFORE_DELETE = 'before_delete';
+    const EVENT_AFTER_DELETE = 'after_delete';
+
+    const EVENT_BEFORE_RETRIEVE = 'before_retrieve';
+    const EVENT_AFTER_RETRIEVE = 'after_retrieve';
+
+    const EVENT_BEFORE_SYNC = 'before_sync';
 
     /**
      * The ID Field used by the Model
@@ -33,21 +54,21 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
     protected static $_MODEL_ID_KEY = 'id';
 
     /**
+     * The response property where the model data is located
+     * @var string
+     */
+    protected static $_RESPONSE_PROP = '';
+
+    /**
      * List of actions
      * @var array
      */
     protected static $_DEFAULT_ACTIONS = array(
-        self::MODEL_ACTION_CREATE => Curl::HTTP_POST,
-        self::MODEL_ACTION_RETRIEVE => Curl::HTTP_GET,
-        self::MODEL_ACTION_UPDATE => Curl::HTTP_PUT,
-        self::MODEL_ACTION_DELETE => Curl::HTTP_DELETE
+        self::MODEL_ACTION_CREATE => 'POST',
+        self::MODEL_ACTION_RETRIEVE => 'GET',
+        self::MODEL_ACTION_UPDATE => 'PUT',
+        self::MODEL_ACTION_DELETE => 'DELETE'
     );
-
-    /**
-     * The Model
-     * @var array
-     */
-    protected $model = array();
 
     /**
      * List of available actions and their associated Request Method
@@ -66,161 +87,82 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @param null $id
      * @return string
      */
-    public static function modelIdKey($id = NULL) {
-        if ($id !== NULL){
+    public static function modelIdKey($id = null): string {
+        if ($id !== null) {
             static::$_MODEL_ID_KEY = $id;
         }
         return static::$_MODEL_ID_KEY;
     }
 
     //Overloads
-    public function __construct(array $options = array(), array $properties = array()) {
-        parent::__construct($options, $properties);
-        foreach(static::$_DEFAULT_ACTIONS as $action => $method){
+    public function __construct(array $urlArgs = array(), array $properties = array()) {
+        parent::__construct($urlArgs, $properties);
+        foreach (static::$_DEFAULT_ACTIONS as $action => $method) {
             $this->actions[$action] = $method;
         }
     }
 
     public function __call($name, $arguments) {
-        if (array_key_exists($name,$this->actions)){
-            return $this->setCurrentAction($name,$arguments)->execute();
+        if (array_key_exists($name, $this->actions)) {
+            return $this->setCurrentAction($name, $arguments)->execute();
         }
-        throw new UnknownModelAction(array(get_class($this),$name));
-    }
-
-    //Data Interface
-    /**
-     * Assigns a value to the specified offset
-     * @param string $offset - The offset to assign the value to
-     * @param mixed $value - The value to set
-     * @abstracting ArrayAccess
-     */
-    public function offsetSet($offset,$value) {
-        if (is_null($offset)) {
-            $this->model[] = $value;
-        } else {
-            $this->model[$offset] = $value;
-        }
-    }
-
-    /**
-     * Whether or not an offset exists
-     * @param string $offset - An offset to check for
-     * @return boolean
-     * @abstracting ArrayAccess
-     */
-    public function offsetExists($offset) {
-        return isset($this->model[$offset]);
-    }
-
-    /**
-     * Unsets an offset
-     * @param string $offset - The offset to unset
-     * @abstracting ArrayAccess
-     */
-    public function offsetUnset($offset) {
-        if ($this->offsetExists($offset)) {
-            unset($this->model[$offset]);
-        }
-    }
-
-    /**
-     * Returns the value at specified offset
-     * @param string $offset - The offset to retrieve
-     * @return mixed
-     * @abstracting ArrayAccess
-     */
-    public function offsetGet($offset) {
-        return $this->offsetExists($offset) ? $this->model[$offset] : null;
+        throw new UnknownModelAction(array(get_class($this), $name));
     }
 
     /**
      * @inheritdoc
      */
-    public function asArray(){
-        return $this->model;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function reset(){
+    public function reset() {
+        parent::reset();
         return $this->clear();
     }
 
     /**
      * @inheritdoc
-     */
-    public function clear(){
-        $this->model = array();
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function update(array $model){
-        foreach($model as $key => $value){
-            $this->model[$key] = $value;
-        }
-        return $this;
-    }
-
-    //Model Interface
-    /**
-     * @inheritdoc
-     */
-    public function get($key) {
-        return $this->offsetGet($key);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function set($key, $value) {
-        $this->offsetSet($key,$value);
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
      * @throws \MRussell\REST\Exception\Endpoint\InvalidRequest
      */
-    public function retrieve($id = NULL) {
+    public function retrieve($id = null): ModelInterface {
         $this->setCurrentAction(self::MODEL_ACTION_RETRIEVE);
         $idKey = $this->modelIdKey();
-        if ($id !== NULL){
-            if (isset($this->model[$idKey])){
-                $this->reset();
+        if ($id !== null) {
+            if (isset($this->attributes[$idKey])) {
+                $this->clear();
             }
-            $this->set($idKey,$id);
-        } else {
-            if (!isset($this->model[$idKey])){
-                throw new MissingModelId(array($this->action,get_class($this)));
-            }
+            $this->set($idKey, $id);
+        } else if (!isset($this->attributes[$idKey])) {
+            throw new MissingModelId(array($this->action, get_class($this)));
         }
-        return $this->execute();
+        $this->triggerEvent(self::EVENT_BEFORE_RETRIEVE);
+        $this->execute();
+        $this->triggerEvent(self::EVENT_AFTER_RETRIEVE);
+        return $this;
     }
 
     /**
      * @inheritdoc
      * @throws \MRussell\REST\Exception\Endpoint\InvalidRequest
      */
-    public function save() {
-        if (isset($this->model[$this->modelIdKey()])){
+    public function save(): ModelInterface {
+        if (isset($this->attributes[$this->modelIdKey()])) {
             $this->setCurrentAction(self::MODEL_ACTION_UPDATE);
         } else {
             $this->setCurrentAction(self::MODEL_ACTION_CREATE);
         }
-        return $this->execute();
+        $this->triggerEvent(self::EVENT_BEFORE_SAVE);
+        $this->execute();
+        $this->triggerEvent(self::EVENT_AFTER_SAVE);
+        return $this;
     }
 
     /**
      * @inheritdoc
      */
-    public function delete(){
+    public function delete(): ModelInterface {
         $this->setCurrentAction(self::MODEL_ACTION_DELETE);
-        return $this->execute();
+        $this->triggerEvent(self::EVENT_BEFORE_DELETE);
+        $this->execute();
+        $this->triggerEvent(self::EVENT_AFTER_DELETE);
+        return $this;
     }
 
     /**
@@ -229,11 +171,10 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @param array $actionArgs
      * @return $this
      */
-    public function setCurrentAction($action,array $actionArgs = array()){
-        $action = (string) $action;
-        if (array_key_exists($action,$this->actions)){
+    public function setCurrentAction(string $action, array $actionArgs = array()): AbstractModelEndpoint {
+        if (array_key_exists($action, $this->actions)) {
             $this->action = $action;
-            $this->configureAction($this->action,$actionArgs);
+            $this->configureAction($this->action, $actionArgs);
         }
         return $this;
     }
@@ -241,7 +182,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
     /**
      * Get the current action taking place on the Model
      */
-    public function getCurrentAction(){
+    public function getCurrentAction(): string {
         return $this->action;
     }
 
@@ -251,77 +192,93 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @param $action
      * @param array $arguments
      */
-    protected function configureAction($action,array $arguments = array()){
-        $this->setProperty(self::PROPERTY_HTTP_METHOD,$this->actions[$action]);
+    protected function configureAction($action, array $arguments = array()) {
+        $this->setProperty(self::PROPERTY_HTTP_METHOD, $this->actions[$action]);
     }
 
     /**
      * @param AbstractEndpointData $data
      * @inheritdoc
      */
-    protected function configureData($data)
-    {
-        $requestData = parent::configureData($data);
-        if ($requestData == NULL){
-            $requestData = array();
-        }
-        switch ($this->action){
+    protected function configurePayload() {
+        $data = $this->getData() ?? null;
+        switch ($this->getCurrentAction()) {
             case self::MODEL_ACTION_CREATE:
             case self::MODEL_ACTION_UPDATE:
-                $requestData = array_replace($requestData,$this->asArray());
+                if (is_object($data)) {
+                    $data->set($this->toArray());
+                } elseif (is_array($data)) {
+                    $data = array_replace($data, $this->toArray());
+                }
                 break;
         }
-        return $requestData;
+        $this->triggerEvent(self::EVENT_CONFIGURE_PAYLOAD, $data);
+        return $data;
     }
 
     /**
-     * @inheritdoc
+     * @param Response $response
+     * @return EndpointInterface
      */
-    protected function configureResponse(ResponseInterface $Response) {
-        $Response = parent::configureResponse($Response);
-        if ($Response->getStatus() == '200'){
-            //@codeCoverageIgnoreStart
-            $this->updateModel();
+    public function setResponse(Response $response): EndpointInterface {
+        parent::setResponse($response);
+        $this->parseResponse($response);
+        return $this;
+    }
 
+    /**
+     * @return string
+     */
+    public function getModelResponseProp(): string
+    {
+        return $this->getProperty(self::PROPERTY_RESPONSE_PROP) ?? static::$_RESPONSE_PROP;
+    }
+
+    /**
+     * Parse the response for use by Model
+     * @param Response $response
+     * @return void
+     */
+    protected function parseResponse(Response $response): void {
+        if ($response->getStatusCode() == 200) {
+            switch ($this->getCurrentAction()) {
+                case self::MODEL_ACTION_CREATE:
+                case self::MODEL_ACTION_UPDATE:
+                case self::MODEL_ACTION_RETRIEVE:
+                    $body = $this->getResponseContent($response);
+                    $this->syncFromApi($this->parseResponseBodyToArray($body,$this->getModelResponseProp()));
+                    break;
+                case self::MODEL_ACTION_DELETE:
+                    $this->clear();
+                    break;
+            }
         }
-        //@codeCoverageIgnoreEnd
-        return $Response;
     }
 
     /**
      * Called after Execute if a Request Object exists, and Request returned 200 response
      */
-    protected function updateModel(){
-        $body = $this->Response->getBody();
-        switch ($this->action){
-            case self::MODEL_ACTION_CREATE:
-            case self::MODEL_ACTION_UPDATE:
-            case self::MODEL_ACTION_RETRIEVE:
-                if (is_array($body)){
-                    $this->update($body);
-                }
-                break;
-            case self::MODEL_ACTION_DELETE:
-                $this->clear();
-        }
+    protected function syncFromApi(array $model) {
+        $this->triggerEvent(self::EVENT_BEFORE_SYNC, $model);
+        $this->set($model);
     }
 
     /**
-     * @param array $options
-     * @return mixed|string
+     * @param array $urlArgs
+     * @return string
      */
-    protected function configureURL(array $options)
-    {
-        switch($this->getCurrentAction()){
-            case self::MODEL_ACTION_CREATE:
-                $options[self::MODEL_ID_VAR] = '';
-                break;
-            default:
-                $idKey = $this->modelIdKey();
-                $id = $this->get($idKey);
-                $options[self::MODEL_ID_VAR] = (empty($id)?'':$id);
+    protected function configureURL(array $urlArgs): string {
+        if (empty($urlArgs[self::MODEL_ID_VAR])){
+            switch ($this->getCurrentAction()) {
+                case self::MODEL_ACTION_CREATE:
+                    $urlArgs[self::MODEL_ID_VAR] = '';
+                    break;
+                default:
+                    $idKey = $this->modelIdKey();
+                    $id = $this->get($idKey);
+                    $urlArgs[self::MODEL_ID_VAR] = (empty($id) ? '' : $id);
+            }
         }
-        return parent::configureURL($options);
+        return parent::configureURL($urlArgs);
     }
-
 }

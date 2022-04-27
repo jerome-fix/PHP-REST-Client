@@ -2,128 +2,71 @@
 
 namespace MRussell\REST\Endpoint\Interfaces;
 
-use MRussell\Http\Request\RequestInterface;
-use MRussell\Http\Response\ResponseInterface;
-use MRussell\REST\Auth\AuthControllerInterface;
-use MRussell\REST\Endpoint\Data\AbstractEndpointData;
-use MRussell\REST\Endpoint\Data\DataInterface;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 
-interface EndpointInterface
-{
+interface EndpointInterface extends PropertiesInterface, ResettableInterface {
     /**
-     * Set the urlOptions property to configure the URL variables
-     * @param array $options
-     * @return mixed
+     * Set the urlArgs property to configure the URL variables
+     * @param array $args
+     * @return $this
      */
-    public function setOptions(array $options);
+    public function setUrlArgs(array $args);
 
     /**
-     * Get the configured Url Options
-     * @return mixed
-     */
-    public function getOptions();
-
-    /**
-     * Set the Properties that define the API Endpoint
-     * @param array $properties
-     * @return self
-     */
-    public function setProperties(array $properties);
-
-    /**
-     * Set the Properties that define the API Endpoint
-     * @param string $name
-     * @param mixed $value
-     * @return self
-     */
-    public function setProperty($name,$value);
-
-    /**
-     * Set the Properties that define the API Endpoint
+     * Get the configured Url Arguments
      * @return array
      */
-    public function getProperties();
+    public function getUrlArgs(): array;
 
     /**
      * Sets the data on the Endpoint Object, that will be passed to Request Object
      * @param mixed $data
-     * @return self
+     * @return $this
      */
     public function setData($data);
 
     /**
      * Get the data being used by the Endpoint
-     * @return AbstractEndpointData
+     * @return array|\ArrayAccess
      */
     public function getData();
 
     /**
      * Set the Base URL that the Endpoint uses in regards to it's pre-configured Endpoint URL
-     * @param $url
-     * @return self
+     * @param string $url
+     * @return $this
      */
-    public function setBaseUrl($url);
+    public function setBaseUrl(string $url);
 
     /**
      * Get the Base URL that is currently configured on the Endpoint
-     * @return mixed
+     * @return string
      */
-    public function getBaseUrl();
+    public function getBaseUrl(): string;
 
     /**
      * Get the Relative URL for the API Endpoint
-     * @return mixed
+     * @return string
      */
-    public function getEndPointUrl();
-
-    /**
-     * Set the Request Object used by the Endpoint
-     * @param RequestInterface $Request
-     * @return self
-     */
-    public function setRequest(RequestInterface $Request);
-
-    /**
-     * Set the Response Object used by the Endpoint
-     * @param ResponseInterface $Response
-     * @return self
-     */
-    public function setResponse(ResponseInterface $Response);
+    public function getEndPointUrl(): string;
 
     /**
      * Execute the Endpoint Object using the desired action
-     * @return self
+     * @return $this
      */
     public function execute();
 
     /**
-     * Get the Request Object being used by the Endpoint
-     * @return RequestInterface
-     */
-    public function getRequest();
-
-    /**
      * Get the Response Object being used by the Endpoint
-     * @return ResponseInterface
+     * @return Response
      */
-    public function getResponse();
+    public function getResponse(): Response;
 
     /**
-     * Check if authentication is required for use of the Endpoint
-     * @return bool
+     * Check if authentication should be applied
+     * @return int
      */
-    public function authRequired();
-
-    /**
-     * Set the Auth controller used to add Authentication to Endpoint objects
-     * @param AuthControllerInterface $Auth
-     * @return $this
-     */
-    public function setAuth(AuthControllerInterface $Auth);
-
-    /**
-     * @return mixed
-     */
-    public function getAuth();
-
+    public function useAuth(): int;
 }

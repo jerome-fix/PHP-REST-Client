@@ -1,6 +1,6 @@
 <?php
 
-namespace MRussell\REST\Tests\Stubs\Auth;
+namespace MRussell\REST\Auth;
 
 use MRussell\REST\Auth\Abstracts\AbstractOAuth2Controller;
 

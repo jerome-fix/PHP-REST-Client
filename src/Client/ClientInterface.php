@@ -2,43 +2,20 @@
 
 namespace MRussell\REST\Client;
 
-use MRussell\REST\Auth\AuthControllerInterface;
+use GuzzleHttp\Client;
 use MRussell\REST\Endpoint\Interfaces\EndpointInterface;
-use MRussell\REST\Endpoint\Provider\EndpointProviderInterface;
 
-interface ClientInterface
-{
+interface ClientInterface {
 
     /**
-     * Set the Auth Controller that handles Auth for the API
-     * @param AuthControllerInterface $Auth
-     * @return self
+     * @return Client
      */
-    public function setAuth(AuthControllerInterface $Auth);
-
-    /**
-     *
-     * @return AuthControllerInterface
-     */
-    public function getAuth();
-
-    /**
-     * Set the Endpoint Provider that is to be used by the REST Client
-     * @param EndpointProviderInterface $EndpointProvider
-     * @return self
-     */
-    public function setEndpointProvider(EndpointProviderInterface $EndpointProvider);
-
-    /**
-     *
-     * @return EndpointProviderInterface
-     */
-    public function getEndpointProvider();
+    public function getHttpClient();
 
     /**
      * Set the server on the Client, and configure the API Url if necessary
      * @param $server
-     * @return self
+     * @return $this
      */
     public function setServer($server);
 
@@ -57,7 +34,7 @@ interface ClientInterface
     /**
      * Set the API Version to use
      * @param $version
-     * @return self
+     * @return $this
      */
     public function setVersion($version);
 
@@ -78,5 +55,4 @@ interface ClientInterface
      * @return EndpointInterface
      */
     public function last();
-
 }

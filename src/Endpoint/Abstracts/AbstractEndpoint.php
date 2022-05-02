@@ -152,8 +152,8 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      */
     public function getEndPointUrl($full = false): string {
         $url = static::$_ENDPOINT_URL;
-        if (isset($this->properties[self::PROPERTY_URL]) && $this->properties[self::PROPERTY_URL] !== '') {
-            $url = $this->properties[self::PROPERTY_URL];
+        if (isset($this->_properties[self::PROPERTY_URL]) && $this->_properties[self::PROPERTY_URL] !== '') {
+            $url = $this->_properties[self::PROPERTY_URL];
         }
         if ($full) {
             $url = rtrim($this->getBaseUrl(), '/') . "/$url";
@@ -273,8 +273,8 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      */
     public function useAuth(): int {
         $auth = self::AUTH_EITHER;
-        if (isset($this->properties[self::PROPERTY_AUTH])) {
-            $auth = intval($this->properties[self::PROPERTY_AUTH]);
+        if (isset($this->_properties[self::PROPERTY_AUTH])) {
+            $auth = intval($this->_properties[self::PROPERTY_AUTH]);
         }
         return $auth;
     }
@@ -285,10 +285,10 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
     public function getMethod(): string {
         $this->triggerEvent(self::EVENT_CONFIGURE_METHOD);
         if (
-            isset($this->properties[self::PROPERTY_HTTP_METHOD]) &&
-            $this->properties[self::PROPERTY_HTTP_METHOD] !== ''
+            isset($this->_properties[self::PROPERTY_HTTP_METHOD]) &&
+            $this->_properties[self::PROPERTY_HTTP_METHOD] !== ''
         ) {
-            return $this->properties[self::PROPERTY_HTTP_METHOD];
+            return $this->_properties[self::PROPERTY_HTTP_METHOD];
         }
         return "GET";
     }

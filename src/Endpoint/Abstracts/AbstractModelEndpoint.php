@@ -125,11 +125,11 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
         $this->setCurrentAction(self::MODEL_ACTION_RETRIEVE);
         $idKey = $this->modelIdKey();
         if ($id !== null) {
-            if (isset($this->attributes[$idKey])) {
+            if (isset($this->_attributes[$idKey])) {
                 $this->clear();
             }
             $this->set($idKey, $id);
-        } else if (!isset($this->attributes[$idKey])) {
+        } else if (!isset($this->_attributes[$idKey])) {
             throw new MissingModelId(array($this->action, get_class($this)));
         }
         $this->triggerEvent(self::EVENT_BEFORE_RETRIEVE);
@@ -143,7 +143,7 @@ abstract class AbstractModelEndpoint extends AbstractSmartEndpoint implements Mo
      * @throws \MRussell\REST\Exception\Endpoint\InvalidRequest
      */
     public function save(): ModelInterface {
-        if (isset($this->attributes[$this->modelIdKey()])) {
+        if (isset($this->_attributes[$this->modelIdKey()])) {
             $this->setCurrentAction(self::MODEL_ACTION_UPDATE);
         } else {
             $this->setCurrentAction(self::MODEL_ACTION_CREATE);

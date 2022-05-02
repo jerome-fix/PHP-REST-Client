@@ -11,7 +11,7 @@ trait ClearAttributesTrait
      * @implements ClearableInterface
      */
     public function clear() {
-        $this->attributes = [];
+        $this->_attributes = [];
         return $this;
     }
 }

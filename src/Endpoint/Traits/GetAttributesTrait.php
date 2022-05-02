@@ -13,6 +13,6 @@ trait GetAttributesTrait
      * @implements GetInterface
      */
     public function get($key) {
-        return $this->attributes[$key] ?? null;
+        return $this->_attributes[$key] ?? null;
     }
 }

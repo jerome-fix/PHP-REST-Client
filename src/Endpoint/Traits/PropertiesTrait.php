@@ -9,7 +9,7 @@ trait PropertiesTrait
     /**
      * @var array
      */
-    protected $properties = [];
+    protected $_properties = [];
 
     /**
      * Get the current Data Properties
@@ -17,7 +17,7 @@ trait PropertiesTrait
      * @implements PropertiesInterface
      */
     public function getProperties(): array {
-        return $this->properties;
+        return $this->_properties;
     }
 
     /**
@@ -27,7 +27,7 @@ trait PropertiesTrait
      * @implements PropertiesInterface
      */
     public function setProperties(array $properties) {
-        $this->properties = $properties;
+        $this->_properties = $properties;
         return $this;
     }
 
@@ -39,8 +39,9 @@ trait PropertiesTrait
      * @implements PropertiesInterface
      */
     public function setProperty(string $name, $value) {
-        $this->properties[$name] = $value;
-        return $this;
+        $properties = $this->getProperties();
+        $properties[$name] = $value;
+        return $this->setProperties($properties);
     }
 
     /**
@@ -50,8 +51,8 @@ trait PropertiesTrait
      * @implements PropertiesInterface
      */
     public function getProperty(string $name) {
-        if (isset($this->properties[$name])){
-            return $this->properties[$name];
+        if (isset($this->_properties[$name])){
+            return $this->_properties[$name];
         }
         return null;
     }

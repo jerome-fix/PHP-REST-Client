@@ -2,6 +2,8 @@
 
 namespace MRussell\REST\Tests\Client;
 
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use MRussell\REST\Endpoint\Abstracts\AbstractEndpoint;
 use MRussell\REST\Tests\Stubs\Auth\AuthController;
@@ -89,6 +91,44 @@ class AbstractClientTest extends TestCase {
         $this->assertIsCallable($middleware[0]);
 
         return $this->Client;
+    }
+
+    /**
+     * @covers ::configureAuth
+     * @covers ::setHandlerStack
+     * @depends testSetAuth
+     * @return void
+     */
+    public function testAuthMiddleware() {
+        $Auth = new AuthController();
+        $this->assertEquals($this->Client, $this->Client->setAuth($Auth));
+        $this->assertEquals($Auth, $this->Client->getAuth());
+
+        $handlerStack = $this->Client->getHandlerStack();
+        $reflectedHandler = new \ReflectionClass($handlerStack);
+        $stack = $reflectedHandler->getProperty('stack');
+        $stack->setAccessible(true);
+        $value = $stack->getValue($handlerStack);
+        $middleware = array_filter($value,function($item){
+            return $item[1] == 'configureAuth';
+        });
+        $this->assertNotEmpty($middleware);
+        $middleware = current($middleware);
+        $this->assertIsCallable($middleware[0]);
+
+        $handlerStack = HandlerStack::create(new MockHandler([]));
+        $this->Client->setHandlerStack($handlerStack);
+
+        $reflectedHandler = new \ReflectionClass($handlerStack);
+        $stack = $reflectedHandler->getProperty('stack');
+        $stack->setAccessible(true);
+        $value = $stack->getValue($handlerStack);
+        $middleware = array_filter($value,function($item){
+            return $item[1] == 'configureAuth';
+        });
+        $this->assertNotEmpty($middleware);
+        $middleware = current($middleware);
+        $this->assertIsCallable($middleware[0]);
     }
 
     /**

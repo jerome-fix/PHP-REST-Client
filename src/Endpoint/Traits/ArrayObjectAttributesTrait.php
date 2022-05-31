@@ -10,7 +10,7 @@ trait ArrayObjectAttributesTrait
     /**
      * @var array
      */
-    protected $attributes = [];
+    protected $_attributes = [];
 
     //Object Access
     /**
@@ -19,7 +19,7 @@ trait ArrayObjectAttributesTrait
      * @access public
      */
     public function &__get($key) {
-        return $this->attributes[$key];
+        return $this->_attributes[$key];
     }
 
     /**
@@ -28,7 +28,7 @@ trait ArrayObjectAttributesTrait
      * @param mixed $value - The value to set
      */
     public function __set($key, $value) {
-        $this->attributes[$key] = $value;
+        $this->_attributes[$key] = $value;
     }
 
     /**
@@ -37,7 +37,7 @@ trait ArrayObjectAttributesTrait
      * @return boolean
      */
     public function __isset($key) {
-        return isset($this->attributes[$key]);
+        return isset($this->_attributes[$key]);
     }
 
     /**
@@ -45,7 +45,7 @@ trait ArrayObjectAttributesTrait
      * @param string $key - The key to unset
      */
     public function __unset($key) {
-        unset($this->attributes[$key]);
+        unset($this->_attributes[$key]);
     }
 
     //Array Access
@@ -57,9 +57,9 @@ trait ArrayObjectAttributesTrait
      */
     public function offsetSet($offset, $value): void {
         if (is_null($offset)) {
-            $this->attributes[] = $value;
+            $this->_attributes[] = $value;
         } else {
-            $this->attributes[$offset] = $value;
+            $this->_attributes[$offset] = $value;
         }
     }
 
@@ -70,7 +70,7 @@ trait ArrayObjectAttributesTrait
      * @abstracting ArrayAccess
      */
     public function offsetExists($offset): bool {
-        return isset($this->attributes[$offset]);
+        return isset($this->_attributes[$offset]);
     }
 
     /**
@@ -80,7 +80,7 @@ trait ArrayObjectAttributesTrait
      */
     public function offsetUnset($offset): void {
         if ($this->offsetExists($offset)) {
-            unset($this->attributes[$offset]);
+            unset($this->_attributes[$offset]);
         }
     }
 
@@ -91,7 +91,7 @@ trait ArrayObjectAttributesTrait
      * @abstracting ArrayAccess
      */
     public function offsetGet($offset) {
-        return $this->offsetExists($offset) ? $this->attributes[$offset] : null;
+        return $this->offsetExists($offset) ? $this->_attributes[$offset] : null;
     }
 
     /**
@@ -99,6 +99,6 @@ trait ArrayObjectAttributesTrait
      * @implements ArrayableInterface
      */
     public function toArray(): array {
-        return $this->attributes;
+        return $this->_attributes;
     }
 }

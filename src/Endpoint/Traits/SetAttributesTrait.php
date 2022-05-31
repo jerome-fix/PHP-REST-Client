@@ -17,10 +17,10 @@ trait SetAttributesTrait
     {
         if (is_array($key) || $key instanceof \stdClass){
             foreach($key as $k => $value){
-                $this->attributes[$k] = $value;
+                $this->_attributes[$k] = $value;
             }
         } else {
-            $this->attributes[$key] = $value;
+            $this->_attributes[$key] = $value;
         }
         return $this;
     }

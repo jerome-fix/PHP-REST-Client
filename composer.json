@@ -2,7 +2,6 @@
   "name": "michaelj2324/php-rest-client",
   "description": "An extensible framework for working with REST APIs",
   "license": "MIT",
-  "version": "2.0.1",
   "authors": [
     {
       "name": "Mike Russell",

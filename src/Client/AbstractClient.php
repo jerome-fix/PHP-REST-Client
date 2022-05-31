@@ -104,10 +104,17 @@ abstract class AbstractClient implements ClientInterface, AuthControllerAwareInt
     public function setHandlerStack(HandlerStack $stackHandler) {
         $this->guzzleHandlerStack = $stackHandler;
         $this->initHttpClient();
+        if ($this->Auth){
+            $this->configureAuth();
+        }
         return $this;
     }
 
-    protected function configureAuth(){
+    /**
+     * Configure the HandlerStack to have the Auth middleware
+     * @return void
+     */
+    protected function configureAuth() {
         $api = $this;
         $this->getHandlerStack()->remove('configureAuth');
         $this->getHandlerStack()->push(Middleware::mapRequest(function (Request $request) use ($api) {

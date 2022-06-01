@@ -213,7 +213,8 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
      */
     public function getResponseBody(bool $associative = true)
     {
-        return $this->getResponseContent($this->getResponse(),$associative);
+        $response = $this->getResponse();
+        return $response?$this->getResponseContent($response,$associative):null;
     }
 
     /**

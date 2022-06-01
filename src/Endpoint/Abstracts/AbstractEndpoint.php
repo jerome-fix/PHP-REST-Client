@@ -203,7 +203,7 @@ abstract class AbstractEndpoint implements EndpointInterface, EventTriggerInterf
     /**
      * @inheritdoc
      */
-    public function getResponse(): Response {
+    public function getResponse() {
         return $this->response;
     }
 

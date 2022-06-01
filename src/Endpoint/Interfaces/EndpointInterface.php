@@ -62,7 +62,7 @@ interface EndpointInterface extends PropertiesInterface, ResettableInterface {
      * Get the Response Object being used by the Endpoint
      * @return Response
      */
-    public function getResponse(): Response;
+    public function getResponse();
 
     /**
      * Check if authentication should be applied

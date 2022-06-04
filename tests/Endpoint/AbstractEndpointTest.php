@@ -415,11 +415,11 @@ class AbstractEndpointTest extends TestCase {
         $Ping->execute();
         $this->assertInstanceOf(Response::class,$Ping->getResponse());
         $this->assertEquals($pong,$Ping->getResponseContent($Ping->getResponse()));
-        $this->assertEmpty($Ping->getResponse()->getBody()->getContents());
+        $this->assertEquals($respBody,$Ping->getResponse()->getBody()->getContents());
         $Ping->execute();
         $this->assertInstanceOf(Response::class,$Ping->getResponse());
         $this->assertEquals([],$Ping->getResponseBody());
-        $this->assertEmpty($Ping->getResponse()->getBody()->getContents());
+        $this->assertEquals("[]",$Ping->getResponse()->getBody()->getContents());
     }
 
 

@@ -26,6 +26,7 @@ trait JsonHandlerTrait {
     {
         if (!$this->respContent) {
             $this->respContent = $response->getBody()->getContents();
+            $response->getBody()->rewind();
             $contentType = $response->getHeader('Content-Type');
             $contentType = is_array($contentType)?"":$contentType;
             if (strpos($contentType,"json") == FALSE){

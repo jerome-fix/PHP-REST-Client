@@ -276,6 +276,7 @@ abstract class AbstractOAuth2Controller extends AbstractBasicController {
     protected function parseResponseToToken(string $action, Response $response)
     {
         $tokenStr = $response->getBody()->getContents();
+        $response->getBody()->rewind();
         try {
             $token = json_decode($tokenStr);
             if ($token === null && !empty($tokenStr)){
